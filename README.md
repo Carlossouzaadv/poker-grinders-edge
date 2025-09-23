@@ -24,27 +24,68 @@ O Poker Grinder's Edge resolve 4 dores centrais dos jogadores de poker:
 - **Banco de Dados:** PostgreSQL com Prisma ORM
 - **Autenticação:** JWT
 
-## 📱 Funcionalidades Principais
+## 📱 Status de Desenvolvimento
 
-### Módulo 1: Gestor de Bankroll
-- Registro de sessões (Cash Games e Torneios)
-- Dashboard com estatísticas e gráficos
-- Regras de bankroll configuráveis
+### ✅ Concluído
 
-### Módulo 2: Assistente de Sessão
-- Consultor GTO/ICM visual e rápido
-- Registro de mãos importantes
-- Análise por screenshot/OCR
+#### Configuração Base
+- [x] Projeto React Native com TypeScript configurado
+- [x] Projeto NestJS backend com TypeScript configurado
+- [x] NativeWind (Tailwind CSS) para estilização
+- [x] Repositório Git inicializado com Conventional Commits
+- [x] Estrutura de pastas organizada e modular
 
-### Módulo 3: Laboratório de Estudo
-- Analisador de mãos salvas
-- MTT Trainer com gamificação
-- Sistema de ranking e pontuação
+#### Frontend Mobile
+- [x] React Navigation configurado (Stack + Bottom Tabs)
+- [x] Zustand stores para gerenciamento de estado
+- [x] Tela de Login com validação básica
+- [x] Dashboard principal com estatísticas mockadas
+- [x] Tela de Sessões com listagem
+- [x] Tipos TypeScript para toda aplicação
+- [x] Tema de cores personalizado para poker
 
-### Módulo 4: Marketplace de Coaches
-- Busca de coaches por especialidade
-- Sistema de avaliações
-- Pagamentos integrados e seguros
+#### Backend API
+- [x] Módulo de autenticação (/auth) com endpoints
+- [x] Módulo de sessões (/sessions) com CRUD completo
+- [x] DTOs com validação usando class-validator
+- [x] Estrutura modular seguindo padrões NestJS
+- [x] Endpoints básicos funcionais
+
+### 🚧 Em Desenvolvimento
+
+#### Módulo 1: Gestor de Bankroll
+- [ ] Tela de Nova Sessão (formulário completo)
+- [ ] Integração real com API backend
+- [ ] Gráficos e visualizações de dados
+- [ ] Filtros avançados para análise
+- [ ] Regras de bankroll configuráveis
+
+### 📋 Planejado
+
+#### Módulo 2: Assistente de Sessão
+- [ ] Consultor GTO/ICM visual e rápido
+- [ ] Registro de mãos importantes
+- [ ] Análise por screenshot/OCR
+- [ ] Integração com ranges GTO existentes
+
+#### Módulo 3: Laboratório de Estudo
+- [ ] Analisador de mãos salvas
+- [ ] MTT Trainer com gamificação
+- [ ] Sistema de ranking e pontuação
+- [ ] Leaderboards e progressão
+
+#### Módulo 4: Marketplace de Coaches
+- [ ] Sistema de busca de coaches
+- [ ] Perfis de coaches com avaliações
+- [ ] Sistema de pagamentos integrado
+- [ ] Chat/comunicação entre coach e aluno
+
+#### Infraestrutura
+- [ ] Banco PostgreSQL + Prisma ORM
+- [ ] Autenticação JWT real
+- [ ] Sistema de upload de imagens
+- [ ] Deployment em produção
+- [ ] Testes unitários e de integração
 
 ## 🚀 Executando o Projeto
 
