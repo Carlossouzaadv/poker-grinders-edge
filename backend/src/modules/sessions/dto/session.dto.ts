@@ -65,9 +65,9 @@ export class UpdateSessionDto {
   @IsOptional()
   cashOut?: number;
 
-  @IsDateString()
+  @IsString()
   @IsOptional()
-  endTime?: Date;
+  endTime?: string;
 
   @IsString()
   @IsOptional()

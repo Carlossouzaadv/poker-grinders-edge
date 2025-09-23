@@ -50,6 +50,16 @@ O Poker Grinder's Edge resolve 4 dores centrais dos jogadores de poker:
 - [x] DTOs com validação usando class-validator
 - [x] Estrutura modular seguindo padrões NestJS
 - [x] Endpoints básicos funcionais
+- [x] Interfaces TypeScript para Session
+- [x] Tipagem completa corrigida
+- [x] Backend compila sem erros
+
+#### Configuração de Ambiente
+- [x] Guia de configuração criado (SETUP_GUIDE.md)
+- [x] Problemas de ambiente identificados
+- [ ] Android Studio + SDK configurado
+- [ ] Java JDK 17+ instalado
+- [ ] Emulador Android configurado
 
 ### 🚧 Em Desenvolvimento
 
