@@ -1,0 +1,303 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  PLAYER
+  COACH
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+}
+
+enum GameType {
+  CASH
+  TOURNAMENT
+  SIT_AND_GO
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+}
+
+enum HandType {
+  PREFLOP
+  FLOP
+  TURN
+  RIVER
+}
+
+enum CoachStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  userType  UserType @default(PLAYER)
+  plan      SubscriptionPlan @default(FREE)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Free plan limits
+  sessionCount Int @default(0)
+  dailyTrainerHands Int @default(0)
+  lastTrainerReset DateTime @default(now())
+
+  // Relations
+  sessions Session[]
+  hands    Hand[]
+
+  // Coach specific
+  coachProfile CoachProfile?
+
+  // Student bookings
+  studentBookings Booking[] @relation("StudentBookings")
+
+  // Refresh tokens
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model Session {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Basic info
+  gameType    GameType
+  location    String?       // "PokerStars", "Clube Local", etc.
+  status      SessionStatus @default(ACTIVE)
+
+  // Timing
+  startTime   DateTime      @default(now())
+  endTime     DateTime?
+  duration    Int?          // in minutes
+
+  // Cash Game specific
+  buyIn       Decimal?      @db.Decimal(10, 2)
+  cashOut     Decimal?      @db.Decimal(10, 2)
+
+  // Tournament specific
+  tournamentName String?
+  rebuys      Int?          @default(0)
+  addOns      Int?          @default(0)
+  bounties    Decimal?      @db.Decimal(10, 2)
+  prize       Decimal?      @db.Decimal(10, 2)
+
+  // Calculated fields
+  result      Decimal?      @db.Decimal(10, 2) // profit/loss
+  roi         Float?        // return on investment %
+
+  // Notes and tags
+  notes       String?
+  tags        String[]
+
+  // Relations
+  hands       Hand[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("sessions")
+}
+
+model Hand {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId String?
+  session   Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  // Hand details
+  position      String?
+  myCards       String?   // "AhKd"
+  boardCards    String?   // "As2h7c"
+  stackSize     Int?      // in BBs
+  potSize       Decimal?  @db.Decimal(10, 2)
+
+  // Action taken
+  actionTaken   String?   // "FOLD", "CALL", "RAISE", "ALL_IN"
+  betAmount     Decimal?  @db.Decimal(10, 2)
+
+  // GTO Analysis
+  gtoAction     String?   // recommended action
+  gtoAnalysis   Json?     // detailed analysis
+  isOptimal     Boolean?  // was the action optimal
+
+  // OCR Data
+  screenshot    String?   // path to screenshot
+  ocrData       Json?     // raw OCR results
+
+  // Training
+  isTrainingHand Boolean  @default(false)
+  difficulty     Int?     // 1-5
+  scenario       String?  // "push_fold", "3bet_spot", etc.
+
+  // Meta
+  handType      HandType?
+  timestamp     DateTime  @default(now())
+  notes         String?
+  tags          String[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("hands")
+}
+
+model CoachProfile {
+  id              String      @id @default(cuid())
+  userId          String      @unique
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Verification
+  status          CoachStatus @default(PENDING)
+  verificationDoc String?     // link to proof document
+  socialLink      String?     // Twitter/LinkedIn
+  hendonMobLink   String?     // results proof
+
+  // Profile
+  bio             String?
+  specialties     String[]    // ["MTT", "CASH", "SNG"]
+  languages       String[]    // ["PT", "EN"]
+  experience      Int?        // years
+
+  // Pricing
+  hourlyRateUSD   Decimal?    @db.Decimal(8, 2)
+  hourlyRateBRL   Decimal?    @db.Decimal(8, 2)
+
+  // Stats
+  totalHours      Int         @default(0)
+  rating          Float?      @default(0)
+  reviewCount     Int         @default(0)
+
+  // Commission tier (15% -> 10% after 50h)
+  commissionRate  Float       @default(0.15)
+
+  // Relations
+  bookings        Booking[]   @relation("CoachBookings")
+  reviews         Review[]
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("coach_profiles")
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+
+  // Relations
+  studentId   String
+  student     User          @relation("StudentBookings", fields: [studentId], references: [id], onDelete: Cascade)
+  coachId     String
+  coach       CoachProfile  @relation("CoachBookings", fields: [coachId], references: [id], onDelete: Cascade)
+
+  // Booking details
+  status      BookingStatus @default(PENDING)
+  scheduledAt DateTime
+  duration    Int           // minutes
+
+  // Payment
+  amount      Decimal       @db.Decimal(8, 2)
+  currency    String        @default("USD")
+  commission  Decimal       @db.Decimal(8, 2)
+
+  // Session details
+  topic       String?
+  notes       String?
+
+  // Completion
+  completedAt DateTime?
+
+  // Relations
+  review      Review?
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("bookings")
+}
+
+model Review {
+  id        String       @id @default(cuid())
+
+  // Relations
+  bookingId String       @unique
+  booking   Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  coachId   String
+  coach     CoachProfile @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  // Review content
+  rating    Int          // 1-5 stars
+  comment   String?
+
+  // Meta
+  isPublic  Boolean      @default(true)
+
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("reviews")
+}
+
+model GTORange {
+  id          String @id @default(cuid())
+
+  // Scenario identification
+  position    String
+  stackBBs    String // "20-30", "50+", etc.
+  action      String // "RFI", "3BET", "CALL", etc.
+
+  // Range data
+  range       String // "22+,A2s+,K9s+,QTs+,JTs,T9s,98s,87s,76s,65s,54s,ATo+,KQo"
+  frequency   Float  // 0.0 to 1.0
+
+  // Metadata
+  scenario    String // "6max_cash", "mtt_20bb", etc.
+  source      String @default("custom") // "solver", "custom", "imported"
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([position, stackBBs, action, scenario])
+  @@map("gto_ranges")
+}

@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(java:*)",
+      "Read(//c/Users/carlo/Documents/Poker Grinder's Edge/Docs/**)",
+      "Bash(adb:*)",
+      "Bash(npx react-native:*)",
+      "Bash(emulator:*)",
+      "Bash(\"%ANDROID_HOME%\\emulator\\emulator\" -avd Medium_Phone_API_36.1)",
+      "Bash(timeout:*)",
+      "Bash(./gradlew:*)",
+      "Bash(C:UserscarloAppDataLocalAndroidSdkemulatoremulator -avd Medium_Phone_API_36.1)",
+      "Bash(.gradlew.bat app:installDebug)",
+      "Bash(rm:*)",
+      "Bash(npm install)",
+      "Bash(echo $JAVA_HOME)",
+      "Bash(echo $PATH)",
+      "Bash(export JAVA_HOME=\"C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.16.8-hotspot\")",
+      "Bash(powershell.exe:*)",
+      "Bash(taskkill:*)",
+      "Bash(export:*)",
+      "Bash(android/gradlew:*)",
+      "Bash(npx @react-native-community/cli init:*)",
+      "Read(//c/Users/carlo/Documents/Poker Grinder's Edge/**)",
+      "Bash(npm run test:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npm run:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

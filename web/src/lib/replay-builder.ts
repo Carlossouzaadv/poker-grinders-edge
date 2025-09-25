@@ -1,0 +1,362 @@
+import { HandHistory } from '@/types/poker';
+import { ReplayStep, ActionStep, StreetStep, ShowdownStep, ReplayState } from '@/types/replay';
+
+export class ReplayBuilder {
+  static buildReplayFromHand(handHistory: HandHistory): ReplayState {
+    const steps: ReplayStep[] = [];
+    let stepId = 0;
+
+    // Stacks iniciais dos jogadores
+    const initialStacks: Record<string, number> = {};
+    handHistory.players.forEach(player => {
+      initialStacks[player.name] = player.stack;
+    });
+
+    let currentStacks = { ...initialStacks };
+    let currentPot = handHistory.smallBlind + handHistory.bigBlind;
+
+    // Processar ações do preflop
+    for (const action of handHistory.preflop) {
+      let potAfter = currentPot;
+      let stacksAfter = { ...currentStacks };
+      let description = '';
+
+      switch (action.action) {
+        case 'fold':
+          description = `${action.player} folds`;
+          break;
+        case 'call':
+          if (action.amount) {
+            potAfter += action.amount;
+            stacksAfter[action.player] -= action.amount;
+            description = `${action.player} calls $${action.amount.toFixed(2)}`;
+          }
+          break;
+        case 'bet':
+          if (action.amount) {
+            potAfter += action.amount;
+            stacksAfter[action.player] -= action.amount;
+            description = `${action.player} bets $${action.amount.toFixed(2)}`;
+          }
+          break;
+        case 'raise':
+          if (action.amount) {
+            potAfter += action.amount;
+            stacksAfter[action.player] -= action.amount;
+            description = `${action.player} raises to $${action.amount.toFixed(2)}`;
+          }
+          break;
+        case 'check':
+          description = `${action.player} checks`;
+          break;
+        case 'all-in':
+          if (action.amount) {
+            potAfter += action.amount;
+            stacksAfter[action.player] = 0;
+            description = `${action.player} goes all-in for $${action.amount.toFixed(2)}`;
+          }
+          break;
+      }
+
+      const actionStep: ActionStep = {
+        id: stepId++,
+        type: 'ACTION',
+        timestamp: Date.now() + stepId * 1000,
+        player: action.player,
+        action: action.action,
+        amount: action.amount,
+        description,
+        potAfter,
+        stacksAfter
+      };
+
+      steps.push(actionStep);
+
+      // Update state for next action
+      currentPot = potAfter;
+      currentStacks = stacksAfter;
+    }
+
+    // Processar flop (se existir)
+    if (handHistory.flop) {
+      const streetStep: StreetStep = {
+        id: stepId++,
+        type: 'STREET',
+        timestamp: Date.now() + stepId * 1000,
+        street: 'flop',
+        cards: handHistory.flop.cards,
+        description: `Flop: ${handHistory.flop.cards.map(c => `${c.rank}${c.suit}`).join(' ')}`,
+        potBefore: currentPot
+      };
+      steps.push(streetStep);
+
+      // Processar ações do flop
+      for (const action of handHistory.flop.actions) {
+        const actionStep = this.createActionStep(action, stepId++, currentPot, currentStacks);
+        steps.push(actionStep);
+        currentPot = actionStep.potAfter;
+        currentStacks = actionStep.stacksAfter;
+      }
+    }
+
+    // Processar turn (se existir)
+    if (handHistory.turn) {
+      const streetStep: StreetStep = {
+        id: stepId++,
+        type: 'STREET',
+        timestamp: Date.now() + stepId * 1000,
+        street: 'turn',
+        cards: [handHistory.turn.card],
+        description: `Turn: ${handHistory.turn.card.rank}${handHistory.turn.card.suit}`,
+        potBefore: currentPot
+      };
+      steps.push(streetStep);
+
+      // Processar ações do turn
+      for (const action of handHistory.turn.actions) {
+        const actionStep = this.createActionStep(action, stepId++, currentPot, currentStacks);
+        steps.push(actionStep);
+        currentPot = actionStep.potAfter;
+        currentStacks = actionStep.stacksAfter;
+      }
+    }
+
+    // Processar river (se existir)
+    if (handHistory.river) {
+      const streetStep: StreetStep = {
+        id: stepId++,
+        type: 'STREET',
+        timestamp: Date.now() + stepId * 1000,
+        street: 'river',
+        cards: [handHistory.river.card],
+        description: `River: ${handHistory.river.card.rank}${handHistory.river.card.suit}`,
+        potBefore: currentPot
+      };
+      steps.push(streetStep);
+
+      // Processar ações do river
+      for (const action of handHistory.river.actions) {
+        const actionStep = this.createActionStep(action, stepId++, currentPot, currentStacks);
+        steps.push(actionStep);
+        currentPot = actionStep.potAfter;
+        currentStacks = actionStep.stacksAfter;
+      }
+    }
+
+    // Processar showdown (se existir)
+    if (handHistory.showdown) {
+      const showdownStep = {
+        id: stepId++,
+        type: 'SHOWDOWN' as const,
+        timestamp: Date.now() + stepId * 1000,
+        description: 'Showdown - Revealing hands',
+        showdownInfo: handHistory.showdown.info,
+        winners: handHistory.showdown.winners,
+        potWon: handHistory.showdown.potWon
+      };
+      steps.push(showdownStep);
+
+      console.log('🎯 ReplayBuilder: Showdown step adicionado:', showdownStep);
+    }
+
+    // Construir bookmarks das streets para navegação direta
+    const streetBookmarks = this.buildStreetBookmarks(steps);
+
+    // Construir estado inicial
+    const replayState: ReplayState = {
+      currentStep: -1, // Começa antes do primeiro step
+      totalSteps: steps.length,
+      isPlaying: false,
+      playbackSpeed: 1500,
+      steps,
+      streetBookmarks,
+
+      // Estado derivado inicial
+      currentStreet: 'preflop',
+      currentPot: handHistory.smallBlind + handHistory.bigBlind,
+      currentStacks: initialStacks,
+      activePlayer: null,
+      communityCards: [],
+      foldedPlayers: new Set()
+    };
+
+    return replayState;
+  }
+
+  static getStateAtStep(replayState: ReplayState, stepIndex: number): ReplayState {
+    if (stepIndex < 0 || stepIndex >= replayState.totalSteps) {
+      return replayState;
+    }
+
+    const step = replayState.steps[stepIndex];
+    const newState = { ...replayState, currentStep: stepIndex };
+
+    switch (step.type) {
+      case 'ACTION':
+        const actionStep = step as ActionStep;
+        newState.currentPot = actionStep.potAfter;
+        newState.currentStacks = { ...actionStep.stacksAfter };
+
+        // Determinar próximo jogador ativo
+        if (stepIndex + 1 < replayState.totalSteps) {
+          const nextStep = replayState.steps[stepIndex + 1];
+          if (nextStep.type === 'ACTION') {
+            newState.activePlayer = (nextStep as ActionStep).player;
+          }
+        } else {
+          newState.activePlayer = null;
+        }
+
+        // Atualizar foldedPlayers
+        if (actionStep.action === 'fold') {
+          newState.foldedPlayers = new Set(replayState.foldedPlayers);
+          newState.foldedPlayers.add(actionStep.player);
+        }
+        break;
+
+      case 'STREET':
+        const streetStep = step as StreetStep;
+        newState.currentStreet = streetStep.street;
+        newState.communityCards = [...streetStep.cards];
+        newState.activePlayer = null; // Reset para nova street
+        break;
+
+      case 'SHOWDOWN':
+        newState.currentStreet = 'showdown';
+        newState.activePlayer = null;
+        // Atualizar o pot com o valor ganho do showdown
+        const showdownStep = step as ShowdownStep;
+        if (showdownStep.potWon) {
+          newState.currentPot = showdownStep.potWon;
+        }
+        break;
+    }
+
+    return newState;
+  }
+
+  static canGoNext(replayState: ReplayState): boolean {
+    return replayState.currentStep < replayState.totalSteps - 1;
+  }
+
+  static canGoPrevious(replayState: ReplayState): boolean {
+    return replayState.currentStep > -1;
+  }
+
+  static getCurrentDescription(replayState: ReplayState): string {
+    if (replayState.currentStep < 0) {
+      return "Início da mão";
+    }
+    if (replayState.currentStep >= replayState.totalSteps) {
+      return "Fim da mão";
+    }
+
+    const step = replayState.steps[replayState.currentStep];
+    return step.description;
+  }
+
+  private static createActionStep(
+    action: any,
+    stepId: number,
+    currentPot: number,
+    currentStacks: Record<string, number>
+  ): ActionStep {
+    let potAfter = currentPot;
+    let stacksAfter = { ...currentStacks };
+    let description = '';
+
+    switch (action.action) {
+      case 'fold':
+        description = `${action.player} folds`;
+        break;
+      case 'call':
+        if (action.amount) {
+          potAfter += action.amount;
+          stacksAfter[action.player] -= action.amount;
+          description = `${action.player} calls $${action.amount.toFixed(2)}`;
+        }
+        break;
+      case 'bet':
+        if (action.amount) {
+          potAfter += action.amount;
+          stacksAfter[action.player] -= action.amount;
+          description = `${action.player} bets $${action.amount.toFixed(2)}`;
+        }
+        break;
+      case 'raise':
+        if (action.amount) {
+          potAfter += action.amount;
+          stacksAfter[action.player] -= action.amount;
+          description = `${action.player} raises to $${action.amount.toFixed(2)}`;
+        }
+        break;
+      case 'check':
+        description = `${action.player} checks`;
+        break;
+      case 'all-in':
+        if (action.amount) {
+          potAfter += action.amount;
+          stacksAfter[action.player] = 0;
+          description = `${action.player} goes all-in for $${action.amount.toFixed(2)}`;
+        }
+        break;
+    }
+
+    return {
+      id: stepId,
+      type: 'ACTION',
+      timestamp: Date.now() + stepId * 1000,
+      player: action.player,
+      action: action.action,
+      amount: action.amount,
+      description,
+      potAfter,
+      stacksAfter
+    };
+  }
+
+  static buildStreetBookmarks(steps: ReplayStep[]): Record<string, number> {
+    const bookmarks: Record<string, number> = {
+      preflop: 0 // Preflop sempre começa no índice 0
+    };
+
+    for (let i = 0; i < steps.length; i++) {
+      const step = steps[i];
+      if (step.type === 'STREET') {
+        const streetStep = step as StreetStep;
+        bookmarks[streetStep.street] = i;
+        console.log(`🔖 Bookmark criado: ${streetStep.street} -> índice ${i}`);
+      }
+    }
+
+    console.log('🔖 Street bookmarks completos:', bookmarks);
+    return bookmarks;
+  }
+
+  static jumpToStreet(replayState: ReplayState, street: 'preflop' | 'flop' | 'turn' | 'river' | 'showdown'): ReplayState {
+    if (!replayState.streetBookmarks) {
+      console.warn('⚠️ Street bookmarks não disponíveis');
+      return replayState;
+    }
+
+    let targetIndex: number;
+
+    if (street === 'preflop') {
+      targetIndex = 0; // Primeira ação do preflop
+    } else if (street === 'showdown') {
+      // Procurar o step de showdown
+      const showdownStep = replayState.steps.findIndex(step => step.type === 'SHOWDOWN');
+      targetIndex = showdownStep !== -1 ? showdownStep : replayState.totalSteps - 1;
+    } else {
+      const bookmarkIndex = replayState.streetBookmarks[street];
+      if (bookmarkIndex === undefined) {
+        console.warn(`⚠️ Street '${street}' não encontrada nos bookmarks`);
+        return replayState;
+      }
+      targetIndex = bookmarkIndex;
+    }
+
+    console.log(`🎯 Saltando para street '${street}' no índice ${targetIndex}`);
+    return this.getStateAtStep(replayState, targetIndex);
+  }
+}

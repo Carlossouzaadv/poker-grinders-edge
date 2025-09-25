@@ -6,10 +6,33 @@ Este guia irá configurar seu ambiente Windows para desenvolvimento React Native
 - [x] Node.js instalado
 - [x] npm instalado
 - [x] Projeto React Native criado
-- [ ] Java JDK 17-20 (atual: Java 8)
-- [ ] Android Studio
-- [ ] Android SDK
-- [ ] Emulador Android
+- [x] Android Studio instalado
+- [x] Android SDK configurado
+- [x] Variáveis de ambiente configuradas
+- [x] Emulador Android criado (Medium_Phone_API_36.1)
+- [❌] **Java JDK 17-20** (atual: **Java 25** - incompatível!)
+
+## 🚨 **PRÓXIMO PASSO OBRIGATÓRIO**
+
+**Java 25 não é compatível com React Native!** É necessário fazer downgrade para JDK 17.
+
+### ➡️ AÇÃO NECESSÁRIA: Instalar Java JDK 17
+
+1. **Baixar JDK 17**: https://adoptium.net/temurin/releases/
+   - Selecione **OpenJDK 17 LTS**
+   - Windows x64 MSI
+
+2. **Durante a instalação**:
+   - ✅ Marque "Set JAVA_HOME variable"
+   - ✅ Marque "JavaSoft (Oracle) registry keys"
+
+3. **Após instalação**:
+   - Reiniciar terminal
+   - Verificar: `java -version` (deve mostrar 17.x.x)
+
+4. **Se JAVA_HOME não foi configurado automaticamente**:
+   - Painel de Controle → Sistema → Variáveis de Ambiente
+   - JAVA_HOME = `C:\Program Files\Eclipse Adoptium\jdk-17.x.x-hotspot`
 
 ## 🔧 Passos para Configuração
 

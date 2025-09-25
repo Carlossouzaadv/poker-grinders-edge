@@ -19,5 +19,14 @@ export class RegisterDto {
 
   @IsString()
   @MinLength(2)
-  name: string;
+  firstName: string;
+
+  @IsString()
+  @MinLength(2)
+  lastName: string;
+}
+
+export class RefreshTokenDto {
+  @IsString()
+  refreshToken: string;
 }

@@ -1,5 +1,37 @@
 # Poker Grinder's Edge
 
+## Atualização v2
+Um ecossistema integrado para jogadores e times de poker, composto por um aplicativo móvel (B2C) e uma plataforma de gestão web (B2B SaaS).
+
+## 🎯 Objetivo
+
+O ecossistema Poker Grinder's Edge resolve as dores de duas pontas do mercado:
+
+1.  **Para o Jogador:** Oferece um app completo com Gestão de Bankroll, Consultor GTO, Laboratório de Estudo e Marketplace de Coaches.
+2.  **Para Times/Coaches:** Oferece uma plataforma web ("Team Pro") para gestão de atletas, análise de dados em massa e otimização do coaching.
+
+## 🏗️ Arquitetura
+
+### Frontend (Mobile App)
+- **Framework:** React Native com TypeScript
+
+### Frontend (Plataforma Web)
+- **Framework:** Next.js (React) com TypeScript
+
+### Backend (API Unificada)
+- **Framework:** NestJS com TypeScript
+- **Banco de Dados:** PostgreSQL com Prisma ORM
+
+## 🚀 Status de Desenvolvimento: Fase 0 - Beta
+
+Atualmente, estamos focados no desenvolvimento da **Fase 0**, uma isca de leads estratégica.
+
+* **Funcionalidade Foco:** Hand Replayer (Versão Beta Web).
+* **Objetivo:** Atrair usuários, validar o design e construir uma lista de espera para o lançamento do ecossistema completo.
+
+(O restante do README.md, como estrutura de pastas e guias de contribuição, permanece o mesmo)
+
+## V1:
 Um aplicativo móvel completo para jogadores de poker que oferece gestão de bankroll, consultor GTO, análise de mãos e marketplace de coaches.
 
 ## 🎯 Objetivo
