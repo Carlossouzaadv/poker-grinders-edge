@@ -322,13 +322,13 @@ const PokerTable: React.FC<PokerTableProps> = ({
             `
           }}
         >
-          {/* Logo do Poker Grinder's Edge - mais visível */}
+          {/* Logo do Poker Grinder's Edge - MUITO MAIS VISÍVEL */}
           <div className="replayer-table__logo absolute inset-0 flex items-center justify-center pointer-events-none">
             <div
               className="text-center select-none"
               style={{
-                opacity: 0.35, // Aumentada de 0.15 para 0.35
-                transform: 'rotate(-3deg)', // Rotação mais sutil
+                opacity: 0.85, // AUMENTADO SIGNIFICATIVAMENTE para visibilidade
+                transform: 'rotate(-2deg)', // Rotação ainda mais sutil
                 zIndex: 1
               }}
             >
@@ -338,8 +338,11 @@ const PokerTable: React.FC<PokerTableProps> = ({
                 <img
                   src="/assets/images/poker-grinders-edge-logo.png"
                   alt="Poker Grinder's Edge"
-                  className="max-w-[180px] max-h-[100px] opacity-80"
-                  style={{ filter: 'drop-shadow(2px 2px 4px rgba(0,0,0,0.5))' }}
+                  className="max-w-[220px] max-h-[120px]" // TAMANHO MAIOR
+                  style={{
+                    filter: 'drop-shadow(2px 2px 6px rgba(0,0,0,0.8)) brightness(1.1) contrast(1.1)', // SOMBRA MAIS FORTE E MAIOR CONTRASTE
+                    opacity: 1 // OPACIDADE MÁXIMA NA IMAGEM
+                  }}
                   onError={(e) => {
                     // Fallback para texto se imagem não carregar
                     e.currentTarget.style.display = 'none';
@@ -350,26 +353,29 @@ const PokerTable: React.FC<PokerTableProps> = ({
                   }}
                 />
 
-                {/* Fallback text logo */}
+                {/* Fallback text logo - MAIS VISÍVEL */}
                 <div className="fallback-logo hidden">
-                  <div className="text-white font-bold text-3xl mb-1" style={{
+                  <div className="text-white font-bold text-4xl mb-1" style={{
                     fontFamily: 'Bebas Neue, Arial Black, sans-serif',
-                    letterSpacing: '2px',
-                    textShadow: '2px 2px 4px rgba(0,0,0,0.7)'
+                    letterSpacing: '3px',
+                    textShadow: '3px 3px 6px rgba(0,0,0,0.9)', // SOMBRA MAIS FORTE
+                    transform: 'scale(1.1)' // LIGEIRAMENTE MAIOR
                   }}>
                     POKER
                   </div>
-                  <div className="text-green-400 font-bold text-xl mb-1" style={{
+                  <div className="text-green-400 font-bold text-2xl mb-1" style={{
                     fontFamily: 'Bebas Neue, Arial Black, sans-serif',
-                    letterSpacing: '2px',
-                    textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
+                    letterSpacing: '3px',
+                    textShadow: '2px 2px 4px rgba(0,0,0,0.9)', // SOMBRA MAIS FORTE
+                    transform: 'scale(1.1)' // LIGEIRAMENTE MAIOR
                   }}>
                     GRINDER'S
                   </div>
-                  <div className="text-yellow-400 font-bold text-2xl" style={{
+                  <div className="text-yellow-400 font-bold text-3xl" style={{
                     fontFamily: 'Bebas Neue, Arial Black, sans-serif',
-                    letterSpacing: '1px',
-                    textShadow: '2px 2px 4px rgba(0,0,0,0.7)'
+                    letterSpacing: '2px',
+                    textShadow: '2px 2px 4px rgba(0,0,0,0.9)', // SOMBRA MAIS FORTE
+                    transform: 'scale(1.1)' // LIGEIRAMENTE MAIOR
                   }}>
                     EDGE
                   </div>
@@ -540,10 +546,8 @@ const PokerTable: React.FC<PokerTableProps> = ({
             return (
               <div key={`action-${player.name}`} style={actionStyle}>
                 <div className="relative">
-                  {/* Linha conectora sutil do jogador para a aposta */}
-                  <div className="absolute w-px h-8 bg-white/10 -top-8 left-1/2 transform -translate-x-1/2"></div>
-
-                  <ChipStack valor={betAmount} size="small" showLabel={true} />
+                  {/* Professional chip display without connecting lines like PokerStars */}
+                  <ChipStack valor={betAmount} size="medium" showLabel={true} />
 
                   {/* Nome do jogador na aposta */}
                   <div className="text-white text-xs text-center mt-1 bg-black/40 rounded px-1">

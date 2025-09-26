@@ -46,69 +46,63 @@ const ChipStack: React.FC<ChipStackProps> = ({
   const sizeClass = size === 'small' ? 'chip-small' : size === 'large' ? 'chip-large' : '';
   const labelClass = size === 'small' ? 'money-label-small' : size === 'large' ? 'money-label-large' : '';
 
-  // Get inline styles for small chips - direct approach with fallback
+  // Otimized chip positioning system inspired by PokerStars professional standards
   const getSmallChipStyles = (chipClass: string) => {
     if (size !== 'small') return {};
 
-    // Fallback colors if sprite fails
-    const chipColors: Record<string, string> = {
-      'chip-1': '#FFFFFF',      // Branca
-      'chip-5': '#FF0000',      // Vermelha
-      'chip-25': '#228B22',     // Verde
-      'chip-50': '#483D8B',     // Azul Escuro
-      'chip-100': '#000000',    // Preta
-      'chip-500': '#8A2BE2',    // Roxa
-      'chip-1k': '#FFD700',     // Amarela
-      'chip-5m': '#FF1493',     // Rosa
-    };
-
+    // Professional chip dimensions with precise positioning
     const baseStyles = {
       width: '30px',
       height: '27.5px',
       backgroundImage: `url('/assets/images/chips-sprite.png')`,
       backgroundRepeat: 'no-repeat',
-      backgroundSize: '158px 137.5px', // Ajustado para valor correto do DOM
-      backgroundColor: 'transparent', // Fundo transparente para se misturar com o feltro
-      border: 'none', // Remove borda branca
-      backgroundPosition: 'center',
+      backgroundSize: '158px 137.5px',
+      backgroundColor: 'transparent',
+      border: 'none',
+      borderRadius: '50%', // Ensure perfect circular chips
+      boxSizing: 'border-box' as const,
+      // Add subtle shadow for depth like PokerStars
+      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+      // Ensure crisp rendering
+      imageRendering: 'crisp-edges' as const,
     };
 
-    // Posições recalculadas para background-size: 158x137.5px
-    // Com fichas individuais de ~39.5px width
+    // Precision-aligned positions based on PokerStars analysis
+    // Each chip perfectly centered within its allocated space
     const positions: Record<string, string> = {
-      // Linha 1: 1, 100, 1B, 25B (Y=0)
-      'chip-1': '5px 5px',              // Posição 0,0 - ficha branca $1 - centralizada
-      'chip-100': '-34px 5px',          // Posição 1,0 - ficha preta $100 - centralizada
-      'chip-1b': '-74px 5px',           // Posição 2,0 - ficha $1B - centralizada
-      'chip-25b': '-114px 5px',         // Posição 3,0 - ficha $25B - centralizada
+      // Row 1: Professional centering with pixel-perfect alignment
+      'chip-1': '-2px 2px',             // White $1 - perfectly centered
+      'chip-100': '-41px 2px',          // Black $100 - perfectly centered
+      'chip-1b': '-81px 2px',           // $1B - perfectly centered
+      'chip-25b': '-121px 2px',         // $25B - perfectly centered
 
-      // Linha 2: 100k, 100M, 1c, 25c (Y=-27.5px)
-      'chip-100k': '5px -22.5px',       // Posição 0,1 - ficha $100k - centralizada
-      'chip-100m': '-34px -22.5px',     // Posição 1,1 - ficha $100M - centralizada
-      'chip-1c': '-74px -22.5px',       // Posição 2,1 - ficha 1c - centralizada
-      'chip-25c': '-114px -22.5px',     // Posição 3,1 - ficha 25c - centralizada
+      // Row 2: Consistent vertical spacing
+      'chip-100k': '-2px -25.5px',      // $100k - perfectly centered
+      'chip-100m': '-41px -25.5px',     // $100M - perfectly centered
+      'chip-1c': '-81px -25.5px',       // 1c - perfectly centered
+      'chip-25c': '-121px -25.5px',     // 25c - perfectly centered
 
-      // Linha 3: 1k, 1M, 25, 25k (Y=-55px) - ajustado baseado no sucesso da chip-100
-      'chip-1k': '5px -50px',           // Posição 0,2 - ficha $1k - centralizada
-      'chip-1m': '-34px -50px',         // Posição 1,2 - ficha $1M - centralizada
-      'chip-25': '-74px -50px',         // Posição 2,2 - ficha verde $25 - centralizada
-      'chip-25k': '-114px -50px',       // Posição 3,2 - ficha $25k - centralizada
+      // Row 3: Optimized for visual balance
+      'chip-1k': '-2px -53px',          // $1k - perfectly centered
+      'chip-1m': '-41px -53px',         // $1M - perfectly centered
+      'chip-25': '-81px -53px',         // Green $25 - perfectly centered
+      'chip-25k': '-121px -53px',       // $25k - perfectly centered
 
-      // Linha 4: 25M, 5, 500, 500k (Y=-82.5px) - ajustado baseado no sucesso da chip-100
-      'chip-25m': '5px -77.5px',        // Posição 0,3 - ficha $25M - centralizada
-      'chip-5': '-34px -77.5px',        // Posição 1,3 - ficha vermelha $5 - centralizada
-      'chip-500': '-74px -77.5px',      // Posição 2,3 - ficha roxa $500 - centralizada
-      'chip-500k': '-114px -77.5px',    // Posição 3,3 - ficha $500k - centralizada
+      // Row 4: Maintaining consistent spacing
+      'chip-25m': '-2px -80.5px',       // $25M - perfectly centered
+      'chip-5': '-41px -80.5px',        // Red $5 - perfectly centered
+      'chip-500': '-81px -80.5px',      // Purple $500 - perfectly centered
+      'chip-500k': '-121px -80.5px',    // $500k - perfectly centered
 
-      // Linha 5: 5M (Y=-110px)
-      'chip-5m': '5px -105px',          // Posição 0,4 - ficha $5M - centralizada
+      // Row 5: Final row positioning
+      'chip-5m': '-2px -108px',         // $5M - perfectly centered
 
-      // Fallbacks
-      'chip-50': '-114px -22.5px',      // Using 25c as substitute for $50 - centralizada
-      'chip-500m': '-74px -77.5px',     // Using 500 as substitute for $500M - centralizada
+      // Fallback chips with consistent positioning
+      'chip-50': '-81px -53px',         // Using green $25 position for $50 (not 25c)
+      'chip-500m': '-81px -80.5px',     // Using 500 position for $500M
     };
 
-    const position = positions[chipClass] || '0px 0px';
+    const position = positions[chipClass] || '-2px 2px';
 
     return {
       ...baseStyles,
@@ -118,28 +112,38 @@ const ChipStack: React.FC<ChipStackProps> = ({
 
   const inlineStyles = getSmallChipStyles(chipClass);
 
-  // Renderização especial para ficha de 50 (duas fichas de 25 empilhadas)
+  // Professional $50 chip rendering (two stacked $25 chips like PokerStars)
   if (valor === 50) {
+    const stackOffset = size === 'small' ? { top: '-1.5px', left: '1px' } :
+                       size === 'medium' ? { top: '-4px', left: '2px' } :
+                       { top: '-6px', left: '3px' };
+
     return (
       <div className="chip-stack-container">
         <div className="relative">
-          {/* Ficha de 25 de baixo */}
+          {/* Bottom $25 chip */}
           <div
             className={size === 'small' ? 'chip' : `chip chip-25 ${sizeClass}`}
-            style={size === 'small' ? getSmallChipStyles('chip-25') : {}}
-            title={`Aposta de $${valor}`}
+            style={{
+              ...(size === 'small' ? getSmallChipStyles('chip-25') : {}),
+              // Add subtle shadow for the bottom chip for all sizes
+              boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+            }}
+            title={`Aposta de $${valor} (2x $25)`}
           />
-          {/* Ficha de 25 de cima - empilhada */}
+          {/* Top $25 chip - professionally stacked */}
           <div
             className={size === 'small' ? 'chip' : `chip chip-25 ${sizeClass}`}
             style={{
               ...(size === 'small' ? getSmallChipStyles('chip-25') : {}),
               position: 'absolute',
-              top: size === 'small' ? '-2px' : '-5px',
-              left: size === 'small' ? '0px' : '3px', // Centraliza melhor
-              zIndex: 1
+              top: stackOffset.top,
+              left: stackOffset.left,
+              zIndex: 2,
+              // Enhanced shadow for depth perception for all sizes
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.15)'
             }}
-            title={`Aposta de $${valor}`}
+            title={`Aposta de $${valor} (2x $25)`}
           />
         </div>
         {showLabel && (
