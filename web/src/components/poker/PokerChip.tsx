@@ -47,6 +47,62 @@ const PokerChip: React.FC<PokerChipProps> = ({
   const chipPosition = getChipSpritePosition(valor);
   const sizeStyles = getSizeClasses();
 
+  // Renderização especial para ficha de 50 (duas fichas de 25 empilhadas)
+  if (valor === 50) {
+    const chip25Position = getChipSpritePosition(25);
+
+    return (
+      <div className="relative flex flex-col items-center">
+        <div className="relative">
+          {/* Ficha de 25 de baixo */}
+          <div
+            className="bg-no-repeat cursor-pointer transition-transform hover:scale-110 rounded-full"
+            style={{
+              backgroundImage: "url('/assets/images/poker chips.png')",
+              backgroundPosition: chip25Position,
+              backgroundSize: '500% 200%',
+              ...sizeStyles,
+            }}
+            title={`$${valor}`}
+          >
+            <div className="absolute inset-0 rounded-full bg-black/10" />
+          </div>
+
+          {/* Ficha de 25 de cima - empilhada */}
+          <div
+            className="bg-no-repeat cursor-pointer transition-transform hover:scale-110 rounded-full absolute"
+            style={{
+              backgroundImage: "url('/assets/images/poker chips.png')",
+              backgroundPosition: chip25Position,
+              backgroundSize: '500% 200%',
+              ...sizeStyles,
+              top: size === 'small' ? '-3px' : '-5px',
+              left: size === 'small' ? '2px' : '3px',
+              zIndex: 1
+            }}
+            title={`$${valor}`}
+          >
+            <div className="absolute inset-0 rounded-full bg-black/10" />
+          </div>
+        </div>
+
+        {/* Label do valor */}
+        {showLabel && (
+          <div
+            className="mt-1 px-2 py-0.5 bg-black/80 text-white text-xs font-bold rounded-full shadow-lg border border-gray-600"
+            style={{
+              fontSize: size === 'small' ? '10px' : '12px',
+              minWidth: size === 'small' ? '20px' : '30px',
+              textAlign: 'center'
+            }}
+          >
+            ${formatarValor(valor)}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex flex-col items-center">
       {/* Ficha usando sprite */}

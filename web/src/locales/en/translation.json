@@ -1,0 +1,228 @@
+{
+  "hero": {
+    "title": "Analyze Your Poker Hands.",
+    "titleFree": "For Free!",
+    "subtitle": "Transform your hand history into a visual and educational experience.",
+    "subtitleHighlight": "The study tool that grinders were missing.",
+    "badge": "Completely FREE",
+    "badgeDetails": "• No limits • No registration",
+    "inputLabel": "Paste a single hand history for analysis",
+    "instructionTitle": "Instruction:",
+    "instructionText": "Paste the history of only <strong>one hand</strong> from PokerStars, GGPoker, etc. Our replayer has been optimized for detailed analysis of specific hands.",
+    "placeholder": "Paste the text of a single hand history here...\n\nExample:\nPokerStars Hand #123456789: Hold'em No Limit ($0.25/$0.50 USD)\nTable 'Table Name' 6-max Seat #1 is the button\n...",
+    "errorTitle": "Error:",
+    "analyzeButton": "🎯 Analyze Hand",
+    "exampleButton": "⚡ Test with Example",
+    "newHandButton": "Analyze New Hand",
+    "gtoAnalysis": {
+      "title": "GTO Analysis of Your Hand",
+      "subtitle": "Discover if your decisions were mathematically correct with our complete GTO analysis",
+      "unlock": "🚀 Unlock Complete GTO Analysis"
+    }
+  },
+  "replayer": {
+    "streetNavigation": "Street Navigation",
+    "controls": "Controls",
+    "previousSnapshot": "Previous snapshot",
+    "nextSnapshot": "Next snapshot",
+    "play": "Play",
+    "pause": "Pause",
+    "snapshotProgress": "Snapshot {{current}} of {{total}}",
+    "street": "Street: {{street}}",
+    "pot": "Pot: ${{amount}}",
+    "winner": "🏆 WINNER",
+    "action": "🎬 {{description}}",
+    "waitingHandStart": "Waiting for hand to start"
+  },
+  "streets": {
+    "preflop": "Pre-flop",
+    "flop": "Flop",
+    "turn": "Turn",
+    "river": "River",
+    "showdown": "Showdown"
+  },
+  "table": {
+    "waitingFlop": "Waiting for the flop...",
+    "revealingCards": "Revealing the cards...",
+    "sb": "SB: ${{amount}}",
+    "bb": "BB: ${{amount}}",
+    "ante": "Ante: ${{amount}}",
+    "handNumber": "#{{number}}",
+    "mainPot": "Main Pot",
+    "sidePot": "Side Pot {{number}}"
+  },
+  "actions": {
+    "fold": "{{player}} folds",
+    "call": "{{player}} calls ${{amount}}",
+    "bet": "{{player}} bets ${{amount}}",
+    "raise": "{{player}} raises to ${{amount}}",
+    "check": "{{player}} checks",
+    "allIn": "{{player}} goes all-in for ${{amount}}"
+  },
+  "errors": {
+    "enterHandHistory": "Please enter the hand history",
+    "unknownError": "Unknown error while processing the hand",
+    "criticalError": "Critical error: {{error}}",
+    "streetNotAvailable": "{{street}} not available in this hand",
+    "goToStreet": "Go to {{street}}"
+  },
+  "howItWorks": {
+    "title": "How Does It Work?",
+    "subtitle": "Transform your hand history into a visual and educational experience in just 3 simple steps",
+    "steps": {
+      "paste": {
+        "title": "PASTE",
+        "description": "Copy your hand history from PokerStars or GGPoker and paste it in the field above.",
+        "details": "Full support for the most popular formats"
+      },
+      "visualize": {
+        "title": "VISUALIZE",
+        "description": "Watch your gameplay interactively, step by step, from pre-flop to river.",
+        "details": "Realistic table with animations and intuitive controls"
+      },
+      "evolve": {
+        "title": "EVOLVE",
+        "description": "Use the tool to find your mistakes, study scenarios and improve your game.",
+        "details": "Professional analysis at the click of a button"
+      }
+    },
+    "cta": {
+      "title": "Ready to get started?",
+      "description": "Scroll up and paste your first hand for analysis. It's free and instant!",
+      "button": "⬆️ Back to Replayer"
+    }
+  },
+  "future": {
+    "title": "The Replayer is just the ",
+    "titleHighlight": "Beginning",
+    "subtitle": "The Hand Replayer is just a free sample of the complete ecosystem we're building.",
+    "tagline": "Poker Grinder's Edge will be your command center for evolution in poker.",
+    "mockups": {
+      "title": "See it to Believe it",
+      "subtitle": "These are the real screens you'll have soon. It's not just a promise - it's the future of poker."
+    },
+    "features": {
+      "bankroll": {
+        "title": "Bankroll Manager",
+        "description": "Complete financial control with automatic rules and ROI analysis"
+      },
+      "gto": {
+        "title": "Pocket GTO Advisor",
+        "description": "Mathematically perfect decisions in the palm of your hand, optimized for mobile"
+      },
+      "lab": {
+        "title": "AI Study Laboratory",
+        "description": "Intelligent analysis of your hands with personalized feedback and gamified training"
+      },
+      "teamPro": {
+        "title": "Team Pro Platform",
+        "description": "Professional athlete management with aggregated dashboard and mass analysis"
+      },
+      "marketplace": {
+        "title": "Coaches Marketplace",
+        "description": "Connect with qualified trainers and accelerate your poker evolution"
+      },
+      "ecosystem": {
+        "title": "Complete Ecosystem",
+        "description": "All tools integrated into a single platform. From individual study to professional team management.",
+        "badge": "Premium Experience"
+      }
+    },
+    "badges": {
+      "comingSoon": "Coming soon"
+    },
+    "cta": {
+      "title": "Be the First to Get Access",
+      "description": "Leave your email and be the first to know when we launch the complete Poker Grinder's Edge. Get VIP access to the revolution in poker study.",
+      "button": "I Want to Be the First to Know!",
+      "benefits": {
+        "earlyAccess": "Early access",
+        "discount": "Special discount",
+        "exclusiveContent": "Exclusive content"
+      },
+      "trust": {
+        "secure": "Secure data",
+        "noSpam": "No spam",
+        "important": "Only important news"
+      }
+    },
+    "mockupLabels": {
+      "dashboard": {
+        "title": "Pro Dashboard",
+        "subtitle": "Complete control of your bankroll"
+      },
+      "gto": {
+        "title": "GTO Advisor",
+        "subtitle": "Perfect decisions in your hand"
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "subtitle": "The best coaches in Brazil"
+      }
+    }
+  },
+  "mockups": {
+    "dashboard": {
+      "month": "September 2024",
+      "totalProfit": "Total Profit",
+      "profitGrowth": "↗ +12.5% this month",
+      "averageRoi": "Average ROI",
+      "tournaments": "142 tournaments",
+      "evolution": "Evolution (30 days)"
+    },
+    "gto": {
+      "title": "GTO Advisor",
+      "gameType": "6-Max Cash Game",
+      "scenario": "Scenario",
+      "scenarioDetail": "BTN vs BB, 100bb",
+      "facing": "Facing 3-bet to 12bb",
+      "recommendedRange": "Recommended Range:",
+      "callFourBet": "Call/4-bet (32%)",
+      "call": "Call (28%)",
+      "fold": "Fold (40%)"
+    },
+    "marketplace": {
+      "title": "Coaches",
+      "subtitle": "Find your mentor",
+      "coaches": {
+        "rafael": {
+          "name": "Rafael Silva",
+          "specialty": "MTT Specialist"
+        },
+        "marina": {
+          "name": "Marina Costa",
+          "specialty": "Cash Game Pro"
+        },
+        "thiago": {
+          "name": "Thiago Santos",
+          "specialty": "SNG Expert"
+        }
+      },
+      "lessons": "lessons"
+    }
+  },
+  "leadCapture": {
+    "title": "The Replayer is just the Beginning",
+    "subtitle": "Be the first to have access to the complete Poker Grinder's Edge.",
+    "description": "The revolution in poker study is coming!",
+    "features": {
+      "bankroll": "Complete Bankroll Management to never be in the dark again",
+      "gto": "Pocket GTO Advisor to make the right decisions",
+      "lab": "AI Study Laboratory to fix your leaks",
+      "coaches": "Direct access to the best Coaches in the market"
+    },
+    "form": {
+      "namePlaceholder": "Your name (optional)",
+      "emailPlaceholder": "Your best email *",
+      "submitButton": "🚀 I Want Early Access!",
+      "submittingButton": "⏳ Sending...",
+      "laterButton": "Maybe later"
+    },
+    "trust": "🔒 Your data is safe. No spam, only important updates.",
+    "success": {
+      "title": "Thank you!",
+      "message": "You've been added to our VIP list. You'll be the first to know about the launch!",
+      "closing": "Closing in a few seconds..."
+    }
+  }
+}

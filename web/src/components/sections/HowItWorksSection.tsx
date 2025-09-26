@@ -1,27 +1,30 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const HowItWorksSection: React.FC = () => {
+  const { t } = useTranslation();
+
   const steps = [
     {
       number: '1',
       icon: '📝',
-      title: 'COLE',
-      description: 'Copie o histórico da sua mão do PokerStars ou GGPoker e cole no campo acima.',
-      details: 'Suporte completo para os formatos mais populares'
+      title: t('howItWorks.steps.paste.title'),
+      description: t('howItWorks.steps.paste.description'),
+      details: t('howItWorks.steps.paste.details')
     },
     {
       number: '2',
       icon: '👁️',
-      title: 'VISUALIZE',
-      description: 'Assista à sua jogada de forma interativa, passo a passo, do pré-flop ao river.',
-      details: 'Mesa realista com animações e controles intuitivos'
+      title: t('howItWorks.steps.visualize.title'),
+      description: t('howItWorks.steps.visualize.description'),
+      details: t('howItWorks.steps.visualize.details')
     },
     {
       number: '3',
       icon: '📈',
-      title: 'EVOLUA',
-      description: 'Use a ferramenta para encontrar seus erros, estudar cenários e aprimorar seu jogo.',
-      details: 'Análise profissional ao alcance de um clique'
+      title: t('howItWorks.steps.evolve.title'),
+      description: t('howItWorks.steps.evolve.description'),
+      details: t('howItWorks.steps.evolve.details')
     }
   ];
 
@@ -32,10 +35,10 @@ const HowItWorksSection: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Como Funciona?
+            {t('howItWorks.title')}
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Transforme seu histórico de mãos em uma experiência visual e educativa em apenas 3 passos simples
+            {t('howItWorks.subtitle')}
           </p>
         </div>
 
@@ -87,17 +90,17 @@ const HowItWorksSection: React.FC = () => {
         <div className="text-center">
           <div className="bg-gradient-to-r from-green-900/30 to-blue-900/30 border border-green-500/20 rounded-2xl p-8 max-w-4xl mx-auto">
             <h3 className="text-3xl font-bold text-white mb-4">
-              Pronto para começar?
+              {t('howItWorks.cta.title')}
             </h3>
             <p className="text-gray-300 text-lg mb-6">
-              Scroll para cima e cole sua primeira mão para análise. É gratuito e instantâneo!
+              {t('howItWorks.cta.description')}
             </p>
 
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-xl"
             >
-              ⬆️ Voltar ao Replayer
+              {t('howItWorks.cta.button')}
             </button>
           </div>
         </div>

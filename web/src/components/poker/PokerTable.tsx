@@ -1,9 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { HandHistory, Card as CardType, Snapshot } from '@/types/poker';
 import PlayerSeat from './PlayerSeat';
 import Card from './Card';
 import ChipStack from './ChipStack';
 import DealerButton from './DealerButton';
+import { PokerHandEvaluator } from '@/lib/poker-hand-evaluator';
 
 interface PokerTableProps {
   handHistory: HandHistory;
@@ -16,6 +18,8 @@ const PokerTable: React.FC<PokerTableProps> = ({
   snapshot,
   showAllCards = false
 }) => {
+  const { t } = useTranslation();
+
   // Add null check
   if (!handHistory || !snapshot) {
     return <div>Loading...</div>;
@@ -109,16 +113,16 @@ const PokerTable: React.FC<PokerTableProps> = ({
         ];
         return { position: 'absolute' as const, ...pos7[visualSeat - 1] };
 
-      case 8: // 8-max
+      case 8: // 8-max - Final positioning adjustments
         const pos8 = [
           { left: '50%', bottom: '3%', transform: 'translateX(-50%)' }, // Hero
-          { left: '8%', bottom: '22%', transform: 'none' },             // Bottom Left
-          { left: '8%', bottom: '45%', transform: 'none' },             // Left Mid-Low
-          { left: '8%', top: '30%', transform: 'none' },                // Left Mid-High
+          { left: '15%', bottom: '15%', transform: 'none' },            // Bottom Left - closer to center and down
+          { left: '3%', bottom: '42%', transform: 'none' },             // Left Mid-Low - down to table curve
+          { left: '20%', top: '8%', transform: 'none' },                // Left Mid-High - higher up
           { left: '50%', top: '3%', transform: 'translateX(-50%)' },    // Top Center
-          { right: '8%', top: '30%', transform: 'none' },               // Right Mid-High
-          { right: '8%', bottom: '45%', transform: 'none' },            // Right Mid-Low
-          { right: '8%', bottom: '22%', transform: 'none' }             // Bottom Right
+          { right: '20%', top: '8%', transform: 'none' },               // Right Mid-High - higher up
+          { right: '3%', bottom: '42%', transform: 'none' },            // Right Mid-Low - down to table curve
+          { right: '15%', bottom: '15%', transform: 'none' }            // Bottom Right - closer to center and down
         ];
         return { position: 'absolute' as const, ...pos8[visualSeat - 1] };
 
@@ -166,8 +170,93 @@ const PokerTable: React.FC<PokerTableProps> = ({
     }
   };
 
-  // Community cards come directly from snapshot
-  const communityCards = snapshot.communityCards;
+  // Build persistent community cards based on street and hand history
+  const buildCommunityCards = () => {
+    const cards: CardType[] = [];
+
+    // Add flop cards if we're at flop or later
+    if (['flop', 'turn', 'river', 'showdown'].includes(snapshot.street) && handHistory.flop) {
+      cards.push(...handHistory.flop.cards);
+    }
+
+    // Add turn card if we're at turn or later
+    if (['turn', 'river', 'showdown'].includes(snapshot.street) && handHistory.turn) {
+      cards.push(handHistory.turn.card);
+    }
+
+    // Add river card if we're at river or showdown
+    if (['river', 'showdown'].includes(snapshot.street) && handHistory.river) {
+      cards.push(handHistory.river.card);
+    }
+
+    return cards;
+  };
+
+  const communityCards = buildCommunityCards();
+
+  // Função para calcular posição da "área de ação" (fichas de aposta)
+  const getActionAreaPosition = (visualSeat: number, totalPlayers: number) => {
+    // Posições específicas para cada asiento visual para evitar sobreposição
+    switch (totalPlayers) {
+      case 8: // 8-max - Final bet positions matching adjusted player positions
+        const pos8 = [
+          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' }, // Hero - frente do centro
+          { left: '28%', bottom: '30%', transform: 'translateX(-50%)' }, // Bottom Left
+          { left: '18%', bottom: '45%', transform: 'translateX(-50%)' }, // Left Mid-Low - adjusted for curve
+          { left: '34%', top: '25%', transform: 'translateX(-50%)' },   // Left Mid-High - adjusted higher
+          { left: '50%', top: '25%', transform: 'translateX(-50%)' },   // Top Center
+          { right: '34%', top: '25%', transform: 'translateX(50%)' },   // Right Mid-High - adjusted higher
+          { right: '18%', bottom: '45%', transform: 'translateX(50%)' }, // Right Mid-Low - adjusted for curve
+          { right: '28%', bottom: '30%', transform: 'translateX(50%)' } // Bottom Right
+        ];
+        return { position: 'absolute' as const, zIndex: 25, ...pos8[visualSeat - 1] };
+
+      case 6: // 6-max
+        const pos6 = [
+          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' }, // Hero - frente do centro
+          { left: '25%', bottom: '40%', transform: 'translateX(-50%)' }, // Bottom Left
+          { left: '25%', top: '40%', transform: 'translateX(-50%)' },   // Top Left
+          { left: '50%', top: '25%', transform: 'translateX(-50%)' },   // Top Center
+          { right: '25%', top: '40%', transform: 'translateX(50%)' },   // Top Right
+          { right: '25%', bottom: '40%', transform: 'translateX(50%)' } // Bottom Right
+        ];
+        return { position: 'absolute' as const, zIndex: 25, ...pos6[visualSeat - 1] };
+
+      case 5: // 5-max
+        const pos5 = [
+          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' },
+          { left: '25%', bottom: '40%', transform: 'translateX(-50%)' },
+          { left: '20%', top: '35%', transform: 'translateX(-50%)' },
+          { right: '20%', top: '35%', transform: 'translateX(50%)' },
+          { right: '25%', bottom: '40%', transform: 'translateX(50%)' }
+        ];
+        return { position: 'absolute' as const, zIndex: 25, ...pos5[visualSeat - 1] };
+
+      case 4: // 4-max
+        const pos4 = [
+          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' },
+          { left: '25%', bottom: '50%', transform: 'translateX(-50%)' },
+          { left: '50%', top: '25%', transform: 'translateX(-50%)' },
+          { right: '25%', bottom: '50%', transform: 'translateX(50%)' }
+        ];
+        return { position: 'absolute' as const, zIndex: 25, ...pos4[visualSeat - 1] };
+
+      default:
+        // Fallback para outros números
+        const angle = ((visualSeat - 1) / totalPlayers) * 2 * Math.PI - Math.PI / 2;
+        const radiusX = 22;
+        const radiusY = 16;
+        const x = 50 + radiusX * Math.cos(angle);
+        const y = 50 + radiusY * Math.sin(angle);
+        return {
+          position: 'absolute' as const,
+          left: `${x}%`,
+          top: `${y}%`,
+          transform: 'translate(-50%, -50%)',
+          zIndex: 25
+        };
+    }
+  };
 
   return (
     <div className="hand-replayer w-full max-w-[1125px] mx-auto" style={{
@@ -296,25 +385,16 @@ const PokerTable: React.FC<PokerTableProps> = ({
             </div>
           </div>
 
-          {/* Informações da mão - posicionamento melhorado */}
-          <div className="absolute top-2 right-2 text-white/60 text-xs text-right bg-black/20 backdrop-blur-sm px-2 py-1 rounded-md" style={{ zIndex: 10 }}>
-            <div className="font-mono">#{handHistory.handId.slice(-8)}</div>
-            <div className="font-semibold">{handHistory.stakes} {handHistory.gameType}</div>
-          </div>
 
           {/* Centro da mesa - Pot e Community Cards */}
           <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 20 }}>
-            {/* Pot Total - melhor lógica de exibição */}
+            {/* Pote Total Consolidado - Uma única representação visual limpa */}
             {potTotal > 0 && (
-              <div className="bg-yellow-600/90 backdrop-blur-sm text-black font-bold px-4 py-2 rounded-full mb-4 shadow-lg">
-                Pot: ${potTotal.toFixed(0)}
-              </div>
-            )}
-
-            {/* Fichas coletadas no centro - exibir apenas quando há fichas coletadas */}
-            {snapshot.collectedPot > 0 && (
-              <div className="flex flex-wrap justify-center gap-2 mb-4">
-                <ChipStack valor={snapshot.collectedPot} size="medium" showLabel={true} />
+              <div className="flex flex-col items-center mb-4">
+                <ChipStack valor={potTotal} size="medium" showLabel={false} />
+                <div className="mt-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold px-4 py-2 rounded-full shadow-xl border-2 border-yellow-400">
+                  <div className="text-sm">Pote Total: ${potTotal.toFixed(0)}</div>
+                </div>
               </div>
             )}
 
@@ -327,16 +407,13 @@ const PokerTable: React.FC<PokerTableProps> = ({
               ) : (
                 <div className="text-white text-center px-6 py-3 bg-black/20 rounded-lg backdrop-blur-sm">
                   <div className="text-lg font-bold mb-1">
-                    {snapshot.street === 'preflop' ? 'Pre-flop' :
-                     snapshot.street === 'flop' ? 'Flop' :
-                     snapshot.street === 'turn' ? 'Turn' :
-                     snapshot.street === 'river' ? 'River' : 'Showdown'}
+                    {t(`streets.${snapshot.street}`)}
                   </div>
                   {snapshot.street === 'preflop' && (
-                    <div className="text-sm text-gray-300">Aguardando o flop...</div>
+                    <div className="text-sm text-gray-300">{t('table.waitingFlop')}</div>
                   )}
                   {snapshot.street === 'showdown' && (
-                    <div className="text-sm text-yellow-300">Revelando as cartas...</div>
+                    <div className="text-sm text-yellow-300">{t('table.revealingCards')}</div>
                   )}
                 </div>
               )}
@@ -417,6 +494,8 @@ const PokerTable: React.FC<PokerTableProps> = ({
                 showCards={showAllCards || player.isHero || snapshot.street === 'showdown' || snapshot.revealedHands?.[player.name]}
                 currentBet={snapshot.pendingContribs[player.name] || 0}
                 hasFolded={hasPlayerFolded}
+                isWinner={snapshot.street === 'showdown' && snapshot.winners?.includes(player.name)}
+                isShowdown={snapshot.street === 'showdown'}
               />
 
               {/* Dealer Button */}
@@ -428,58 +507,117 @@ const PokerTable: React.FC<PokerTableProps> = ({
                   <DealerButton size="small" />
                 </div>
               )}
-              {/* Sistema de fichas melhorado baseado no snapshot */}
-              {(() => {
-                // Showdown - vencedor
-                if (snapshot.street === 'showdown' && snapshot.winners?.includes(player.name)) {
-                  const wonAmount = handHistory.showdown?.potWon || snapshot.collectedPot;
-                  return (
-                    <div className="absolute z-30 flex flex-col items-center" style={{
-                      left: '50%',
-                      top: '-30%',
-                      transform: 'translateX(-50%)'
-                    }}>
-                      <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold mb-2 shadow-lg animate-pulse">
-                        🏆 VENCEDOR
-                      </div>
-                      <ChipStack valor={wonAmount} size="medium" showLabel={true} />
-                    </div>
-                  );
-                }
-
-                // Fichas de aposta do jogador
-                const betAmount = snapshot.pendingContribs[player.name] || 0;
-                if (betAmount > 0) {
-                  return (
-                    <div className="absolute z-30 flex items-center justify-center" style={{
-                      left: '50%',
-                      top: '-20%',
-                      transform: 'translateX(-50%)'
-                    }}>
-                      <ChipStack valor={betAmount} size="small" showLabel={true} />
-                    </div>
-                  );
-                }
-
-                return null;
-              })()}
             </div>
           );
         });
       })()}
 
+      {/* Sistema de Área de Ação - Fichas de Aposta Centralizadas */}
+      {(() => {
+        const heroPlayer = handHistory.players.find(p => p.isHero);
+        if (!heroPlayer && handHistory.players.length > 0) {
+          handHistory.players[0].isHero = true;
+        }
+        const heroSeat = heroPlayer?.seat || 1;
+        const playersWithVisualSeats = calcularPosicoesVisuais(handHistory.players, heroSeat);
+
+        return playersWithVisualSeats.map((player) => {
+          let betAmount = snapshot.pendingContribs[player.name] || 0;
+
+          // No snapshot inicial (id = 0), mostrar as blinds
+          if (snapshot.id === 0) {
+            if (player.position === 'SB') {
+              betAmount = handHistory.smallBlind;
+            } else if (player.position === 'BB') {
+              betAmount = handHistory.bigBlind;
+            }
+          }
+
+
+          // Render bet chips in action area
+          if (betAmount > 0 && snapshot.street !== 'showdown') {
+            const actionStyle = getActionAreaPosition(player.visualSeat, playersWithVisualSeats.length);
+            return (
+              <div key={`action-${player.name}`} style={actionStyle}>
+                <div className="relative">
+                  {/* Linha conectora sutil do jogador para a aposta */}
+                  <div className="absolute w-px h-8 bg-white/10 -top-8 left-1/2 transform -translate-x-1/2"></div>
+
+                  <ChipStack valor={betAmount} size="small" showLabel={true} />
+
+                  {/* Nome do jogador na aposta */}
+                  <div className="text-white text-xs text-center mt-1 bg-black/40 rounded px-1">
+                    {player.name}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          return null;
+        });
+      })()}
+
+      {/* Sistema de Showdown Melhorado */}
+      {snapshot.street === 'showdown' && snapshot.winners && (
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 35 }}>
+          {/* Sem overlay escuro - mantém mesa visível para estudo */}
+
+          {/* Resultado do showdown - movido para cima para não tampar board/pot */}
+          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+            <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-6 py-3 rounded-xl shadow-2xl border-4 border-yellow-300 mb-4">
+              <div className="text-xl font-bold text-center">
+                {snapshot.winners.length === 1
+                  ? `${snapshot.winners[0]} ${t('replayer.winner')}`
+                  : `${snapshot.winners.join(', ')} ${t('replayer.winner')}`
+                }
+              </div>
+              {handHistory.showdown?.potWon && (
+                <div className="text-md text-center mt-1">
+                  Pote: ${handHistory.showdown.potWon}
+                </div>
+              )}
+            </div>
+
+            {/* Combinação vencedora */}
+            {(() => {
+              if (!snapshot.winners || snapshot.winners.length === 0) return null;
+
+              const winner = handHistory.players.find(p => p.name === snapshot.winners[0]);
+              if (!winner?.cards || communityCards.length < 3) return null;
+
+              const winningHandDescription = PokerHandEvaluator.getBestHandDescription(winner, communityCards);
+
+              return (
+                <div className="bg-black/90 text-white px-4 py-2 rounded-lg border border-yellow-400/30">
+                  <div className="text-center">
+                    <div className="text-xs text-yellow-400 mb-1">Mão Vencedora</div>
+                    <div className="text-sm font-medium">{winningHandDescription}</div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
       {/* Controles de navegação */}
       <div className="absolute text-white text-sm" style={{ bottom: '1%', right: '2%' }}>
-        <div>Street: {snapshot.street}</div>
+        <div>{t('replayer.street', { street: t(`streets.${snapshot.street}`) })}</div>
         <div>Snapshot: {snapshot.id + 1}</div>
       </div>
 
       {/* Blinds info */}
       <div className="absolute text-white text-sm" style={{ bottom: '1%', left: '2%' }}>
-        <div>SB: ${handHistory.smallBlind}</div>
-        <div>BB: ${handHistory.bigBlind}</div>
-        {handHistory.ante && <div>Ante: ${handHistory.ante}</div>}
+        <div>{t('table.sb', { amount: handHistory.smallBlind })}</div>
+        <div>{t('table.bb', { amount: handHistory.bigBlind })}</div>
+        {handHistory.ante && <div>{t('table.ante', { amount: handHistory.ante })}</div>}
       </div>
+      </div>
+
+      {/* Informações da mão - canto superior esquerdo do background */}
+      <div className="absolute top-2 left-2 text-white/70 text-xs text-left bg-black/50 backdrop-blur-sm px-3 py-2 rounded-lg border border-white/20" style={{ zIndex: 50 }}>
+        <div className="font-mono text-white/90">#{handHistory.handId.slice(-8)}</div>
+        <div className="font-semibold text-white">{handHistory.stakes} {handHistory.gameType}</div>
       </div>
     </div>
   );

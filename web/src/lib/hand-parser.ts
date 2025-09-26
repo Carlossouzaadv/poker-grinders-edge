@@ -114,25 +114,65 @@ export class HandParser {
       let currentLine = 2;
 
       while (currentLine < lines.length && lines[currentLine].startsWith('Seat ')) {
-        const seatMatch = lines[currentLine].match(/Seat (\d+): (.+?) \(\$?([0-9.]+) in chips\)/);
+        // Enhanced regex to capture bounty and sitting out status
+        const seatMatch = lines[currentLine].match(/Seat (\d+): (.+?) \(\$?([0-9.]+) in chips(?:, \$([0-9.]+) bounty)?\)(?:\s+(is sitting out))?/);
         if (seatMatch) {
-          const [, seat, playerName, stack] = seatMatch;
+          const [, seat, playerName, stack, bounty, sittingOut] = seatMatch;
+
+          // Determine player status
+          let status: 'active' | 'sitting_out' | 'disconnected' = 'active';
+          if (sittingOut) {
+            status = 'sitting_out';
+          }
+
           players.push({
             name: playerName,
             position: this.getPosition(parseInt(seat), parseInt(buttonSeat), parseInt(maxPlayers)),
             stack: parseFloat(stack),
             isHero: false, // Será detectado depois
-            seat: parseInt(seat)
+            seat: parseInt(seat),
+            bounty: bounty ? parseFloat(bounty) : undefined,
+            status: status
           });
         }
         currentLine++;
       }
 
-      // Pular linha dos blinds se existir
-      if (lines[currentLine]?.includes('posts small blind') || lines[currentLine]?.includes('posts big blind')) {
-        currentLine++;
-      }
-      if (lines[currentLine]?.includes('posts small blind') || lines[currentLine]?.includes('posts big blind')) {
+      // Parse antes and blinds (torneios têm antes)
+      let anteAmount = 0;
+      const anteActions: Action[] = [];
+
+      while (currentLine < lines.length &&
+             (lines[currentLine]?.includes('posts the ante') ||
+              lines[currentLine]?.includes('posts small blind') ||
+              lines[currentLine]?.includes('posts big blind'))) {
+
+        const line = lines[currentLine];
+
+        // Parse ante
+        const anteMatch = line.match(/(.+?): posts the ante (\d+(?:\.\d+)?)/);
+        if (anteMatch) {
+          const [, playerName, amount] = anteMatch;
+          anteAmount = parseFloat(amount);
+          anteActions.push({
+            player: playerName,
+            action: 'ante',
+            amount: anteAmount
+          });
+        }
+
+        // Parse blinds (keep existing logic)
+        const blindMatch = line.match(/(.+?): posts (?:small blind|big blind) \$?(\d+(?:\.\d+)?)/);
+        if (blindMatch) {
+          const [, playerName, amount] = blindMatch;
+          const blindType = line.includes('small blind') ? 'small_blind' : 'big_blind';
+          anteActions.push({
+            player: playerName,
+            action: blindType,
+            amount: parseFloat(amount)
+          });
+        }
+
         currentLine++;
       }
 
@@ -160,9 +200,45 @@ export class HandParser {
 
       // Parse das ações do preflop
       while (currentLine < lines.length && !lines[currentLine].includes('***')) {
-        const action = this.parseAction(lines[currentLine]);
+        const line = lines[currentLine];
+
+        // Check for player disconnect/reconnect status
+        const disconnectMatch = line.match(/(.+?) is disconnected/);
+        if (disconnectMatch) {
+          const [, playerName] = disconnectMatch;
+          const player = players.find(p => p.name === playerName);
+          if (player) {
+            player.status = 'disconnected';
+          }
+          currentLine++;
+          continue;
+        }
+
+        const reconnectMatch = line.match(/(.+?) has returned/);
+        if (reconnectMatch) {
+          const [, playerName] = reconnectMatch;
+          const player = players.find(p => p.name === playerName);
+          if (player) {
+            player.status = 'active';
+          }
+          currentLine++;
+          continue;
+        }
+
+        const action = this.parseAction(line);
         if (action) {
           preflop.push(action);
+        } else {
+          // Check for uncalled bet return
+          const uncalledMatch = line.match(/Uncalled bet \((\d+(?:\.\d+)?)\) returned to (.+)/);
+          if (uncalledMatch) {
+            const [, amount, player] = uncalledMatch;
+            preflop.push({
+              player: player,
+              action: 'uncalled_return',
+              amount: parseFloat(amount)
+            });
+          }
         }
         currentLine++;
       }
@@ -172,6 +248,8 @@ export class HandParser {
       let turnData = null;
       let riverData = null;
       let showdownData = null;
+      let rakeAmount = 0;
+      let totalPotAmount = 0;
 
       // Processar todas as streets
       while (currentLine < lines.length) {
@@ -193,6 +271,17 @@ export class HandParser {
             const action = this.parseAction(lines[currentLine]);
             if (action) {
               flopData?.actions.push(action);
+            } else {
+              // Check for uncalled bet return
+              const uncalledMatch = lines[currentLine].match(/Uncalled bet \((\d+(?:\.\d+)?)\) returned to (.+)/);
+              if (uncalledMatch && flopData) {
+                const [, amount, player] = uncalledMatch;
+                flopData.actions.push({
+                  player: player,
+                  action: 'uncalled_return',
+                  amount: parseFloat(amount)
+                });
+              }
             }
             currentLine++;
           }
@@ -215,6 +304,17 @@ export class HandParser {
             const action = this.parseAction(lines[currentLine]);
             if (action) {
               turnData?.actions.push(action);
+            } else {
+              // Check for uncalled bet return
+              const uncalledMatch = lines[currentLine].match(/Uncalled bet \((\d+(?:\.\d+)?)\) returned to (.+)/);
+              if (uncalledMatch && turnData) {
+                const [, amount, player] = uncalledMatch;
+                turnData.actions.push({
+                  player: player,
+                  action: 'uncalled_return',
+                  amount: parseFloat(amount)
+                });
+              }
             }
             currentLine++;
           }
@@ -237,6 +337,17 @@ export class HandParser {
             const action = this.parseAction(lines[currentLine]);
             if (action) {
               riverData?.actions.push(action);
+            } else {
+              // Check for uncalled bet return
+              const uncalledMatch = lines[currentLine].match(/Uncalled bet \((\d+(?:\.\d+)?)\) returned to (.+)/);
+              if (uncalledMatch && riverData) {
+                const [, amount, player] = uncalledMatch;
+                riverData.actions.push({
+                  player: player,
+                  action: 'uncalled_return',
+                  amount: parseFloat(amount)
+                });
+              }
             }
             currentLine++;
           }
@@ -287,13 +398,22 @@ export class HandParser {
           continue;
         }
 
-        // SUMMARY - para capturar cartas muckadas
+        // SUMMARY - para capturar cartas muckadas e rake
         if (line.includes('*** SUMMARY ***')) {
           currentLine++;
 
           // Parse das linhas de summary
           while (currentLine < lines.length) {
             const summaryLine = lines[currentLine];
+
+            // Parse total pot and rake: "Total pot 2185 | Rake 0"
+            const potRakeMatch = summaryLine.match(/Total pot (\d+(?:\.\d+)?)(?:\s*\|\s*Rake\s+(\d+(?:\.\d+)?))?/);
+            if (potRakeMatch) {
+              const [, potAmount, rake] = potRakeMatch;
+              totalPotAmount = parseFloat(potAmount);
+              rakeAmount = rake ? parseFloat(rake) : 0;
+              console.log(`💰 Total pot: ${totalPotAmount}, Rake: ${rakeAmount}`);
+            }
 
             // Procurar por cartas muckadas: "Seat 5: Player 5 mucked [Ks Qs]"
             const muckedMatch = summaryLine.match(/Seat (\d+): (.+?) mucked \[([^\]]+)\]/);
@@ -325,6 +445,12 @@ export class HandParser {
 
             currentLine++;
           }
+
+          // Update showdown data with rake if present
+          if (showdownData && rakeAmount > 0) {
+            showdownData.rake = rakeAmount;
+          }
+
           break; // SUMMARY é geralmente a última seção
         }
 
@@ -344,14 +470,17 @@ export class HandParser {
         dealerSeat: parseInt(buttonSeat),
         smallBlind,
         bigBlind,
+        ante: anteAmount > 0 ? anteAmount : undefined, // Include ante if present
         timestamp: parsedDate,
         players,
+        antes: anteActions.length > 0 ? anteActions : undefined, // Include ante actions
         preflop,
         flop: flopData,
         turn: turnData,
         river: riverData,
         showdown: showdownData,
-        totalPot: 0, // Calcular depois
+        totalPot: totalPotAmount || 0, // Use parsed total pot
+        rake: rakeAmount, // Include rake (can be 0)
         currency: 'USD'
       };
 
@@ -419,10 +548,14 @@ export class HandParser {
 
     const raiseMatch = line.match(/^(.+?): raises \$?([0-9.]+) to \$?([0-9.]+)/);
     if (raiseMatch) {
+      // For raises, the amount is the TOTAL bet amount the player puts in the pot
+      const totalBet = parseFloat(raiseMatch[3]); // Total amount player bets
       return {
         player: raiseMatch[1],
         action: 'raise',
-        amount: parseFloat(raiseMatch[3])
+        amount: totalBet, // Total amount added to pot
+        raiseBy: parseFloat(raiseMatch[2]), // How much they raised by (for display)
+        totalBet: totalBet // Store total bet for reference
       };
     }
 

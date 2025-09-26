@@ -1,6 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
-export const DashboardMockup: React.FC = () => (
+export const DashboardMockup: React.FC = () => {
+  const { t } = useTranslation();
+
+  return (
   <div className="bg-gray-900 rounded-2xl p-4 w-64 h-96 shadow-2xl border border-gray-700 relative overflow-hidden">
     {/* Status bar */}
     <div className="flex justify-between items-center text-white text-xs mb-4">
@@ -15,27 +19,27 @@ export const DashboardMockup: React.FC = () => (
     {/* Header */}
     <div className="text-center mb-6">
       <h3 className="text-white font-bold text-lg">Dashboard</h3>
-      <p className="text-green-400 text-sm">Setembro 2024</p>
+      <p className="text-green-400 text-sm">{t('mockups.dashboard.month')}</p>
     </div>
 
     {/* Stats Cards */}
     <div className="space-y-4 mb-6">
       <div className="bg-green-800/30 border border-green-500/30 rounded-lg p-3">
-        <div className="text-green-400 text-xs">Total Profit</div>
+        <div className="text-green-400 text-xs">{t('mockups.dashboard.totalProfit')}</div>
         <div className="text-white font-bold text-xl">+$2,847</div>
-        <div className="text-green-400 text-xs">↗ +12.5% este mês</div>
+        <div className="text-green-400 text-xs">{t('mockups.dashboard.profitGrowth')}</div>
       </div>
 
       <div className="bg-blue-800/30 border border-blue-500/30 rounded-lg p-3">
-        <div className="text-blue-400 text-xs">ROI Médio</div>
+        <div className="text-blue-400 text-xs">{t('mockups.dashboard.averageRoi')}</div>
         <div className="text-white font-bold text-xl">18.3%</div>
-        <div className="text-blue-400 text-xs">142 torneios</div>
+        <div className="text-blue-400 text-xs">{t('mockups.dashboard.tournaments')}</div>
       </div>
     </div>
 
     {/* Chart Area */}
     <div className="bg-gray-800/50 rounded-lg p-3 mb-4">
-      <div className="text-gray-300 text-xs mb-2">Evolução (30 dias)</div>
+      <div className="text-gray-300 text-xs mb-2">{t('mockups.dashboard.evolution')}</div>
       <div className="h-16 flex items-end space-x-1">
         {[12, 8, 15, 22, 18, 25, 30, 28, 35, 32, 38, 42, 40, 45].map((height, i) => (
           <div
@@ -58,9 +62,13 @@ export const DashboardMockup: React.FC = () => (
     {/* Glow effect */}
     <div className="absolute -inset-1 bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-2xl blur opacity-30"></div>
   </div>
-);
+  );
+};
 
-export const GTOMockup: React.FC = () => (
+export const GTOMockup: React.FC = () => {
+  const { t } = useTranslation();
+
+  return (
   <div className="bg-gray-900 rounded-2xl p-4 w-64 h-96 shadow-2xl border border-gray-700 relative overflow-hidden">
     {/* Status bar */}
     <div className="flex justify-between items-center text-white text-xs mb-4">
@@ -74,20 +82,20 @@ export const GTOMockup: React.FC = () => (
 
     {/* Header */}
     <div className="text-center mb-4">
-      <h3 className="text-white font-bold text-lg">Consultor GTO</h3>
-      <p className="text-purple-400 text-sm">6-Max Cash Game</p>
+      <h3 className="text-white font-bold text-lg">{t('mockups.gto.title')}</h3>
+      <p className="text-purple-400 text-sm">{t('mockups.gto.gameType')}</p>
     </div>
 
     {/* Scenario */}
     <div className="bg-purple-800/30 border border-purple-500/30 rounded-lg p-3 mb-4">
-      <div className="text-purple-400 text-xs mb-1">Cenário</div>
-      <div className="text-white text-sm">BTN vs BB, 100bb</div>
-      <div className="text-gray-300 text-xs">Facing 3-bet to 12bb</div>
+      <div className="text-purple-400 text-xs mb-1">{t('mockups.gto.scenario')}</div>
+      <div className="text-white text-sm">{t('mockups.gto.scenarioDetail')}</div>
+      <div className="text-gray-300 text-xs">{t('mockups.gto.facing')}</div>
     </div>
 
     {/* Range Grid */}
     <div className="mb-4">
-      <div className="text-gray-300 text-xs mb-2">Range Recomendado:</div>
+      <div className="text-gray-300 text-xs mb-2">{t('mockups.gto.recommendedRange')}</div>
       <div className="grid grid-cols-6 gap-1">
         {/* AA, KK, QQ, JJ - Call/4bet */}
         {['AA', 'KK', 'QQ', 'JJ', 'TT', '99'].map((hand, i) => (
@@ -119,15 +127,15 @@ export const GTOMockup: React.FC = () => (
     <div className="space-y-2 text-xs">
       <div className="flex items-center space-x-2">
         <div className="w-3 h-3 bg-green-600 rounded"></div>
-        <span className="text-white">Call/4-bet (32%)</span>
+        <span className="text-white">{t('mockups.gto.callFourBet')}</span>
       </div>
       <div className="flex items-center space-x-2">
         <div className="w-3 h-3 bg-yellow-600 rounded"></div>
-        <span className="text-white">Call (28%)</span>
+        <span className="text-white">{t('mockups.gto.call')}</span>
       </div>
       <div className="flex items-center space-x-2">
         <div className="w-3 h-3 bg-red-600 rounded"></div>
-        <span className="text-white">Fold (40%)</span>
+        <span className="text-white">{t('mockups.gto.fold')}</span>
       </div>
     </div>
 
@@ -142,9 +150,13 @@ export const GTOMockup: React.FC = () => (
     {/* Glow effect */}
     <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl blur opacity-30"></div>
   </div>
-);
+  );
+};
 
-export const MarketplaceMockup: React.FC = () => (
+export const MarketplaceMockup: React.FC = () => {
+  const { t } = useTranslation();
+
+  return (
   <div className="bg-gray-900 rounded-2xl p-4 w-64 h-96 shadow-2xl border border-gray-700 relative overflow-hidden">
     {/* Status bar */}
     <div className="flex justify-between items-center text-white text-xs mb-4">
@@ -158,8 +170,8 @@ export const MarketplaceMockup: React.FC = () => (
 
     {/* Header */}
     <div className="text-center mb-4">
-      <h3 className="text-white font-bold text-lg">Coaches</h3>
-      <p className="text-orange-400 text-sm">Encontre seu mentor</p>
+      <h3 className="text-white font-bold text-lg">{t('mockups.marketplace.title')}</h3>
+      <p className="text-orange-400 text-sm">{t('mockups.marketplace.subtitle')}</p>
     </div>
 
     {/* Coach Cards */}
@@ -170,12 +182,12 @@ export const MarketplaceMockup: React.FC = () => (
             RF
           </div>
           <div>
-            <div className="text-white font-semibold text-sm">Rafael Silva</div>
-            <div className="text-orange-400 text-xs">MTT Specialist</div>
+            <div className="text-white font-semibold text-sm">{t('mockups.marketplace.coaches.rafael.name')}</div>
+            <div className="text-orange-400 text-xs">{t('mockups.marketplace.coaches.rafael.specialty')}</div>
           </div>
         </div>
         <div className="flex justify-between items-center text-xs">
-          <div className="text-gray-300">⭐ 4.9 • 127 aulas</div>
+          <div className="text-gray-300">⭐ 4.9 • 127 {t('mockups.marketplace.lessons')}</div>
           <div className="text-green-400 font-bold">R$ 150/h</div>
         </div>
       </div>
@@ -186,12 +198,12 @@ export const MarketplaceMockup: React.FC = () => (
             MC
           </div>
           <div>
-            <div className="text-white font-semibold text-sm">Marina Costa</div>
-            <div className="text-blue-400 text-xs">Cash Game Pro</div>
+            <div className="text-white font-semibold text-sm">{t('mockups.marketplace.coaches.marina.name')}</div>
+            <div className="text-blue-400 text-xs">{t('mockups.marketplace.coaches.marina.specialty')}</div>
           </div>
         </div>
         <div className="flex justify-between items-center text-xs">
-          <div className="text-gray-300">⭐ 4.8 • 89 aulas</div>
+          <div className="text-gray-300">⭐ 4.8 • 89 {t('mockups.marketplace.lessons')}</div>
           <div className="text-green-400 font-bold">R$ 200/h</div>
         </div>
       </div>
@@ -202,12 +214,12 @@ export const MarketplaceMockup: React.FC = () => (
             TS
           </div>
           <div>
-            <div className="text-white font-semibold text-sm">Thiago Santos</div>
-            <div className="text-green-400 text-xs">SNG Expert</div>
+            <div className="text-white font-semibold text-sm">{t('mockups.marketplace.coaches.thiago.name')}</div>
+            <div className="text-green-400 text-xs">{t('mockups.marketplace.coaches.thiago.specialty')}</div>
           </div>
         </div>
         <div className="flex justify-between items-center text-xs">
-          <div className="text-gray-300">⭐ 4.7 • 203 aulas</div>
+          <div className="text-gray-300">⭐ 4.7 • 203 {t('mockups.marketplace.lessons')}</div>
           <div className="text-green-400 font-bold">R$ 120/h</div>
         </div>
       </div>
@@ -231,4 +243,5 @@ export const MarketplaceMockup: React.FC = () => (
     {/* Glow effect */}
     <div className="absolute -inset-1 bg-gradient-to-r from-orange-600/20 to-yellow-600/20 rounded-2xl blur opacity-30"></div>
   </div>
-);
+  );
+};

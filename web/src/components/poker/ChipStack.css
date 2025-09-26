@@ -1,0 +1,156 @@
+/* Base chip class using professional sprite sheet */
+.chip {
+  background-image: url('/assets/images/chips-sprite.png');
+  background-repeat: no-repeat;
+  width: 48px;  /* Width of one chip in sprite */
+  height: 44px; /* Height of one chip in sprite */
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.chip:hover {
+  transform: scale(1.1);
+}
+
+/* --- Mapa Exato das Fichas (chips-sprite.png 192x220) --- */
+/* Linha 1 (Y = 0px) */
+.chip-1    { background-position: 0px 0px; }
+.chip-100  { background-position: -48px 0px; }
+.chip-1b   { background-position: -96px 0px; }
+.chip-25b  { background-position: -144px 0px; }
+
+/* Linha 2 (Y = -44px) */
+.chip-100k { background-position: 0px -44px; }
+.chip-100m { background-position: -48px -44px; }
+.chip-1c   { background-position: -96px -44px; }
+.chip-25c  { background-position: -144px -44px; }
+
+/* Linha 3 (Y = -88px) */
+.chip-1k   { background-position: 0px -88px; }
+.chip-1m   { background-position: -48px -88px; }
+.chip-25   { background-position: -96px -88px; }
+.chip-25k  { background-position: -144px -88px; }
+
+/* Linha 4 (Y = -132px) */
+.chip-25m  { background-position: 0px -132px; }
+.chip-5    { background-position: -48px -132px; }
+.chip-500  { background-position: -96px -132px; }
+.chip-500k { background-position: -144px -132px; }
+
+/* Linha 5 (Y = -176px) */
+.chip-5m   { background-position: 0px -176px; }
+
+/* Fallback para fichas não existentes no sprite */
+.chip-50   { background-position: -144px -44px; } /* Usando a de 25c como substituta */
+.chip-500m { background-position: -96px -132px; } /* Usando a de 500 como substituta */
+
+/* Container styles */
+.chip-stack-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none; /* Prevent interference with table interactions */
+}
+
+/* Money label styling */
+.money-label {
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #666;
+  text-align: center;
+  min-width: 35px;
+  line-height: 1.2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Size variants with proportional scaling - higher specificity approach */
+.chip.chip-small {
+  width: 30px !important;
+  height: 27.5px !important;
+  background-size: 120px 137.5px !important; /* Scale down sprite proportionally (192px * 0.625, 220px * 0.625) */
+  background-image: url('/assets/images/chips-sprite.png') !important;
+  background-repeat: no-repeat !important;
+  border: 1px solid #FFF !important;
+  border-radius: 50% !important;
+}
+
+/* Small size positioning - corrected based on actual sprite layout */
+/* Sprite layout: 192x220, each chip 48x44, scaled down 0.625x = 30x27.5 */
+
+/* Linha 1 (Y = 0px → 0px) - scaled positions - ajustado para centralização perfeita */
+.chip-small.chip-1    { background-position: 2px 2px !important; }       /* Posição 0,0 - mais centrado */
+.chip-small.chip-100  { background-position: -28px 2px !important; }     /* Posição 1,0 - mais centrado */
+.chip-small.chip-1b   { background-position: -58px 2px !important; }     /* Posição 2,0 - mais centrado */
+.chip-small.chip-25b  { background-position: -88px 2px !important; }     /* Posição 3,0 - mais centrado */
+
+/* Linha 2 (Y = -44px → -27.5px) - scaled positions - centralização perfeita */
+.chip-small.chip-100k { background-position: 2px -25.5px !important; }   /* Posição 0,1 - mais centrado */
+.chip-small.chip-100m { background-position: -28px -25.5px !important; } /* Posição 1,1 - mais centrado */
+.chip-small.chip-1c   { background-position: -58px -25.5px !important; } /* Posição 2,1 - mais centrado */
+.chip-small.chip-25c  { background-position: -88px -25.5px !important; } /* Posição 3,1 - mais centrado */
+
+/* Linha 3 (Y = -88px → -55px) - scaled positions - centralização perfeita */
+.chip-small.chip-1k   { background-position: 2px -53px !important; }     /* Posição 0,2 - mais centrado */
+.chip-small.chip-1m   { background-position: -28px -53px !important; }   /* Posição 1,2 - mais centrado */
+.chip-small.chip-25   { background-position: -58px -53px !important; }   /* Posição 2,2 - mais centrado */
+.chip-small.chip-25k  { background-position: -88px -53px !important; }   /* Posição 3,2 - mais centrado */
+
+/* Linha 4 (Y = -132px → -82.5px) - scaled positions - centralização perfeita */
+.chip-small.chip-25m  { background-position: 2px -80.5px !important; }   /* Posição 0,3 - mais centrado */
+.chip-small.chip-5    { background-position: -28px -80.5px !important; } /* Posição 1,3 - mais centrado */
+.chip-small.chip-500  { background-position: -58px -80.5px !important; } /* Posição 2,3 - mais centrado */
+.chip-small.chip-500k { background-position: -88px -80.5px !important; } /* Posição 3,3 - mais centrado */
+
+/* Linha 5 (Y = -176px → -110px) - scaled positions - centralização perfeita */
+.chip-small.chip-5m   { background-position: 2px -108px !important; }    /* Posição 0,4 - mais centrado */
+
+/* Fallbacks para fichas não existentes no sprite - centralização perfeita */
+.chip-small.chip-50   { background-position: -88px -25.5px !important; } /* Using 25c as substitute - mais centrado */
+.chip-small.chip-500m { background-position: -58px -80.5px !important; } /* Using 500 as substitute - mais centrado */
+
+.chip-large {
+  width: 60px;
+  height: 55px;
+  background-size: 240px 275px; /* Scale up sprite proportionally (192px * 1.25, 220px * 1.25) */
+}
+
+/* Large size positioning - scaled up proportionally */
+.chip-large.chip-1    { background-position: 0px 0px; }
+.chip-large.chip-100  { background-position: -60px 0px; }
+.chip-large.chip-1b   { background-position: -120px 0px; }
+.chip-large.chip-25b  { background-position: -180px 0px; }
+.chip-large.chip-100k { background-position: 0px -55px; }
+.chip-large.chip-100m { background-position: -60px -55px; }
+.chip-large.chip-1c   { background-position: -120px -55px; }
+.chip-large.chip-25c  { background-position: -180px -55px; }
+.chip-large.chip-1k   { background-position: 0px -110px; }
+.chip-large.chip-1m   { background-position: -60px -110px; }
+.chip-large.chip-25   { background-position: -120px -110px; }
+.chip-large.chip-25k  { background-position: -180px -110px; }
+.chip-large.chip-25m  { background-position: 0px -165px; }
+.chip-large.chip-5    { background-position: -60px -165px; }
+.chip-large.chip-500  { background-position: -120px -165px; }
+.chip-large.chip-500k { background-position: -180px -165px; }
+.chip-large.chip-5m   { background-position: 0px -220px; }
+.chip-large.chip-50   { background-position: -180px -55px; } /* Using 25c as substitute */
+.chip-large.chip-500m { background-position: -120px -165px; } /* Using 500 as substitute */
+
+/* Label size adjustments */
+.money-label-small {
+  font-size: 10px;
+  padding: 1px 6px;
+  min-width: 25px;
+}
+
+.money-label-large {
+  font-size: 14px;
+  padding: 3px 10px;
+  min-width: 45px;
+}

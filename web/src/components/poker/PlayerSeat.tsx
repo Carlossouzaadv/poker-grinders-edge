@@ -8,6 +8,8 @@ interface PlayerSeatProps {
   showCards?: boolean;
   currentBet?: number;
   hasFolded?: boolean;
+  isWinner?: boolean;
+  isShowdown?: boolean;
 }
 
 const PlayerSeat: React.FC<PlayerSeatProps> = ({
@@ -15,20 +17,28 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
   isActive = false,
   showCards = false,
   currentBet = 0,
-  hasFolded = false
+  hasFolded = false,
+  isWinner = false,
+  isShowdown = false
 }) => {
   return (
-    <div className={`seat-pod relative flex flex-col items-center transition-all duration-300 ${
+    <div className={`seat-pod relative flex flex-col items-center transition-all duration-500 ${
       hasFolded
         ? 'opacity-40 filter grayscale-[80%]'
+        : isShowdown && !isWinner
+        ? 'opacity-60 filter grayscale-[50%] brightness-75'
+        : isShowdown && isWinner
+        ? 'opacity-100 filter drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]'
         : 'opacity-100'
     }`} style={{ fontFamily: 'Roboto, sans-serif' }}>
 
       {/* Seat Chrome - CSS-only styling */}
       <div className="seat-chrome relative">
         <div
-          className={`relative rounded-xl shadow-lg transition-all duration-300 ${
-            isActive
+          className={`relative rounded-xl shadow-lg transition-all duration-500 ${
+            isShowdown && isWinner
+              ? 'bg-gradient-to-b from-yellow-600/30 to-yellow-800/30 border-3 border-yellow-400 shadow-[0_0_20px_rgba(255,215,0,0.4)]'
+              : isActive
               ? 'bg-gradient-to-b from-yellow-600/20 to-yellow-800/20 border-2 border-yellow-400/50'
               : player.isHero
                 ? 'bg-gradient-to-b from-blue-600/20 to-blue-800/20 border-2 border-blue-400/50'
@@ -101,9 +111,9 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
               </div>
             </div>
 
-            {/* Posição */}
+            {/* Posição - mais sutil */}
             <div className="text-center">
-              <div className="text-xs text-gray-300 bg-black/30 rounded-full px-2 py-1 border border-gray-500/30">
+              <div className="text-xs text-gray-400 opacity-70">
                 {player.position}
               </div>
             </div>

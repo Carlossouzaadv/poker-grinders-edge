@@ -13,7 +13,11 @@ export class ReplayBuilder {
     });
 
     let currentStacks = { ...initialStacks };
-    let currentPot = handHistory.smallBlind + handHistory.bigBlind;
+
+    // Calculate initial pot including antes
+    const totalAntes = handHistory.antes ?
+      handHistory.antes.filter(a => a.action === 'ante').reduce((sum, ante) => sum + (ante.amount || 0), 0) : 0;
+    let currentPot = handHistory.smallBlind + handHistory.bigBlind + totalAntes;
 
     // Processar ações do preflop
     for (const action of handHistory.preflop) {
@@ -43,7 +47,9 @@ export class ReplayBuilder {
           if (action.amount) {
             potAfter += action.amount;
             stacksAfter[action.player] -= action.amount;
-            description = `${action.player} raises to $${action.amount.toFixed(2)}`;
+            const totalBet = action.totalBet || action.amount;
+            const raiseBy = action.raiseBy || action.amount;
+            description = `${action.player} raises $${raiseBy.toFixed(2)} to $${totalBet.toFixed(2)}`;
           }
           break;
         case 'check':
@@ -54,6 +60,14 @@ export class ReplayBuilder {
             potAfter += action.amount;
             stacksAfter[action.player] = 0;
             description = `${action.player} goes all-in for $${action.amount.toFixed(2)}`;
+          }
+          break;
+        case 'uncalled_return':
+          if (action.amount) {
+            // Uncalled bet is returned to player - subtract from pot, add to stack
+            potAfter -= action.amount;
+            stacksAfter[action.player] += action.amount;
+            description = `Uncalled bet ($${action.amount.toFixed(2)}) returned to ${action.player}`;
           }
           break;
       }
@@ -173,7 +187,7 @@ export class ReplayBuilder {
 
       // Estado derivado inicial
       currentStreet: 'preflop',
-      currentPot: handHistory.smallBlind + handHistory.bigBlind,
+      currentPot: handHistory.smallBlind + handHistory.bigBlind + totalAntes,
       currentStacks: initialStacks,
       activePlayer: null,
       communityCards: [],
@@ -287,7 +301,9 @@ export class ReplayBuilder {
         if (action.amount) {
           potAfter += action.amount;
           stacksAfter[action.player] -= action.amount;
-          description = `${action.player} raises to $${action.amount.toFixed(2)}`;
+          const totalBet = action.totalBet || action.amount;
+          const raiseBy = action.raiseBy || action.amount;
+          description = `${action.player} raises $${raiseBy.toFixed(2)} to $${totalBet.toFixed(2)}`;
         }
         break;
       case 'check':
@@ -298,6 +314,14 @@ export class ReplayBuilder {
           potAfter += action.amount;
           stacksAfter[action.player] = 0;
           description = `${action.player} goes all-in for $${action.amount.toFixed(2)}`;
+        }
+        break;
+      case 'uncalled_return':
+        if (action.amount) {
+          // Uncalled bet is returned to player - subtract from pot, add to stack
+          potAfter -= action.amount;
+          stacksAfter[action.player] += action.amount;
+          description = `Uncalled bet ($${action.amount.toFixed(2)}) returned to ${action.player}`;
         }
         break;
     }

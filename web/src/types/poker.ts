@@ -9,8 +9,10 @@ export type Position =
 
 export type Action = {
   player: string;
-  action: 'fold' | 'call' | 'bet' | 'raise' | 'check' | 'all-in';
+  action: 'fold' | 'call' | 'bet' | 'raise' | 'check' | 'all-in' | 'ante' | 'small_blind' | 'big_blind' | 'uncalled_return';
   amount?: number;
+  totalBet?: number; // For raises, this is the total bet amount
+  raiseBy?: number; // For raises, how much they raised by (for display)
   timestamp?: number;
 };
 
@@ -26,6 +28,13 @@ export interface NormalizedAction {
   description?: string;
 }
 
+// Pot object for side-pot logic
+export interface Pot {
+  value: number;
+  eligiblePlayers: string[];
+  isPotSide?: boolean; // true para side pots, false/undefined para main pot
+}
+
 // Snapshot que a UI consome
 export interface Snapshot {
   id: number; // índice sequencial
@@ -33,10 +42,11 @@ export interface Snapshot {
   actionIndex: number; // índice da action original ou -1 para pseudo ações como "collect"
   description: string;
 
-  // cores do estado:
-  collectedPot: number; // fichas já recolhidas no centro antes das contribuições atuais
+  // cores do estado - REFATORADO para side-pots:
+  pots: Pot[]; // array de potes (main pot + side pots)
+  collectedPot: number; // fichas já recolhidas no centro antes das contribuições atuais (DEPRECATED - usar pots)
   pendingContribs: Record<string, number>; // fichas em frente a cada jogador (apostas desta street)
-  totalDisplayedPot: number; // collectedPot + sum(pendingContribs)
+  totalDisplayedPot: number; // sum de todos os pots + sum(pendingContribs)
 
   playerStacks: Record<string, number>; // stacks REMANESCENTES no player (após subtrair aportes já realizados)
   playersOrder: string[]; // ordem para renderização (visual seats)
@@ -58,6 +68,8 @@ export type Player = {
   cards?: Card[];
   isHero: boolean;
   seat?: number; // Número do assento original
+  bounty?: number; // Tournament bounty amount
+  status?: 'active' | 'sitting_out' | 'disconnected'; // Player status
 };
 
 export type HandHistory = {
@@ -74,6 +86,9 @@ export type HandHistory = {
   ante?: number;
   timestamp: Date;
   players: Player[];
+
+  // Antes (if tournament)
+  antes?: Action[];
 
   // Streets
   preflop: Action[];

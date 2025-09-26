@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { DashboardMockup, GTOMockup, MarketplaceMockup } from '../mockups/AppMockups';
 
 interface FutureSectionProps {
@@ -6,31 +7,33 @@ interface FutureSectionProps {
 }
 
 const FutureSection: React.FC<FutureSectionProps> = ({ onShowLeadCapture }) => {
+  const { t } = useTranslation();
+
   const features = [
     {
       icon: '💰',
-      title: 'Gestor de Bankroll',
-      description: 'Controle financeiro completo com regras automáticas e análise de ROI'
+      title: t('future.features.bankroll.title'),
+      description: t('future.features.bankroll.description')
     },
     {
       icon: '🧠',
-      title: 'Consultor GTO de Bolso',
-      description: 'Decisões matematicamente perfeitas na palma da sua mão, otimizado para celular'
+      title: t('future.features.gto.title'),
+      description: t('future.features.gto.description')
     },
     {
       icon: '🔬',
-      title: 'Laboratório de Estudo com IA',
-      description: 'Análise inteligente das suas mãos com feedback personalizado e treinamento gamificado'
+      title: t('future.features.lab.title'),
+      description: t('future.features.lab.description')
     },
     {
       icon: '👥',
-      title: 'Plataforma Team Pro para Times',
-      description: 'Gestão profissional de atletas com dashboard agregado e análise em massa'
+      title: t('future.features.teamPro.title'),
+      description: t('future.features.teamPro.description')
     },
     {
       icon: '🎓',
-      title: 'Marketplace de Coaches',
-      description: 'Conecte-se com treinadores qualificados e acelere sua evolução no poker'
+      title: t('future.features.marketplace.title'),
+      description: t('future.features.marketplace.description')
     }
   ];
 
@@ -42,47 +45,47 @@ const FutureSection: React.FC<FutureSectionProps> = ({ onShowLeadCapture }) => {
         <div className="text-center mb-16">
           <div className="text-6xl mb-6">🚀</div>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            O Replayer é só o <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">Começo</span>
+            {t('future.title')}<span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">{t('future.titleHighlight')}</span>
           </h2>
           <p className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed mb-8">
-            O Hand Replayer é apenas uma <strong className="text-green-400">amostra grátis</strong> do ecossistema completo que estamos construindo.
+            {t('future.subtitle')}
           </p>
           <p className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            O Poker Grinder's Edge será o seu centro de comando para a evolução no poker.
+            {t('future.tagline')}
           </p>
         </div>
 
         {/* App Mockups - Visual Impact */}
         <div className="mb-20">
           <h3 className="text-3xl font-bold text-white mb-8 text-center">
-            Visualize para Crer
+            {t('future.mockups.title')}
           </h3>
           <p className="text-lg text-gray-300 text-center mb-12 max-w-2xl mx-auto">
-            Estas são as telas reais que você terá em breve. Não é apenas uma promessa - é o futuro do poker.
+            {t('future.mockups.subtitle')}
           </p>
 
           <div className="flex flex-wrap justify-center items-center gap-8 lg:gap-12">
             <div className="text-center">
               <DashboardMockup />
               <div className="mt-4">
-                <h4 className="text-white font-bold">Dashboard Pro</h4>
-                <p className="text-gray-400 text-sm">Controle total do seu bankroll</p>
+                <h4 className="text-white font-bold">{t('future.mockupLabels.dashboard.title')}</h4>
+                <p className="text-gray-400 text-sm">{t('future.mockupLabels.dashboard.subtitle')}</p>
               </div>
             </div>
 
             <div className="text-center">
               <GTOMockup />
               <div className="mt-4">
-                <h4 className="text-white font-bold">Consultor GTO</h4>
-                <p className="text-gray-400 text-sm">Decisões perfeitas na palma da mão</p>
+                <h4 className="text-white font-bold">{t('future.mockupLabels.gto.title')}</h4>
+                <p className="text-gray-400 text-sm">{t('future.mockupLabels.gto.subtitle')}</p>
               </div>
             </div>
 
             <div className="text-center">
               <MarketplaceMockup />
               <div className="mt-4">
-                <h4 className="text-white font-bold">Marketplace</h4>
-                <p className="text-gray-400 text-sm">Os melhores coaches do Brasil</p>
+                <h4 className="text-white font-bold">{t('future.mockupLabels.marketplace.title')}</h4>
+                <p className="text-gray-400 text-sm">{t('future.mockupLabels.marketplace.subtitle')}</p>
               </div>
             </div>
           </div>
@@ -114,7 +117,7 @@ const FutureSection: React.FC<FutureSectionProps> = ({ onShowLeadCapture }) => {
               <div className="mt-4">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-900/30 text-purple-300 border border-purple-500/30">
                   <span className="mr-1">⏳</span>
-                  Em breve
+                  {t('future.badges.comingSoon')}
                 </span>
               </div>
             </div>
@@ -134,18 +137,18 @@ const FutureSection: React.FC<FutureSectionProps> = ({ onShowLeadCapture }) => {
 
               {/* Title */}
               <h3 className="text-2xl font-bold text-yellow-400 mb-3">
-                Ecossistema Completo
+                {t('future.features.ecosystem.title')}
               </h3>
 
               {/* Description */}
               <p className="text-gray-300 leading-relaxed mb-4">
-                Todas as ferramentas integradas em uma única plataforma. Do estudo individual à gestão profissional de times.
+                {t('future.features.ecosystem.description')}
               </p>
 
               {/* Premium Badge */}
               <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold text-sm">
                 <span className="mr-2">⭐</span>
-                Experiência Premium
+                {t('future.features.ecosystem.badge')}
               </div>
             </div>
           </div>
@@ -157,27 +160,26 @@ const FutureSection: React.FC<FutureSectionProps> = ({ onShowLeadCapture }) => {
           <div className="text-5xl mb-6">📧</div>
 
           <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Seja o Primeiro a Ter Acesso
+            {t('future.cta.title')}
           </h3>
 
           <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
-            Deixe seu e-mail e seja o primeiro a saber quando lançarmos o <strong className="text-purple-400">Poker Grinder's Edge</strong> completo.
-            Tenha acesso VIP à revolução no estudo do poker.
+            {t('future.cta.description')}
           </p>
 
           {/* Benefits List */}
           <div className="grid md:grid-cols-3 gap-6 mb-10">
             <div className="flex items-center justify-center space-x-3 text-green-400">
               <span className="text-xl">✓</span>
-              <span className="font-medium">Acesso antecipado</span>
+              <span className="font-medium">{t('future.cta.benefits.earlyAccess')}</span>
             </div>
             <div className="flex items-center justify-center space-x-3 text-green-400">
               <span className="text-xl">✓</span>
-              <span className="font-medium">Desconto especial</span>
+              <span className="font-medium">{t('future.cta.benefits.discount')}</span>
             </div>
             <div className="flex items-center justify-center space-x-3 text-green-400">
               <span className="text-xl">✓</span>
-              <span className="font-medium">Conteúdo exclusivo</span>
+              <span className="font-medium">{t('future.cta.benefits.exclusiveContent')}</span>
             </div>
           </div>
 
@@ -187,22 +189,22 @@ const FutureSection: React.FC<FutureSectionProps> = ({ onShowLeadCapture }) => {
             className="bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 hover:from-purple-700 hover:via-blue-700 hover:to-purple-700 text-white px-12 py-5 rounded-2xl font-bold text-xl transition-all transform hover:scale-105 shadow-2xl hover:shadow-purple-500/25"
           >
             <span className="mr-3">🚀</span>
-            Quero Ser o Primeiro a Saber!
+            {t('future.cta.button')}
           </button>
 
           {/* Trust Signals */}
           <div className="mt-8 flex items-center justify-center space-x-6 text-gray-400 text-sm">
             <div className="flex items-center space-x-2">
               <span>🔒</span>
-              <span>Dados seguros</span>
+              <span>{t('future.cta.trust.secure')}</span>
             </div>
             <div className="flex items-center space-x-2">
               <span>📧</span>
-              <span>Sem spam</span>
+              <span>{t('future.cta.trust.noSpam')}</span>
             </div>
             <div className="flex items-center space-x-2">
               <span>🎯</span>
-              <span>Apenas novidades importantes</span>
+              <span>{t('future.cta.trust.important')}</span>
             </div>
           </div>
         </div>
