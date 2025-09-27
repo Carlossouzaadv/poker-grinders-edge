@@ -1,13 +1,23 @@
 /* Base chip class using professional sprite sheet */
 .chip {
+  /* Mantém o sprite, que é o que queremos */
   background-image: url('/assets/images/chips-sprite.png');
   background-repeat: no-repeat;
+
+  /* Força a remoção de qualquer cor de fundo */
+  background-color: transparent !important;
+
+  /* Garante que não há bordas criando o 'quadrado' */
+  border: none !important;
+
+  /* Mantém as dimensões corretas */
   width: 48px;  /* Width of one chip in sprite */
   height: 44px; /* Height of one chip in sprite */
-  background-color: transparent;
-  border: none;
+
+  /* Propriedades auxiliares */
   cursor: pointer;
   transition: transform 0.2s ease;
+  box-sizing: border-box;
 }
 
 .chip:hover {
@@ -46,13 +56,14 @@
 .chip-50   { background-position: -96px -88px; } /* Usando a verde $25 como substituta (linha 3, posição 3) */
 .chip-500m { background-position: -96px -132px; } /* Usando a de 500 como substituta */
 
-/* Container styles */
+/* Container styles - COMPLETAMENTE INVISÍVEL */
 .chip-stack-container {
+  /* Apenas layout - ZERO estilos visuais */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  pointer-events: none; /* Prevent interference with table interactions */
+  pointer-events: none;
+  /* ZERO background, border, shadow ou qualquer estilo visual */
 }
 
 /* Money label styling */
@@ -72,6 +83,12 @@
 
 /* Professional small chip styling - minimal CSS, let inline styles handle positioning */
 .chip.chip-small {
+  /* Força a remoção de qualquer cor de fundo para fichas pequenas */
+  background-color: transparent !important;
+
+  /* Garante que não há bordas criando o 'quadrado' */
+  border: none !important;
+
   /* Only essential properties that don't conflict with inline styles */
   cursor: pointer;
   transition: transform 0.15s ease;

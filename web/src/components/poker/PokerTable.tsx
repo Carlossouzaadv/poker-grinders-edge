@@ -544,10 +544,22 @@ const PokerTable: React.FC<PokerTableProps> = ({
           if (betAmount > 0 && snapshot.street !== 'showdown') {
             const actionStyle = getActionAreaPosition(player.visualSeat, playersWithVisualSeats.length);
             return (
-              <div key={`action-${player.name}`} style={actionStyle}>
-                <div className="relative">
+              <div key={`action-${player.name}`} style={{
+                ...actionStyle,
+                background: 'transparent !important',
+                backgroundColor: 'transparent !important'
+              }}>
+                <div className="relative" style={{
+                  background: 'transparent !important',
+                  backgroundColor: 'transparent !important'
+                }}>
                   {/* Professional chip display without connecting lines like PokerStars */}
-                  <ChipStack valor={betAmount} size="medium" showLabel={true} />
+                  <ChipStack
+                    valor={betAmount}
+                    size="medium"
+                    showLabel={true}
+                    enableRealisticStacking={true}
+                  />
 
                   {/* Nome do jogador na aposta */}
                   <div className="text-white text-xs text-center mt-1 bg-black/40 rounded px-1">

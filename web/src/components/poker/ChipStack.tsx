@@ -5,12 +5,14 @@ interface ChipStackProps {
   valor: number;
   size?: 'small' | 'medium' | 'large';
   showLabel?: boolean;
+  enableRealisticStacking?: boolean; // Nova prop para empilhamento realista
 }
 
 const ChipStack: React.FC<ChipStackProps> = ({
   valor,
   size = 'medium',
-  showLabel = true
+  showLabel = true,
+  enableRealisticStacking = false
 }) => {
   const formatarValor = (valor: number): string => {
     if (valor >= 1000) {
@@ -59,10 +61,7 @@ const ChipStack: React.FC<ChipStackProps> = ({
       backgroundSize: '158px 137.5px',
       backgroundColor: 'transparent',
       border: 'none',
-      borderRadius: '50%', // Ensure perfect circular chips
       boxSizing: 'border-box' as const,
-      // Add subtle shadow for depth like PokerStars
-      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
       // Ensure crisp rendering
       imageRendering: 'crisp-edges' as const,
     };
@@ -112,6 +111,119 @@ const ChipStack: React.FC<ChipStackProps> = ({
 
   const inlineStyles = getSmallChipStyles(chipClass);
 
+  // PokerStars-style realistic chip breakdown and stacking
+  const getChipBreakdown = (amount: number): { denomination: number; count: number; chipClass: string }[] => {
+    // Denominações ordenadas da maior para menor
+    const denominations = [
+      { value: 25000000000, class: 'chip-25b' },   // 25 Billion
+      { value: 1000000000, class: 'chip-1b' },    // 1 Billion
+      { value: 500000000, class: 'chip-500m' },   // 500 Million
+      { value: 100000000, class: 'chip-100m' },   // 100 Million
+      { value: 25000000, class: 'chip-25m' },     // 25 Million
+      { value: 5000000, class: 'chip-5m' },       // 5 Million
+      { value: 1000000, class: 'chip-1m' },       // 1 Million
+      { value: 500000, class: 'chip-500k' },      // 500k
+      { value: 100000, class: 'chip-100k' },      // 100k
+      { value: 25000, class: 'chip-25k' },        // 25k
+      { value: 1000, class: 'chip-1k' },          // 1k
+      { value: 500, class: 'chip-500' },          // 500
+      { value: 100, class: 'chip-100' },          // 100
+      { value: 25, class: 'chip-25' },            // 25
+      { value: 5, class: 'chip-5' },              // 5
+      { value: 1, class: 'chip-1' },              // 1
+    ];
+
+    const breakdown: { denomination: number; count: number; chipClass: string }[] = [];
+    let remaining = amount;
+
+    for (const denom of denominations) {
+      if (remaining >= denom.value) {
+        const count = Math.floor(remaining / denom.value);
+        if (count > 0) {
+          breakdown.push({
+            denomination: denom.value,
+            count: Math.min(count, 10), // Máximo 10 fichas por denominação para evitar pilhas muito altas
+            chipClass: denom.class
+          });
+          remaining -= count * denom.value;
+        }
+      }
+    }
+
+    return breakdown;
+  };
+
+  const renderRealisticChipStack = () => {
+    const breakdown = getChipBreakdown(valor);
+
+    if (breakdown.length === 0) return null;
+
+    // Offset entre fichas para empilhamento vertical
+    const stackOffset = size === 'small' ? 1.5 : size === 'medium' ? 2.5 : 3.5;
+
+    // Criar array com todas as fichas em ordem (maiores embaixo, menores em cima)
+    const allChips: { chipClass: string; denomination: number; stackIndex: number }[] = [];
+    let currentStackIndex = 0;
+
+    // Inverter ordem para que maiores denominações fiquem embaixo
+    const sortedBreakdown = [...breakdown].reverse();
+
+    for (const chipGroup of sortedBreakdown) {
+      for (let i = 0; i < chipGroup.count; i++) {
+        allChips.push({
+          chipClass: chipGroup.chipClass,
+          denomination: chipGroup.denomination,
+          stackIndex: currentStackIndex++
+        });
+      }
+    }
+
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        pointerEvents: 'none'
+      }}>
+        <div style={{
+          position: 'relative',
+          display: 'inline-block'
+        }}>
+          {allChips.map((chip, index) => (
+            <div
+              key={`${chip.chipClass}-${index}`}
+              className={size === 'small' ? 'chip' : `chip ${chip.chipClass} ${sizeClass}`}
+              style={{
+                ...(size === 'small' ? getSmallChipStyles(chip.chipClass) : {}),
+                position: index > 0 ? 'absolute' : 'relative',
+                bottom: index > 0 ? `${index * stackOffset}px` : '0',
+                left: '0',
+                zIndex: 10 + index,
+                // FORÇA BRUTA: Remove qualquer fundo
+                backgroundColor: 'transparent !important',
+                background: 'transparent !important',
+                border: 'none !important',
+                borderColor: 'transparent !important',
+                outline: 'none',
+              }}
+              title={`$${chip.denomination}`}
+            />
+          ))}
+        </div>
+        {showLabel && (
+          <div className={`money-label ${labelClass}`} style={{ marginTop: '6px' }}>
+            ${valor}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Se empilhamento realista estiver ativo e o valor for > 25, usar o sistema novo
+  if (enableRealisticStacking && valor > 25) {
+    return renderRealisticChipStack();
+  }
+
   // Professional $50 chip rendering (two stacked $25 chips like PokerStars)
   if (valor === 50) {
     const stackOffset = size === 'small' ? { top: '-1.5px', left: '1px' } :
@@ -119,15 +231,26 @@ const ChipStack: React.FC<ChipStackProps> = ({
                        { top: '-6px', left: '3px' };
 
     return (
-      <div className="chip-stack-container">
-        <div className="relative">
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        pointerEvents: 'none'
+      }}>
+        <div style={{
+          position: 'relative'
+        }}>
           {/* Bottom $25 chip */}
           <div
             className={size === 'small' ? 'chip' : `chip chip-25 ${sizeClass}`}
             style={{
               ...(size === 'small' ? getSmallChipStyles('chip-25') : {}),
-              // Add subtle shadow for the bottom chip for all sizes
-              boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+              // FORÇA BRUTA: Remove qualquer fundo
+              backgroundColor: 'transparent !important',
+              background: 'transparent !important',
+              border: 'none !important',
+              borderColor: 'transparent !important',
+              outline: 'none',
             }}
             title={`Aposta de $${valor} (2x $25)`}
           />
@@ -140,8 +263,12 @@ const ChipStack: React.FC<ChipStackProps> = ({
               top: stackOffset.top,
               left: stackOffset.left,
               zIndex: 2,
-              // Enhanced shadow for depth perception for all sizes
-              boxShadow: '0 1px 3px rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.15)'
+              // FORÇA BRUTA: Remove qualquer fundo
+              backgroundColor: 'transparent !important',
+              background: 'transparent !important',
+              border: 'none !important',
+              borderColor: 'transparent !important',
+              outline: 'none',
             }}
             title={`Aposta de $${valor} (2x $25)`}
           />
@@ -156,7 +283,12 @@ const ChipStack: React.FC<ChipStackProps> = ({
   }
 
   return (
-    <div className="chip-stack-container">
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      pointerEvents: 'none'
+    }}>
       <div
         className={size === 'small' ? 'chip' : `chip ${chipClass} ${sizeClass}`}
         style={inlineStyles}
