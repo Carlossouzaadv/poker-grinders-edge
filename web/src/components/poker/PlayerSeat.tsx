@@ -111,6 +111,17 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
               </div>
             </div>
 
+            {/* Bounty - estilo PokerStars */}
+            {player.bounty && player.bounty > 0 && (
+              <div className="text-center mb-1">
+                <div className="px-2 py-1 rounded-md bg-yellow-500/20 border border-yellow-400/30 backdrop-blur-sm">
+                  <div className="text-xs text-yellow-300 font-medium">
+                    🎯 ${player.bounty.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Posição - mais sutil */}
             <div className="text-center">
               <div className="text-xs text-gray-400 opacity-70">

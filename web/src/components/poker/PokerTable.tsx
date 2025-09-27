@@ -394,10 +394,15 @@ const PokerTable: React.FC<PokerTableProps> = ({
 
           {/* Centro da mesa - Pot e Community Cards */}
           <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 20 }}>
-            {/* Pote Total Consolidado - Uma única representação visual limpa */}
-            {potTotal > 0 && (
+            {/* Pote Total Consolidado - Empilhamento realista como PokerStars */}
+            {potTotal > 0 && snapshot.street !== 'showdown' && (
               <div className="flex flex-col items-center mb-4">
-                <ChipStack valor={potTotal} size="medium" showLabel={false} />
+                <ChipStack
+                  valor={potTotal}
+                  size="medium"
+                  showLabel={false}
+                  enableRealisticStacking={true}
+                />
                 <div className="mt-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold px-4 py-2 rounded-full shadow-xl border-2 border-yellow-400">
                   <div className="text-sm">Pote Total: ${potTotal.toFixed(0)}</div>
                 </div>
@@ -469,12 +474,26 @@ const PokerTable: React.FC<PokerTableProps> = ({
           console.log(`🎲 ${player.name}: Seat ${player.seat} → Visual ${player.visualSeat} ${player.isHero ? '[HERO]' : ''}`);
           console.log(`💰 ${player.name} stack: ${player.stack} → ${playerCurrentStack}`);
 
-          // Calcular stack final considerando ganhos do showdown
+          // Calcular stack final considerando ganhos do showdown (evitar double-count)
           let finalStack = playerCurrentStack;
-          if (snapshot.street === 'showdown' && handHistory.showdown?.winners.includes(player.name)) {
-            const wonAmount = handHistory.showdown.potWon || potTotal;
-            finalStack = playerCurrentStack + wonAmount;
-            console.log(`🏆 ${player.name} stack final: ${playerCurrentStack} + ${wonAmount} = ${finalStack}`);
+
+          // 1) Se o snapshot já fornece stacks _após_showdown_, use direto (ideal).
+          if (snapshot.playerStacksPostShowdown && snapshot.playerStacksPostShowdown[player.name] != null) {
+            finalStack = snapshot.playerStacksPostShowdown[player.name];
+          } else if (snapshot.street === 'showdown') {
+            // 2) Caso contrário, calcule de forma determinística: initial - committed + payout
+            const initialStack = player.stack ?? 0; // stack inicial vindo do handHistory
+            // totalCommitted = total que o jogador colocou na mão (não apenas pendingContribs)
+            const totalCommitted = (snapshot.totalCommitted && snapshot.totalCommitted[player.name])
+                                   ?? snapshot.totalContribs?.[player.name]
+                                   ?? snapshot.pendingContribs?.[player.name] ?? 0;
+            // payout: quanto esse jogador ganhou no showdown (por jogador, não o pot total)
+            const payout = (snapshot.payouts && snapshot.payouts[player.name])
+                           ?? (handHistory.showdown?.payouts && handHistory.showdown.payouts[player.name])
+                           ?? 0;
+
+            finalStack = initialStack - totalCommitted + payout;
+            console.log(`🏆 ${player.name} stack calculation: ${initialStack} - ${totalCommitted} + ${payout} = ${finalStack}`);
           }
 
           // Criar player dinâmico com stack atualizado
@@ -530,12 +549,16 @@ const PokerTable: React.FC<PokerTableProps> = ({
         return playersWithVisualSeats.map((player) => {
           let betAmount = snapshot.pendingContribs[player.name] || 0;
 
-          // No snapshot inicial (id = 0), mostrar as blinds
-          if (snapshot.id === 0) {
-            if (player.position === 'SB') {
-              betAmount = handHistory.smallBlind;
-            } else if (player.position === 'BB') {
-              betAmount = handHistory.bigBlind;
+          // Mostrar blinds até o jogador agir pela primeira vez
+          // SB e BB devem manter suas fichas na frente até agirem
+          if ((player.position === 'SB' || player.position === 'BB') && betAmount === 0) {
+            // Verificar se o jogador ainda não agiu (olhando snapshots anteriores)
+            // Se ainda não agiu, mostrar a blind
+            const blindAmount = player.position === 'SB' ? handHistory.smallBlind : handHistory.bigBlind;
+
+            // Só mostrar se o jogador não foldou ainda
+            if (!foldedPlayers.has(player.name)) {
+              betAmount = blindAmount;
             }
           }
 
@@ -560,11 +583,6 @@ const PokerTable: React.FC<PokerTableProps> = ({
                     showLabel={true}
                     enableRealisticStacking={true}
                   />
-
-                  {/* Nome do jogador na aposta */}
-                  <div className="text-white text-xs text-center mt-1 bg-black/40 rounded px-1">
-                    {player.name}
-                  </div>
                 </div>
               </div>
             );

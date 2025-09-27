@@ -73,32 +73,33 @@ export class HandParser {
     const warnings: string[] = [];
 
     try {
-      // Linha 1: Header com ID da mão
-      const headerMatch = lines[0].match(/PokerStars (?:Hand|Game) #(\d+):\s*(.+?) \((.+?)\) - (.+)/);
-      if (!headerMatch) {
-        return { success: false, error: 'Formato de header inválido' };
+      // Linha 1: Header com ID da mão - regex mais específica para torneios
+      let headerMatch = lines[0].match(/PokerStars (?:Hand|Game) #(\d+):\s*Tournament #\d+, .+? USD (Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit) - Level .+ \(([0-9.]+)\/([0-9.]+)\) - (.+)/);
+
+      let handId: string, gameType: string, limit: string, stakes: string, smallBlind: number, bigBlind: number;
+
+      if (headerMatch) {
+        // É um torneio
+        [, handId, gameType, limit] = headerMatch;
+        smallBlind = parseFloat(headerMatch[4]);
+        bigBlind = parseFloat(headerMatch[5]);
+        stakes = `${smallBlind}/${bigBlind}`;
+      } else {
+        // Tentar cash game: "PokerStars Hand #123: Hold'em No Limit ($0.25/$0.50 USD) - 2023/..."
+        headerMatch = lines[0].match(/PokerStars (?:Hand|Game) #(\d+):\s*(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit)\s+\(\$?([0-9.]+)\/\$?([0-9.]+).+?\) - (.+)/);
+
+        if (!headerMatch) {
+          return { success: false, error: 'Formato de header inválido - não reconhece cash game nem torneio' };
+        }
+
+        [, handId, gameType, limit] = headerMatch;
+        smallBlind = parseFloat(headerMatch[4]);
+        bigBlind = parseFloat(headerMatch[5]);
+        stakes = `$${smallBlind}/$${bigBlind}`;
       }
 
-      const [, handId, gameInfo, stakes, timestamp] = headerMatch;
-
-      // Parse do game type e limit
-      const gameTypeMatch = gameInfo.match(/(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit)/);
-      if (!gameTypeMatch) {
-        return { success: false, error: 'Tipo de jogo não reconhecido' };
-      }
-
-      const [, gameType, limit] = gameTypeMatch;
-
-      // Parse dos stakes
-      const stakesMatch = stakes.match(/\$?([0-9.]+)\/\$?([0-9.]+)/);
-      if (!stakesMatch) {
-        return { success: false, error: 'Stakes não reconhecidos' };
-      }
-
-      const smallBlind = parseFloat(stakesMatch[1]);
-      const bigBlind = parseFloat(stakesMatch[2]);
-
-      // Parse da data
+      // Parse da data - timestamp está em posições diferentes
+      const timestamp = headerMatch[headerMatch.length - 1]; // Última captura sempre é timestamp
       const parsedDate = new Date(timestamp);
 
       // Linha 2: Table info
@@ -365,9 +366,24 @@ export class HandParser {
           while (currentLine < lines.length && !lines[currentLine].includes('***') && !lines[currentLine].includes('SUMMARY')) {
             const showLine = lines[currentLine];
 
-            // Hero mostra cartas: "Hero: shows [Ac Jd] (a pair of Aces)"
+            // Jogador mostra cartas: "draper24492: shows [As 4s] (high card Ace)"
             if (showLine.includes(': shows [') && showLine.includes(']')) {
               showdownInfo += showLine + '\n';
+
+              // Extrair cartas e atribuir ao jogador
+              const showMatch = showLine.match(/(.+?): shows \[([^\]]+)\]/);
+              if (showMatch) {
+                const playerName = showMatch[1];
+                const cardsText = showMatch[2];
+                const cards = this.parseCards(cardsText);
+
+                // Encontrar o jogador e atribuir as cartas
+                const player = players.find(p => p.name === playerName);
+                if (player && cards.length === 2) {
+                  player.cards = cards;
+                  console.log(`🎯 Cartas do showdown atribuídas: ${playerName} = [${cardsText}]`);
+                }
+              }
             }
 
             // Vilão muck: "Player 5: mucks hand"
@@ -521,6 +537,18 @@ export class HandParser {
     return cards;
   }
 
+  // Patterns para detectar all-in em diferentes formatos
+  private static ALL_IN_PATTERNS = [
+    /and\s+is\s+all-?in/i,
+    /is\s+all-?in\s*\(\$?[\d,\.]+\)/i,
+    /is\s+all-?in$/i,
+    /\(all-?in\)/i
+  ];
+
+  private static isAllInAction(text: string): boolean {
+    return this.ALL_IN_PATTERNS.some(pattern => pattern.test(text));
+  }
+
   private static parseAction(line: string): Action | null {
     // Parse de ações: "PlayerName: folds", "PlayerName: calls $X", etc.
     const foldMatch = line.match(/^(.+?): folds/);
@@ -528,31 +556,39 @@ export class HandParser {
       return { player: foldMatch[1], action: 'fold' };
     }
 
-    const callMatch = line.match(/^(.+?): calls \$?([0-9.]+)/);
+    const callMatch = line.match(/^(.+?): calls \$?([0-9.]+)(.*)$/);
     if (callMatch) {
+      // Check if it's an all-in call
+      const isAllIn = this.isAllInAction(callMatch[3]);
+
       return {
         player: callMatch[1],
-        action: 'call',
+        action: isAllIn ? 'all-in' : 'call',
         amount: parseFloat(callMatch[2])
       };
     }
 
-    const betMatch = line.match(/^(.+?): bets \$?([0-9.]+)/);
+    const betMatch = line.match(/^(.+?): bets \$?([0-9.]+)(.*)$/);
     if (betMatch) {
+      // Check if it's an all-in
+      const isAllIn = this.isAllInAction(betMatch[3]);
+
       return {
         player: betMatch[1],
-        action: 'bet',
+        action: isAllIn ? 'all-in' : 'bet',
         amount: parseFloat(betMatch[2])
       };
     }
 
-    const raiseMatch = line.match(/^(.+?): raises \$?([0-9.]+) to \$?([0-9.]+)/);
+    const raiseMatch = line.match(/^(.+?): raises \$?([0-9.]+) to \$?([0-9.]+)(.*)$/);
     if (raiseMatch) {
-      // For raises, the amount is the TOTAL bet amount the player puts in the pot
+      // Check if it's an all-in
+      const isAllIn = this.isAllInAction(raiseMatch[4]);
       const totalBet = parseFloat(raiseMatch[3]); // Total amount player bets
+
       return {
         player: raiseMatch[1],
-        action: 'raise',
+        action: isAllIn ? 'all-in' : 'raise',
         amount: totalBet, // Total amount added to pot
         raiseBy: parseFloat(raiseMatch[2]), // How much they raised by (for display)
         totalBet: totalBet // Store total bet for reference

@@ -57,6 +57,11 @@ export interface Snapshot {
   communityCards: Card[]; // conforme street
   revealedHands?: Record<string, Card[] | null>;
   winners?: string[]; // no showdown
+
+  // Campos adicionados para evitar double-count e tracking preciso
+  totalCommitted?: Record<string, number>; // total que cada jogador colocou na mão
+  payouts?: Record<string, number>; // quanto cada jogador ganhou no showdown
+  playerStacksPostShowdown?: Record<string, number>; // stacks finais após showdown
 }
 
 export type Street = 'preflop' | 'flop' | 'turn' | 'river' | 'showdown';
