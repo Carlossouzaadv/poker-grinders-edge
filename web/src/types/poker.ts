@@ -14,6 +14,8 @@ export type Action = {
   totalBet?: number; // For raises, this is the total bet amount
   raiseBy?: number; // For raises, how much they raised by (for display)
   timestamp?: number;
+  reveals?: boolean; // Para all-in: se deve revelar cartas imediatamente
+  revealedCards?: Card[]; // Cartas reveladas associadas à ação
 };
 
 // Normalized action type for snapshots
@@ -62,6 +64,7 @@ export interface Snapshot {
   totalCommitted?: Record<string, number>; // total que cada jogador colocou na mão
   payouts?: Record<string, number>; // quanto cada jogador ganhou no showdown
   playerStacksPostShowdown?: Record<string, number>; // stacks finais após showdown
+  isAllIn?: Record<string, boolean>; // jogadores que estão all-in neste snapshot
 }
 
 export type Street = 'preflop' | 'flop' | 'turn' | 'river' | 'showdown';

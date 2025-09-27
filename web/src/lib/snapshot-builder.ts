@@ -2,62 +2,131 @@
 import { ReplayBuilder } from './replay-builder';
 import { HandHistory, Snapshot, Pot } from '@/types/poker';
 import { ReplayState, ReplayStep } from '@/types/replay';
+import { normalizeKey, setNormalized, getNormalized, incrementNormalized } from './normalize-key';
 
 export class SnapshotBuilder {
-  // Algoritmo de cálculo de side-pots
+  // Site configuration for reveal behavior
+  private static siteConfig = {
+    revealsOnAllIn: false // Default: only reveal at showdown
+  };
+
+  /**
+   * Process all-in action with normalized keys and comprehensive tracking
+   */
+  private static processAllInAction(
+    actionStep: any,
+    snapshot: {
+      playerStacks: Record<string, number>;
+      totalCommitted: Record<string, number>;
+      pendingContribs: Record<string, number>;
+      isAllIn: Record<string, boolean>;
+      revealedHands?: Record<string, any>;
+    },
+    handHistory: HandHistory
+  ): void {
+    const key = normalizeKey(actionStep.player);
+
+    // Get stack before action
+    const stackBefore = getNormalized(snapshot.playerStacks, key) ||
+      handHistory.players.find(p => normalizeKey(p.name) === key)?.stack || 0;
+
+    // Determine amount to commit
+    const parsedAmount = actionStep.amount;
+    const amountToCommit = parsedAmount ? Math.min(parsedAmount, stackBefore) : stackBefore;
+
+    // Update tracking
+    incrementNormalized(snapshot.totalCommitted, key, amountToCommit);
+    incrementNormalized(snapshot.pendingContribs, key, amountToCommit);
+
+    // Update stack (should be 0 for all-in)
+    const newStack = Math.max(0, stackBefore - amountToCommit);
+    setNormalized(snapshot.playerStacks, key, newStack);
+
+    // Mark as all-in
+    setNormalized(snapshot.isAllIn, key, true);
+
+    // Handle card reveals
+    if (actionStep.reveals || this.siteConfig.revealsOnAllIn || actionStep.revealedCards) {
+      if (!snapshot.revealedHands) {
+        snapshot.revealedHands = {};
+      }
+      const player = handHistory.players.find(p => normalizeKey(p.name) === key);
+      if (player?.cards) {
+        setNormalized(snapshot.revealedHands, key, player.cards);
+        console.log(`✅ REVEAL (all-in): ${key} cards:`, player.cards);
+      }
+    }
+
+    // Comprehensive logging
+    console.log(`🧾 ALL-IN processed:`, {
+      player: key,
+      stackBefore,
+      parsedAmount,
+      amountToCommit,
+      newStack,
+      totalCommitted: getNormalized(snapshot.totalCommitted, key)
+    });
+  }
+
+  /**
+   * Deterministic side pot calculation with normalized keys
+   */
+  private static computeSidePots(totalCommittedMap: Record<string, number>): Array<{amount: number, eligible: string[]}> {
+    // Transform to array and sort by contribution (ascending)
+    const arr = Object.entries(totalCommittedMap)
+      .map(([p, c]) => ({ player: p, committed: c }))
+      .sort((a, b) => a.committed - b.committed);
+
+    const pots: Array<{amount: number, eligible: string[]}> = [];
+    let prev = 0;
+
+    for (let i = 0; i < arr.length; i++) {
+      const amount = arr[i].committed - prev;
+      if (amount <= 0) {
+        prev = arr[i].committed;
+        continue;
+      }
+
+      // All players with committed >= arr[i].committed are eligible
+      const eligible = arr.slice(i).map(x => x.player);
+      pots.push({
+        amount: amount * eligible.length,
+        eligible
+      });
+      prev = arr[i].committed;
+    }
+
+    return pots;
+  }
+
+  /**
+   * Legacy side-pots function (for compatibility)
+   */
   private static calculateSidePots(
     playerContributions: Record<string, number>,
     foldedPlayers: Set<string>
   ): Pot[] {
-    // Filtra jogadores que ainda estão na mão (não foldaram)
+    // Use new deterministic algorithm but convert to legacy format
     const activePlayers = Object.keys(playerContributions).filter(
-      player => !foldedPlayers.has(player)
+      player => !foldedPlayers.has(normalizeKey(player))
     );
 
     if (activePlayers.length === 0) {
       return [{ value: 0, eligiblePlayers: [], isPotSide: false }];
     }
 
-    // Ordena jogadores por contribuição (menor para maior)
-    const sortedContribs = activePlayers
-      .map(player => ({ player, contribution: playerContributions[player] || 0 }))
-      .sort((a, b) => a.contribution - b.contribution);
+    const activeContribs: Record<string, number> = {};
+    activePlayers.forEach(player => {
+      activeContribs[player] = playerContributions[player] || 0;
+    });
 
-    const pots: Pot[] = [];
-    let remainingPlayers = [...activePlayers];
-    let lastLevel = 0;
+    const sidePots = this.computeSidePots(activeContribs);
 
-    for (let i = 0; i < sortedContribs.length; i++) {
-      const currentLevel = sortedContribs[i].contribution;
-      const increment = currentLevel - lastLevel;
-
-      if (increment > 0 && remainingPlayers.length > 0) {
-        const potValue = increment * remainingPlayers.length;
-        pots.push({
-          value: potValue,
-          eligiblePlayers: [...remainingPlayers],
-          isPotSide: pots.length > 0
-        });
-      }
-
-      // Remove jogadores que estão all-in (contribuição igual ao level atual)
-      remainingPlayers = remainingPlayers.filter(player =>
-        (playerContributions[player] || 0) > currentLevel
-      );
-
-      lastLevel = currentLevel;
-    }
-
-    // Se não há potes, cria um pote vazio
-    if (pots.length === 0) {
-      pots.push({
-        value: 0,
-        eligiblePlayers: activePlayers,
-        isPotSide: false
-      });
-    }
-
-    return pots;
+    return sidePots.map((pot, index) => ({
+      value: pot.amount,
+      eligiblePlayers: pot.eligible,
+      isPotSide: index > 0
+    }));
   }
 
   static buildSnapshots(handHistory: HandHistory): Snapshot[] {
@@ -77,9 +146,10 @@ export class SnapshotBuilder {
         handHistory.antes.reduce((sum, ante) => sum + (ante.amount || 0), 0) : 0;
       let currentPot = handHistory.smallBlind + handHistory.bigBlind + totalAntes;
 
-      // Ajustar stacks iniciais subtraindo antes e blinds já colocados na mesa
-      let currentStacks = { ...replayState.currentStacks };
+      // Ajustar stacks iniciais subtraindo antes e blinds já colocados na mesa (using normalized keys)
+      const currentStacks: Record<string, number> = {};
       handHistory.players.forEach(player => {
+        const key = normalizeKey(player.name);
         let adjustedStack = player.stack;
 
         // Subtrair ante se houver
@@ -95,7 +165,7 @@ export class SnapshotBuilder {
         }
 
         // Atualizar stack (garantindo que não fique negativo)
-        currentStacks[player.name] = Math.max(0, adjustedStack);
+        currentStacks[key] = Math.max(0, adjustedStack);
       });
 
       let communityCards: any[] = [];
@@ -103,22 +173,24 @@ export class SnapshotBuilder {
       let folded = new Set<string>();
       let pendingContribs: Record<string, number> = {};
       let totalContribs: Record<string, number> = {};
+      let isAllIn: Record<string, boolean> = {};
       let revealedCards: Record<string, any> = {}; // Cartas reveladas durante a mão
 
-      // Inicializar contribuições totais com antes, blinds
+      // Inicializar contribuições totais com antes, blinds (using normalized keys)
       handHistory.players.forEach(player => {
-        totalContribs[player.name] = 0;
+        const key = normalizeKey(player.name);
+        totalContribs[key] = 0;
 
         // Adicionar antes se houver
         if (handHistory.ante && handHistory.ante > 0) {
-          totalContribs[player.name] += handHistory.ante;
+          totalContribs[key] += handHistory.ante;
         }
 
         // Adicionar as blinds às contribuições iniciais
         if (player.position === 'SB') {
-          totalContribs[player.name] += handHistory.smallBlind;
+          totalContribs[key] += handHistory.smallBlind;
         } else if (player.position === 'BB') {
-          totalContribs[player.name] += handHistory.bigBlind;
+          totalContribs[key] += handHistory.bigBlind;
         }
       });
 
@@ -165,32 +237,38 @@ export class SnapshotBuilder {
             activePlayer = actionStep.player;
             currentPot = actionStep.potAfter;
 
-            // IMPORTANTE: Não sobrescrever currentStacks com stacksAfter do replay-builder
-            // pois ele não considera antes/blinds já deduzidos
-            // Apenas atualizar o stack do jogador que agiu
-            if (actionStep.action === 'all-in') {
-              // Para all-in, o stack deve ir para 0
-              currentStacks[actionStep.player] = 0;
-            } else if (actionStep.amount && actionStep.amount > 0) {
-              currentStacks[actionStep.player] = Math.max(0,
-                (currentStacks[actionStep.player] || 0) - actionStep.amount
-              );
-            }
+            const playerKey = normalizeKey(actionStep.player);
 
             // Debug da action
             console.log(`📝 ACTION: ${actionStep.player} ${actionStep.action} ${actionStep.amount || 0}`);
 
-            // Calcular pending contributions e contribuições totais
-            if (actionStep.action === 'fold') {
-              folded.add(actionStep.player);
+            // Process different action types with normalized keys
+            if (actionStep.action === 'all-in') {
+              // Use specialized all-in processing
+              this.processAllInAction(actionStep, {
+                playerStacks: currentStacks,
+                totalCommitted: totalContribs,
+                pendingContribs,
+                isAllIn,
+                revealedHands: revealedCards
+              }, handHistory);
+            } else if (actionStep.action === 'fold') {
+              folded.add(playerKey);
             } else if (actionStep.action === 'uncalled_return') {
               // For uncalled bets, remove from total contributions (money returned to player)
               if (actionStep.amount) {
-                totalContribs[actionStep.player] = (totalContribs[actionStep.player] || 0) - actionStep.amount;
+                const currentTotal = getNormalized(totalContribs, playerKey) || 0;
+                setNormalized(totalContribs, playerKey, currentTotal - actionStep.amount);
               }
             } else if (actionStep.amount && actionStep.amount > 0) {
-              pendingContribs[actionStep.player] = (pendingContribs[actionStep.player] || 0) + actionStep.amount;
-              totalContribs[actionStep.player] = (totalContribs[actionStep.player] || 0) + actionStep.amount;
+              // Normal action processing
+              incrementNormalized(pendingContribs, playerKey, actionStep.amount);
+              incrementNormalized(totalContribs, playerKey, actionStep.amount);
+
+              // Update stack
+              const currentStack = getNormalized(currentStacks, playerKey) || 0;
+              const newStack = Math.max(0, currentStack - actionStep.amount);
+              setNormalized(currentStacks, playerKey, newStack);
             }
             break;
 
@@ -200,7 +278,7 @@ export class SnapshotBuilder {
             description = streetStep.description;
             communityCards = [...streetStep.cards];
             // Reset pending contributions at start of new street
-            pendingContribs = {};
+            Object.keys(pendingContribs).forEach(key => delete pendingContribs[key]);
             break;
 
           case 'SHOWDOWN':
@@ -216,13 +294,11 @@ export class SnapshotBuilder {
         // Calcular side-pots
         const pots = this.calculateSidePots(totalContribs, folded);
 
-        // Detectar all-in situation com cartas expostas
-        const activePlayers = handHistory.players.filter(p => !folded.has(p.name));
+        // Detectar all-in situation com cartas expostas (using normalized keys)
+        const activePlayers = handHistory.players.filter(p => !folded.has(normalizeKey(p.name)));
 
         // Verificar se há condições para revelar cartas após all-in
-        let shouldRevealCards = false;
-
-        // Detectar situação de all-in com 2 jogadores
+        // Heads-up reveal rule: quando há all-in e apenas 2 jogadores ativos
         if (step.type === 'ACTION' && (step as any).action === 'all-in') {
           const remainingActivePlayers = activePlayers.length;
 
@@ -230,17 +306,16 @@ export class SnapshotBuilder {
           console.log(`🎯 ALL-IN DEBUG: ${(step as any).player} all-in, ${remainingActivePlayers} jogadores ativos:`,
             activePlayers.map(p => p.name));
 
-          // Revelar cartas se restam apenas 2 jogadores ativos
+          // Revelar cartas se restam apenas 2 jogadores ativos (heads-up rule)
           if (remainingActivePlayers === 2) {
-            shouldRevealCards = true;
             console.log(`✅ REVELANDO CARTAS: All-in com 2 jogadores`);
 
             // Adicionar cartas reveladas para todos os jogadores ativos
             activePlayers.forEach(activePlayer => {
-              const playerData = handHistory.players.find(p => p.name === activePlayer.name);
-              if (playerData && playerData.cards) {
-                revealedCards[activePlayer.name] = playerData.cards;
-                console.log(`🃏 REVELANDO: ${activePlayer.name} cartas:`, playerData.cards);
+              const key = normalizeKey(activePlayer.name);
+              if (activePlayer.cards) {
+                revealedCards[key] = activePlayer.cards;
+                console.log(`🃏 REVELANDO: ${activePlayer.name} cartas:`, activePlayer.cards);
               }
             });
           }
@@ -276,7 +351,8 @@ export class SnapshotBuilder {
           // Campos adicionados para tracking preciso
           totalCommitted: { ...totalContribs },
           payouts: currentStreet === 'showdown' ? this.calculatePayouts(handHistory, totalContribs) : undefined,
-          playerStacksPostShowdown: currentStreet === 'showdown' ? this.calculateFinalStacks(handHistory, totalContribs) : undefined
+          playerStacksPostShowdown: currentStreet === 'showdown' ? this.calculateFinalStacks(handHistory, totalContribs) : undefined,
+          isAllIn: { ...isAllIn }
         };
 
         snapshots.push(snapshot);
@@ -320,7 +396,7 @@ export class SnapshotBuilder {
   }
 
   /**
-   * Calcula payouts por jogador no showdown
+   * Calculate payouts deterministically using side pots
    */
   private static calculatePayouts(handHistory: HandHistory, totalCommitted: Record<string, number>): Record<string, number> {
     const payouts: Record<string, number> = {};
@@ -329,35 +405,44 @@ export class SnapshotBuilder {
       return payouts;
     }
 
-    // Se há apenas um vencedor, ele ganha o pot todo
-    if (handHistory.showdown.winners.length === 1) {
-      const winner = handHistory.showdown.winners[0];
-      payouts[winner] = handHistory.showdown.potWon || 0;
-    } else {
-      // Multiple winners - split pot equally
-      const totalPot = handHistory.showdown.potWon || 0;
-      const perWinner = totalPot / handHistory.showdown.winners.length;
-      handHistory.showdown.winners.forEach(winner => {
-        payouts[winner] = perWinner;
-      });
-    }
+    // Use side pot calculation for deterministic payouts
+    const pots = this.computeSidePots(totalCommitted);
+    const winners = handHistory.showdown.winners.map(w => normalizeKey(w));
+
+    // Distribute each pot among eligible winners
+    pots.forEach(pot => {
+      const eligibleWinners = pot.eligible.filter(player => winners.includes(normalizeKey(player)));
+
+      if (eligibleWinners.length > 0) {
+        const perWinner = pot.amount / eligibleWinners.length;
+        eligibleWinners.forEach(winner => {
+          const key = normalizeKey(winner);
+          payouts[key] = (payouts[key] || 0) + perWinner;
+        });
+      }
+    });
 
     return payouts;
   }
 
   /**
-   * Calcula stacks finais após showdown
+   * Calculate final stacks after showdown with reconciliation
    */
   private static calculateFinalStacks(handHistory: HandHistory, totalCommitted: Record<string, number>): Record<string, number> {
     const finalStacks: Record<string, number> = {};
     const payouts = this.calculatePayouts(handHistory, totalCommitted);
 
     handHistory.players.forEach(player => {
+      const key = normalizeKey(player.name);
       const initialStack = player.stack;
-      const committed = totalCommitted[player.name] || 0;
-      const payout = payouts[player.name] || 0;
+      const committed = totalCommitted[key] || 0;
+      const payout = payouts[key] || 0;
 
-      finalStacks[player.name] = initialStack - committed + payout;
+      const expectedFinal = initialStack - committed + payout;
+      finalStacks[key] = expectedFinal;
+
+      // Log for reconciliation (if there's a mismatch, we prefer expectedFinal)
+      console.log(`🧮 Final stack calc for ${key}: ${initialStack} - ${committed} + ${payout} = ${expectedFinal}`);
     });
 
     return finalStacks;

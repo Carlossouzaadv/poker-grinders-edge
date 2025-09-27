@@ -1,4 +1,5 @@
 import { HandHistory, ParseResult, Card, Action, Player, Position } from '@/types/poker';
+import { normalizeKey } from './normalize-key';
 
 export class HandParser {
   static parse(handText: string): ParseResult {
@@ -537,16 +538,74 @@ export class HandParser {
     return cards;
   }
 
-  // Patterns para detectar all-in em diferentes formatos
+  // Comprehensive patterns para detectar all-in em diferentes formatos
   private static ALL_IN_PATTERNS = [
     /and\s+is\s+all-?in/i,
     /is\s+all-?in\s*\(\$?[\d,\.]+\)/i,
     /is\s+all-?in$/i,
-    /\(all-?in\)/i
+    /\(all-?in\)/i,
+    /goes\s+all-?in/i,
+    /goes\s+all-?in\s+for\s+\$?[\d,\.]+/i,
+    /all-?in\s*$/i
   ];
 
   private static isAllInAction(text: string): boolean {
     return this.ALL_IN_PATTERNS.some(pattern => pattern.test(text));
+  }
+
+  /**
+   * Extracts amount from all-in text, returns undefined if not found
+   */
+  private static extractAllInAmount(text: string): number | undefined {
+    // Pattern for "goes all-in for $X" or "is all-in ($X)"
+    const amountMatch = text.match(/(?:for|all-?in\s*\(?)\s*\$?([\d,\.]+)/i);
+    if (amountMatch) {
+      return this.parseAmount(amountMatch[1]);
+    }
+    return undefined;
+  }
+
+  /**
+   * Locale-aware amount parsing with thousand separators
+   */
+  private static parseAmount(rawValue: string): number {
+    if (!rawValue) {
+      console.error('ERROR parseAmount rawValue:', rawValue);
+      return 0;
+    }
+
+    try {
+      // Remove thousand separators (commas) and parse
+      const cleanValue = rawValue.replace(/,/g, '');
+      const parsed = parseFloat(cleanValue);
+
+      if (isNaN(parsed)) {
+        console.error('ERROR parseAmount rawValue:', rawValue);
+        return 0;
+      }
+
+      return parsed;
+    } catch (error) {
+      console.error('ERROR parseAmount rawValue:', rawValue, error);
+      return 0;
+    }
+  }
+
+  /**
+   * Peek ahead to check for shows in next lines (for immediate card reveal)
+   */
+  private static peekForShows(lines: string[], currentIndex: number): Card[] | null {
+    // Check next 3 lines for shows
+    for (let i = currentIndex + 1; i < Math.min(currentIndex + 4, lines.length); i++) {
+      const line = lines[i].trim();
+      if (line.includes('shows [') || line.includes('shows:')) {
+        const cards = this.parseCards(line);
+        if (cards.length === 2) {
+          return cards;
+        }
+      }
+    }
+    return null;
   }
 
   private static parseAction(line: string): Action | null {
@@ -556,42 +615,80 @@ export class HandParser {
       return { player: foldMatch[1], action: 'fold' };
     }
 
-    const callMatch = line.match(/^(.+?): calls \$?([0-9.]+)(.*)$/);
+    const callMatch = line.match(/^(.+?): calls \$?([0-9,\.]+)(.*)$/);
     if (callMatch) {
       // Check if it's an all-in call
       const isAllIn = this.isAllInAction(callMatch[3]);
 
+      let amount = this.parseAmount(callMatch[2]);
+      let revealedCards: Card[] | undefined;
+
+      // If all-in, try to extract explicit amount and check for shows
+      if (isAllIn) {
+        const extractedAmount = this.extractAllInAmount(callMatch[3]);
+        if (extractedAmount !== undefined) {
+          amount = extractedAmount;
+        }
+      }
+
       return {
         player: callMatch[1],
         action: isAllIn ? 'all-in' : 'call',
-        amount: parseFloat(callMatch[2])
+        amount,
+        reveals: isAllIn && revealedCards !== undefined,
+        revealedCards
       };
     }
 
-    const betMatch = line.match(/^(.+?): bets \$?([0-9.]+)(.*)$/);
+    const betMatch = line.match(/^(.+?): bets \$?([0-9,\.]+)(.*)$/);
     if (betMatch) {
       // Check if it's an all-in
       const isAllIn = this.isAllInAction(betMatch[3]);
 
+      let amount = this.parseAmount(betMatch[2]);
+      let revealedCards: Card[] | undefined;
+
+      // If all-in, try to extract explicit amount
+      if (isAllIn) {
+        const extractedAmount = this.extractAllInAmount(betMatch[3]);
+        if (extractedAmount !== undefined) {
+          amount = extractedAmount;
+        }
+      }
+
       return {
         player: betMatch[1],
         action: isAllIn ? 'all-in' : 'bet',
-        amount: parseFloat(betMatch[2])
+        amount,
+        reveals: isAllIn && revealedCards !== undefined,
+        revealedCards
       };
     }
 
-    const raiseMatch = line.match(/^(.+?): raises \$?([0-9.]+) to \$?([0-9.]+)(.*)$/);
+    const raiseMatch = line.match(/^(.+?): raises \$?([0-9,\.]+) to \$?([0-9,\.]+)(.*)$/);
     if (raiseMatch) {
       // Check if it's an all-in
       const isAllIn = this.isAllInAction(raiseMatch[4]);
-      const totalBet = parseFloat(raiseMatch[3]); // Total amount player bets
+      let totalBet = this.parseAmount(raiseMatch[3]); // Total amount player bets
+      const raiseBy = this.parseAmount(raiseMatch[2]); // How much they raised by
+      let revealedCards: Card[] | undefined;
+
+      // If all-in, try to extract explicit amount
+      if (isAllIn) {
+        const extractedAmount = this.extractAllInAmount(raiseMatch[4]);
+        if (extractedAmount !== undefined) {
+          totalBet = extractedAmount;
+        }
+      }
 
       return {
         player: raiseMatch[1],
         action: isAllIn ? 'all-in' : 'raise',
         amount: totalBet, // Total amount added to pot
-        raiseBy: parseFloat(raiseMatch[2]), // How much they raised by (for display)
-        totalBet: totalBet // Store total bet for reference
+        raiseBy: raiseBy, // How much they raised by (for display)
+        totalBet: totalBet, // Store total bet for reference
+        reveals: isAllIn && revealedCards !== undefined,
+        revealedCards
       };
     }
 
