@@ -473,7 +473,7 @@ const PokerTable: React.FC<PokerTableProps> = ({
           const hasPlayerFolded = foldedPlayers.has(player.name);
 
           // Read stack from snapshot with normalized keys (prioritize snapshot over player.stack)
-          const playerCurrentStack = getNormalized(currentStacks, playerKey) ?? player.stack;
+          const playerCurrentStack = currentStacks ? (getNormalized(currentStacks, playerKey) ?? player.stack) : player.stack;
 
           console.log(`🎲 ${player.name}: Seat ${player.seat} → Visual ${player.visualSeat} ${player.isHero ? '[HERO]' : ''}`);
           console.log(`💰 ${player.name} stack: ${player.stack} → ${playerCurrentStack}`);
@@ -488,9 +488,9 @@ const PokerTable: React.FC<PokerTableProps> = ({
             // 2) Caso contrário, calcule de forma determinística: initial - committed + payout
             const initialStack = player.stack ?? 0; // stack inicial vindo do handHistory
             // totalCommitted = total que o jogador colocou na mão (usando normalized keys)
-            const totalCommitted = getNormalized(snapshot.totalCommitted, playerKey) ?? 0;
+            const totalCommitted = snapshot.totalCommitted ? getNormalized(snapshot.totalCommitted, playerKey) ?? 0 : 0;
             // payout: quanto esse jogador ganhou no showdown (por jogador, não o pot total)
-            const payout = getNormalized(snapshot.payouts, playerKey) ?? 0;
+            const payout = snapshot.payouts ? getNormalized(snapshot.payouts, playerKey) ?? 0 : 0;
 
             finalStack = initialStack - totalCommitted + payout;
             console.log(`🏆 ${player.name} stack calculation: ${initialStack} - ${totalCommitted} + ${payout} = ${finalStack}`);
@@ -499,12 +499,12 @@ const PokerTable: React.FC<PokerTableProps> = ({
           // Detailed logging for suspect players (like CashUrChecks)
           if (playerKey === 'cashurchecks' || snapshot.isAllIn?.[playerKey]) {
             console.log(`DETAILS for ${playerKey}:`, {
-              playerStacks: getNormalized(snapshot.playerStacks, playerKey),
-              totalCommitted: getNormalized(snapshot.totalCommitted, playerKey),
-              pendingContribs: getNormalized(snapshot.pendingContribs, playerKey),
+              playerStacks: snapshot.playerStacks ? getNormalized(snapshot.playerStacks, playerKey) : undefined,
+              totalCommitted: snapshot.totalCommitted ? getNormalized(snapshot.totalCommitted, playerKey) : undefined,
+              pendingContribs: snapshot.pendingContribs ? getNormalized(snapshot.pendingContribs, playerKey) : undefined,
               isAllIn: snapshot.isAllIn?.[playerKey],
               revealedHands: snapshot.revealedHands?.[playerKey],
-              payouts: getNormalized(snapshot.payouts, playerKey)
+              payouts: snapshot.payouts ? getNormalized(snapshot.payouts, playerKey) : undefined
             });
           }
 
@@ -528,8 +528,8 @@ const PokerTable: React.FC<PokerTableProps> = ({
               <PlayerSeat
                 player={dynamicPlayer}
                 isActive={isPlayerActive}
-                showCards={showAllCards || player.isHero || snapshot.street === 'showdown' || getNormalized(snapshot.revealedHands, playerKey)}
-                currentBet={getNormalized(snapshot.pendingContribs, playerKey) || 0}
+                showCards={showAllCards || player.isHero || snapshot.street === 'showdown' || (snapshot.revealedHands ? getNormalized(snapshot.revealedHands, playerKey) : false)}
+                currentBet={(snapshot.pendingContribs ? getNormalized(snapshot.pendingContribs, playerKey) : undefined) || 0}
                 hasFolded={hasPlayerFolded}
                 isWinner={snapshot.street === 'showdown' && snapshot.winners?.includes(player.name)}
                 isShowdown={snapshot.street === 'showdown'}

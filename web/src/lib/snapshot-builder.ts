@@ -170,11 +170,11 @@ export class SnapshotBuilder {
 
       let communityCards: any[] = [];
       let currentStreet: 'preflop' | 'flop' | 'turn' | 'river' | 'showdown' = 'preflop';
-      let folded = new Set<string>();
-      let pendingContribs: Record<string, number> = {};
-      let totalContribs: Record<string, number> = {};
-      let isAllIn: Record<string, boolean> = {};
-      let revealedCards: Record<string, any> = {}; // Cartas reveladas durante a mão
+      const folded = new Set<string>();
+      const pendingContribs: Record<string, number> = {};
+      const totalContribs: Record<string, number> = {};
+      const isAllIn: Record<string, boolean> = {};
+      const revealedCards: Record<string, any> = {}; // Cartas reveladas durante a mão
 
       // Inicializar contribuições totais com antes, blinds (using normalized keys)
       handHistory.players.forEach(player => {
