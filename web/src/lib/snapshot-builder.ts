@@ -3,6 +3,8 @@ import { ReplayBuilder } from './replay-builder';
 import { HandHistory, Snapshot, Pot } from '@/types/poker';
 import { ReplayState, ReplayStep } from '@/types/replay';
 import { normalizeKey, setNormalized, getNormalized, incrementNormalized } from './normalize-key';
+import { HandParser } from './hand-parser';
+import { isAnomalyFallbackAllowed } from '../config/sidepot-config';
 
 export class SnapshotBuilder {
   // Site configuration for reveal behavior
@@ -69,33 +71,93 @@ export class SnapshotBuilder {
   }
 
   /**
-   * Deterministic side pot calculation with normalized keys
+   * Advanced side pot calculation with eligibility rules and detailed logging
+   * @param totalCommittedMap - Map of player commitments in cents
+   * @param playerStatusAtShowdown - Map of player statuses (folded, all-in, active)
    */
-  private static computeSidePots(totalCommittedMap: Record<string, number>): Array<{amount: number, eligible: string[]}> {
-    // Transform to array and sort by contribution (ascending)
-    const arr = Object.entries(totalCommittedMap)
-      .map(([p, c]) => ({ player: p, committed: c }))
+  private static computeSidePots(
+    totalCommittedMap: Record<string, number>,
+    playerStatusAtShowdown: Record<string, 'folded' | 'all-in' | 'active'> = {}
+  ): Array<{amount: number, eligible: string[], sourceLevel: number}> {
+
+    console.log('🔍 TOTAL_COMMITTED BEFORE POTS (cents):', totalCommittedMap);
+    console.log('🔍 PLAYER_STATUS AT SHOWDOWN:', playerStatusAtShowdown);
+
+    // Convert commitments to array and sort by contribution (ascending)
+    const commitmentLevels = Object.entries(totalCommittedMap)
+      .map(([player, committed]) => ({ player, committed }))
       .sort((a, b) => a.committed - b.committed);
 
-    const pots: Array<{amount: number, eligible: string[]}> = [];
+    const pots: Array<{amount: number, eligible: string[], sourceLevel: number}> = [];
     let prev = 0;
 
-    for (let i = 0; i < arr.length; i++) {
-      const amount = arr[i].committed - prev;
-      if (amount <= 0) {
-        prev = arr[i].committed;
+    // Process each distinct commitment level
+    for (let i = 0; i < commitmentLevels.length; i++) {
+      const currentLevel = commitmentLevels[i].committed;
+
+      // Skip duplicate levels
+      if (currentLevel === prev) continue;
+
+      const levelContribution = currentLevel - prev;
+      if (levelContribution <= 0) {
+        prev = currentLevel;
         continue;
       }
 
-      // All players with committed >= arr[i].committed are eligible
-      const eligible = arr.slice(i).map(x => x.player);
+      // Determine eligible players for this pot level
+      // Eligible = players who contributed >= currentLevel AND were not folded before showdown
+      const eligible = commitmentLevels
+        .filter(entry => entry.committed >= currentLevel)
+        .filter(entry => {
+          const status = playerStatusAtShowdown[entry.player];
+          // Player is eligible if they were active, all-in, or status unknown (assume active)
+          return !status || status === 'active' || status === 'all-in';
+        })
+        .map(entry => entry.player);
+
+      // Calculate pot amount: level contribution × number of remaining players at this level
+      const remainingPlayersCount = commitmentLevels.length - i;
+      const potAmount = levelContribution * remainingPlayersCount;
+
       pots.push({
-        amount: amount * eligible.length,
-        eligible
+        amount: potAmount,
+        eligible,
+        sourceLevel: currentLevel
       });
-      prev = arr[i].committed;
+
+      console.log(`🔍 POT LEVEL ${currentLevel} cents: amount=${potAmount}, eligible=[${eligible.join(', ')}], players_at_level=${remainingPlayersCount}`);
+
+      prev = currentLevel;
     }
 
+    // CRITICAL GUARD: Verify mathematical consistency
+    const sumPots = pots.reduce((sum, pot) => sum + pot.amount, 0);
+    const sumCommitted = Object.values(totalCommittedMap).reduce((sum, val) => sum + val, 0);
+
+    console.log(`🔍 SUM_POTS = ${sumPots} cents — sum(totalCommitted) = ${sumCommitted} cents`);
+
+    if (Math.abs(sumPots - sumCommitted) > 0) {
+      console.error(`❌ CRITICAL MATHEMATICAL ERROR: SUM_POTS (${sumPots}) !== sum(totalCommitted) (${sumCommitted}), difference: ${sumPots - sumCommitted} cents`);
+      console.error(`❌ DEBUG DUMP - totalCommittedMap:`, totalCommittedMap);
+      console.error(`❌ DEBUG DUMP - computed pots:`, pots);
+      console.error(`❌ DEBUG DUMP - commitmentLevels:`, commitmentLevels);
+      throw new Error(`CRITICAL: Mathematical inconsistency in pot calculation: ${sumPots} !== ${sumCommitted}`);
+    }
+
+    // GUARD: Ensure no empty eligible arrays (should not happen in normal operation)
+    for (let i = 0; i < pots.length; i++) {
+      if (pots[i].eligible.length === 0) {
+        console.error(`❌ CRITICAL ANOMALY: POT ${i} has empty eligible array`);
+        console.error(`❌ DEBUG DUMP - pot:`, pots[i]);
+        console.error(`❌ DEBUG DUMP - totalCommittedMap:`, totalCommittedMap);
+        console.error(`❌ DEBUG DUMP - playerStatusAtShowdown:`, playerStatusAtShowdown);
+
+        // This indicates a serious bug in eligibility logic
+        throw new Error(`CRITICAL ANOMALY: Pot ${i} at level ${pots[i].sourceLevel} has no eligible players - this should not happen`);
+      }
+    }
+
+    console.log('🔍 COMPUTED POTS:', pots);
     return pots;
   }
 
@@ -350,8 +412,8 @@ export class SnapshotBuilder {
 
           // Campos adicionados para tracking preciso
           totalCommitted: { ...totalContribs },
-          payouts: currentStreet === 'showdown' ? this.calculatePayouts(handHistory, totalContribs) : undefined,
-          playerStacksPostShowdown: currentStreet === 'showdown' ? this.calculateFinalStacks(handHistory, totalContribs) : undefined,
+          payouts: currentStreet === 'showdown' ? this.calculatePayouts(handHistory, totalContribs, this.determinePlayerStatusAtShowdown(handHistory, folded, isAllIn)) : undefined,
+          playerStacksPostShowdown: currentStreet === 'showdown' ? this.calculateFinalStacks(handHistory, totalContribs, this.determinePlayerStatusAtShowdown(handHistory, folded, isAllIn)) : undefined,
           isAllIn: { ...isAllIn }
         };
 
@@ -398,54 +460,184 @@ export class SnapshotBuilder {
   /**
    * Calculate payouts deterministically using side pots
    */
-  private static calculatePayouts(handHistory: HandHistory, totalCommitted: Record<string, number>): Record<string, number> {
+  /**
+   * Calculate payouts following strict poker rules for side pot distribution
+   */
+  private static calculatePayouts(
+    handHistory: HandHistory,
+    totalCommitted: Record<string, number>,
+    playerStatusAtShowdown: Record<string, 'folded' | 'all-in' | 'active'> = {}
+  ): Record<string, number> {
+
     const payouts: Record<string, number> = {};
+    console.log('🔍 PAYOUTS BEFORE DISTR:', payouts);
 
     if (!handHistory.showdown?.winners) {
       return payouts;
     }
 
     // Use side pot calculation for deterministic payouts
-    const pots = this.computeSidePots(totalCommitted);
-    const winners = handHistory.showdown.winners.map(w => normalizeKey(w));
+    const pots = this.computeSidePots(totalCommitted, playerStatusAtShowdown);
 
-    // Distribute each pot among eligible winners
-    pots.forEach(pot => {
-      const eligibleWinners = pot.eligible.filter(player => winners.includes(normalizeKey(player)));
+    // CRITICAL GUARD: Verify mathematical consistency before distribution
+    const sumPots = pots.reduce((sum, pot) => sum + pot.amount, 0);
+    const sumCommitted = Object.values(totalCommitted).reduce((sum, val) => sum + val, 0);
 
-      if (eligibleWinners.length > 0) {
-        const perWinner = pot.amount / eligibleWinners.length;
-        eligibleWinners.forEach(winner => {
-          const key = normalizeKey(winner);
-          payouts[key] = (payouts[key] || 0) + perWinner;
-        });
+    if (Math.abs(sumPots - sumCommitted) > 0) {
+      console.error(`❌ CRITICAL ERROR: SUM_POTS (${sumPots}) !== sum(totalCommitted) (${sumCommitted})`);
+      console.error(`❌ DEBUG DUMP - totalCommitted:`, totalCommitted);
+      console.error(`❌ DEBUG DUMP - computed pots:`, pots);
+      throw new Error(`Mathematical inconsistency detected: ${sumPots} !== ${sumCommitted}`);
+    }
+
+    const globalWinners = handHistory.showdown.winners.map(w => normalizeKey(w));
+    console.log(`🔍 GLOBAL SHOWDOWN WINNERS: [${globalWinners.join(', ')}]`);
+
+    // Distribute each pot following poker rules
+    pots.forEach((pot, index) => {
+      console.log(`🔍 PROCESSING POT ${index}: amount=${pot.amount} cents, eligible=[${pot.eligible.join(', ')}]`);
+
+      if (pot.eligible.length === 1) {
+        // POKER RULE: Single eligible player automatically wins the pot
+        const soleWinner = pot.eligible[0];
+        payouts[soleWinner] = (payouts[soleWinner] || 0) + pot.amount;
+        console.log(`🏆 SINGLE-ELIGIBLE POT: POT ${index} (${pot.amount} cents) → ${soleWinner} (automatic win)`);
+
+      } else if (pot.eligible.length > 1) {
+        // POKER RULE: Determine winners ONLY among eligible players
+        const eligibleWinners = this.determineWinnersAmongEligible(pot.eligible, globalWinners);
+
+        if (eligibleWinners.length > 0) {
+          // Standard distribution: divide pot among eligible winners
+          const perWinner = Math.floor(pot.amount / eligibleWinners.length);
+          const remainder = pot.amount % eligibleWinners.length;
+
+          eligibleWinners.forEach((winner, winnerIndex) => {
+            const key = normalizeKey(winner);
+            let allocation = perWinner;
+
+            // Distribute remainder to winners with lowest seat indices (deterministic)
+            if (winnerIndex < remainder) {
+              allocation += 1;
+            }
+
+            payouts[key] = (payouts[key] || 0) + allocation;
+          });
+
+          console.log(`🏆 MULTI-ELIGIBLE POT: POT ${index} (${pot.amount} cents) split among [${eligibleWinners.join(', ')}] (${perWinner} each + ${remainder} remainder)`);
+
+        } else {
+          // CRITICAL ANOMALY: No eligible players won at showdown
+          console.error(`❌ CRITICAL ANOMALY: POT ${index} has eligible players [${pot.eligible.join(', ')}] but none won at showdown`);
+          console.error(`❌ DEBUG DUMP - pot:`, pot);
+          console.error(`❌ DEBUG DUMP - globalWinners:`, globalWinners);
+          console.error(`❌ DEBUG DUMP - playerStatus:`, playerStatusAtShowdown);
+          console.error(`❌ DEBUG DUMP - handHistory showdown:`, handHistory.showdown);
+
+          // Check ALLOW_FALLBACK_ON_ANOMALY config flag
+          if (isAnomalyFallbackAllowed()) {
+            // FALLBACK: Award to earliest eligible contributor with anomaly logging
+            const fallbackWinner = pot.eligible.sort()[0];
+            payouts[fallbackWinner] = (payouts[fallbackWinner] || 0) + pot.amount;
+            console.log(`🔄 FALLBACK ALLOCATION: POT ${index} (${pot.amount} cents) → ${fallbackWinner} (earliest eligible, ANOMALY LOGGED)`);
+
+            // TODO: Log to structured anomaly log file
+            console.warn(`⚠️ ANOMALY FALLBACK APPLIED: Pot ${index} had eligible players but no showdown winners`);
+          } else {
+            // Fail-fast mode (default)
+            throw new Error(`CRITICAL ANOMALY: Pot ${index} has eligible players [${pot.eligible.join(', ')}] but none won at showdown. This indicates a bug in eligibility logic or hand parsing. Set ALLOW_FALLBACK_ON_ANOMALY=true to enable fallback allocation.`);
+          }
+        }
+
+      } else {
+        // This case should never happen due to guards in computeSidePots
+        throw new Error(`IMPOSSIBLE: Pot ${index} has pot.eligible.length = ${pot.eligible.length}, should be caught by computeSidePots guards`);
       }
     });
+
+    // Verify mathematical consistency after distribution
+    const sumPayouts = Object.values(payouts).reduce((sum, val) => sum + val, 0);
+    console.log('🔍 PAYOUTS AFTER DISTR (cents):', payouts, `SUM_PAYOUTS = ${sumPayouts} cents`);
+    console.log(`🔍 PAYOUT VERIFICATION: SUM_PAYOUTS = ${sumPayouts}, SUM_POTS = ${sumPots}`);
+
+    if (Math.abs(sumPayouts - sumPots) > 0) {
+      console.error(`❌ PAYOUT ERROR: SUM_PAYOUTS (${sumPayouts}) !== SUM_POTS (${sumPots}), difference: ${sumPayouts - sumPots} cents`);
+      throw new Error(`Payout distribution error: ${sumPayouts} !== ${sumPots}`);
+    }
 
     return payouts;
   }
 
   /**
+   * Determine winners among eligible players only (poker rule)
+   */
+  private static determineWinnersAmongEligible(eligible: string[], globalWinners: string[]): string[] {
+    const eligibleNormalized = eligible.map(p => normalizeKey(p));
+    const globalWinnersNormalized = globalWinners.map(w => normalizeKey(w));
+
+    // Find intersection: eligible players who also won at showdown
+    const winnersAmongEligible = eligibleNormalized.filter(player =>
+      globalWinnersNormalized.includes(player)
+    );
+
+    console.log(`🔍 ELIGIBLE: [${eligibleNormalized.join(', ')}] vs GLOBAL_WINNERS: [${globalWinnersNormalized.join(', ')}] → WINNERS_AMONG_ELIGIBLE: [${winnersAmongEligible.join(', ')}]`);
+
+    return winnersAmongEligible;
+  }
+
+  /**
    * Calculate final stacks after showdown with reconciliation
    */
-  private static calculateFinalStacks(handHistory: HandHistory, totalCommitted: Record<string, number>): Record<string, number> {
+  private static calculateFinalStacks(
+    handHistory: HandHistory,
+    totalCommitted: Record<string, number>,
+    playerStatusAtShowdown: Record<string, 'folded' | 'all-in' | 'active'> = {}
+  ): Record<string, number> {
+
     const finalStacks: Record<string, number> = {};
-    const payouts = this.calculatePayouts(handHistory, totalCommitted);
+    const payouts = this.calculatePayouts(handHistory, totalCommitted, playerStatusAtShowdown);
 
     handHistory.players.forEach(player => {
       const key = normalizeKey(player.name);
-      const initialStack = player.stack;
-      const committed = totalCommitted[key] || 0;
-      const payout = payouts[key] || 0;
+      const initialStackCents = HandParser.dollarsToCents(player.stack);
+      const committedCents = totalCommitted[key] || 0;
+      const payoutCents = payouts[key] || 0;
 
-      const expectedFinal = initialStack - committed + payout;
-      finalStacks[key] = expectedFinal;
+      const expectedFinalCents = initialStackCents - committedCents + payoutCents;
+      const expectedFinalDollars = HandParser.centsToDollars(expectedFinalCents);
+      finalStacks[key] = expectedFinalDollars;
 
-      // Log for reconciliation (if there's a mismatch, we prefer expectedFinal)
-      console.log(`🧮 Final stack calc for ${key}: ${initialStack} - ${committed} + ${payout} = ${expectedFinal}`);
+      // Log for reconciliation (convert cents to dollars for readability)
+      console.log(`🧮 Final stack calc for ${key}: ${HandParser.centsToDollars(initialStackCents)} - ${HandParser.centsToDollars(committedCents)} + ${HandParser.centsToDollars(payoutCents)} = ${expectedFinalDollars}`);
     });
 
     return finalStacks;
+  }
+
+  /**
+   * Determine player status at showdown for pot eligibility
+   */
+  private static determinePlayerStatusAtShowdown(
+    handHistory: HandHistory,
+    foldedPlayers: Set<string>,
+    isAllIn: Record<string, boolean>
+  ): Record<string, 'folded' | 'all-in' | 'active'> {
+
+    const playerStatus: Record<string, 'folded' | 'all-in' | 'active'> = {};
+
+    handHistory.players.forEach(player => {
+      const key = normalizeKey(player.name);
+
+      if (foldedPlayers.has(key)) {
+        playerStatus[key] = 'folded';
+      } else if (isAllIn[key]) {
+        playerStatus[key] = 'all-in';
+      } else {
+        playerStatus[key] = 'active';
+      }
+    });
+
+    return playerStatus;
   }
 }
 
