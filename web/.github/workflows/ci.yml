@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop, fix/* ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: web/package-lock.json
+
+    - name: Install dependencies
+      working-directory: web
+      run: npm ci
+
+    - name: Run linter
+      working-directory: web
+      run: npm run lint
+
+    - name: Run type check
+      working-directory: web
+      run: npm run type-check
+
+    - name: Run standard tests
+      working-directory: web
+      run: npm test
+
+    - name: Build project
+      working-directory: web
+      run: npm run build
+
+  sidepot-integrity:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        cache-dependency-path: web/package-lock.json
+
+    - name: Install dependencies
+      working-directory: web
+      run: npm ci
+
+    - name: Run side pot exhaustive tests
+      working-directory: web
+      run: npm test -- --testPathPatterns="sidepot-exhaustive" --verbose
+      env:
+        ALLOW_FALLBACK_ON_ANOMALY: false
+
+    - name: Run side pot property-based tests
+      working-directory: web
+      run: npm test -- --testPathPatterns="sidepot-property" --verbose
+      env:
+        ALLOW_FALLBACK_ON_ANOMALY: false
+
+    - name: Run side pot regression tests
+      working-directory: web
+      run: npm test -- --testPathPatterns="sidepot-regression" --verbose
+      env:
+        ALLOW_FALLBACK_ON_ANOMALY: false
+
+    - name: Run canonical side pot tests
+      working-directory: web
+      run: npm test -- --testPathPatterns="canonical-side-pots" --verbose
+      env:
+        ALLOW_FALLBACK_ON_ANOMALY: false
+
+    - name: Check for anomaly logs
+      working-directory: web
+      run: |
+        if [ -f logs/anomalies.log ]; then
+          echo "❌ Anomaly log file found! This indicates issues in side pot calculation:"
+          cat logs/anomalies.log
+          exit 1
+        else
+          echo "✅ No anomaly logs found - side pot calculation is working correctly"
+        fi
+
+    - name: Upload anomaly logs as artifacts (if any)
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: anomaly-logs-${{ github.sha }}
+        path: web/logs/
+        retention-days: 30
