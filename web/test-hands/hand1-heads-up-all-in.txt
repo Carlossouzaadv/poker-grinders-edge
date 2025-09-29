@@ -1,0 +1,23 @@
+PokerStars Hand #1001: Tournament #1001, $5.50+$0.50 USD Hold'em No Limit - Level I (10/20) - 2025/01/15 20:30:00 ET
+Table '1001 1' 2-max Seat #1 is the button
+Seat 1: PlayerA (5000 in chips)
+Seat 2: PlayerB (5000 in chips)
+
+PlayerA: posts small blind 10
+PlayerB: posts big blind 20
+*** HOLE CARDS ***
+Dealt to PlayerA [As Ks]
+PlayerA: raises 4980 to 5000 and is all-in
+PlayerB: calls 4980 and is all-in
+*** FLOP *** [2h 3d 4c]
+*** TURN *** [2h 3d 4c] [5s]
+*** RIVER *** [2h 3d 4c 5s] [6h]
+*** SHOW DOWN ***
+PlayerA: shows [As Ks] (Ace high)
+PlayerB: shows [Ac Ad] (a pair of Aces)
+PlayerB collected 10000 from pot
+*** SUMMARY ***
+Total pot 10000 | Rake 0
+Board [2h 3d 4c 5s 6h]
+Seat 1: PlayerA (button, small blind) showed [As Ks] and lost with Ace high
+Seat 2: PlayerB (big blind) showed [Ac Ad] and won (10000) with a pair of Aces

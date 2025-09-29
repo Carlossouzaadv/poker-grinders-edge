@@ -1,0 +1,32 @@
+PokerStars Hand #1006: Tournament #1006, $5.50+$0.50 USD Hold'em No Limit - Level I (10/20) - 2025/01/15 20:30:00 ET
+Table '1006 1' 9-max Seat #1 is the button
+Seat 1: PlayerA (2000 in chips)
+Seat 2: PlayerB (2000 in chips)
+Seat 3: PlayerC (2000 in chips)
+
+PlayerA: posts small blind 10
+PlayerB: posts big blind 20
+*** HOLE CARDS ***
+Dealt to PlayerA [As Ks]
+PlayerC: raises 60 to 80
+PlayerA: raises 200 to 280
+PlayerB: folds
+PlayerC: calls 200
+*** FLOP *** [2h 3d 4c]
+PlayerA: bets 400
+PlayerC: calls 400
+*** TURN *** [2h 3d 4c] [5s]
+PlayerA: bets 800
+PlayerC: raises 520 to 1320 and is all-in
+PlayerA: calls 520 and is all-in
+*** RIVER *** [2h 3d 4c 5s] [6h]
+*** SHOW DOWN ***
+PlayerA: shows [As Ks] (Ace high)
+PlayerC: shows [Ac Ad] (a pair of Aces)
+PlayerC collected 4020 from pot
+*** SUMMARY ***
+Total pot 4020 | Rake 0
+Board [2h 3d 4c 5s 6h]
+Seat 1: PlayerA (button, small blind) showed [As Ks] and lost with Ace high
+Seat 2: PlayerB (big blind) folded before Flop
+Seat 3: PlayerC showed [Ac Ad] and won (4020) with a pair of Aces

@@ -1,0 +1,27 @@
+PokerStars Hand #1010: Tournament #1010, $5.50+$0.50 USD Hold'em No Limit - Level I (10/20) - 2025/01/15 20:30:00 ET
+Table '1010 1' 9-max Seat #1 is the button
+Seat 1: PlayerA (2000 in chips)
+Seat 2: PlayerB (2000 in chips)
+Seat 3: PlayerC (2000 in chips)
+
+PlayerA: posts small blind 10
+PlayerB: posts big blind 20
+*** HOLE CARDS ***
+Dealt to PlayerA [As Ks]
+PlayerC: raises 60 to 80
+PlayerA: raises 200 to 280
+PlayerB: calls 260
+PlayerC: calls 200
+*** FLOP *** [2h 3d 4c]
+PlayerA: bets 400
+PlayerB: calls 400
+PlayerC: raises 1320 to 1720 and is all-in
+*** HAND CANCELLED ***
+PlayerA returned 280
+PlayerB returned 700
+PlayerC returned 1720
+*** SUMMARY ***
+Hand cancelled by server
+Seat 1: PlayerA returned 280 to stack (2000)
+Seat 2: PlayerB returned 700 to stack (2000)
+Seat 3: PlayerC returned 1720 to stack (2000)

@@ -7,6 +7,8 @@ export type ReplayStep = {
 } & (ActionStep | StreetStep | ShowdownStep);
 
 export type ActionStep = {
+  id: number;
+  timestamp: number;
   type: 'ACTION';
   player: string;
   action: Action['action'];
@@ -17,6 +19,8 @@ export type ActionStep = {
 };
 
 export type StreetStep = {
+  id: number;
+  timestamp: number;
   type: 'STREET';
   street: 'flop' | 'turn' | 'river';
   cards: Card[];
@@ -25,6 +29,8 @@ export type StreetStep = {
 };
 
 export type ShowdownStep = {
+  id: number;
+  timestamp: number;
   type: 'SHOWDOWN';
   description: string; // "Showdown - Revealing hands"
   showdownInfo: string; // Texto completo do showdown

@@ -628,7 +628,7 @@ const PokerTable: React.FC<PokerTableProps> = ({
             {(() => {
               if (!snapshot.winners || snapshot.winners.length === 0) return null;
 
-              const winner = handHistory.players.find(p => p.name === snapshot.winners[0]);
+              const winner = handHistory.players.find(p => p.name === snapshot.winners?.[0]);
               if (!winner?.cards || communityCards.length < 3) return null;
 
               const winningHandDescription = PokerHandEvaluator.getBestHandDescription(winner, communityCards);

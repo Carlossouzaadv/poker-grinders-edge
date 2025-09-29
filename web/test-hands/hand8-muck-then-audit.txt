@@ -1,0 +1,36 @@
+PokerStars Hand #1008: Tournament #1008, $5.50+$0.50 USD Hold'em No Limit - Level I (10/20) - 2025/01/15 20:30:00 ET
+Table '1008 1' 9-max Seat #1 is the button
+Seat 1: Hero (2000 in chips)
+Seat 2: PlayerB (2000 in chips)
+Seat 3: PlayerC (2000 in chips)
+
+Hero: posts small blind 10
+PlayerB: posts big blind 20
+*** HOLE CARDS ***
+Dealt to Hero [As Ks]
+PlayerC: raises 60 to 80
+Hero: folds
+PlayerB: calls 60
+*** FLOP *** [2h 3d 4c]
+PlayerB: checks
+PlayerC: bets 120
+PlayerB: calls 120
+*** TURN *** [2h 3d 4c] [5s]
+PlayerB: checks
+PlayerC: bets 300
+PlayerB: calls 300
+*** RIVER *** [2h 3d 4c 5s] [6h]
+PlayerB: checks
+PlayerC: bets 600
+PlayerB: calls 600
+*** SHOW DOWN ***
+PlayerC: shows [Ac Ad] (a pair of Aces)
+PlayerB: mucks hand
+PlayerC collected 2220 from pot
+Hero: shows [As Ks] (Ace high) - audit show
+*** SUMMARY ***
+Total pot 2220 | Rake 0
+Board [2h 3d 4c 5s 6h]
+Seat 1: Hero (button, small blind) showed [As Ks] and lost with Ace high (audit)
+Seat 2: PlayerB (big blind) mucked
+Seat 3: PlayerC showed [Ac Ad] and won (2220) with a pair of Aces

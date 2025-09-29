@@ -290,10 +290,6 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
 
               {/* Mesa de poker - ocupa mais espaço */}
               <div className="flex-grow">
-                {console.log('🎯 PASSO 3: Renderizando PokerTable com:')}
-                {console.log('  - handHistory:', !!handHistory)}
-                {console.log('  - currentSnapshot:', currentSnapshot)}
-                {console.log('  - snapshotIndex:', currentSnapshotIndex)}
                 {currentSnapshot && (
                   <PokerTable
                     handHistory={handHistory!}

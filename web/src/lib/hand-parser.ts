@@ -180,7 +180,10 @@ export class HandParser {
       // Parse do preflop
       const preflop: Action[] = [];
 
-      // Pular linha "*** HOLE CARDS ***"
+      // Encontrar e pular linha "*** HOLE CARDS ***"
+      while (currentLine < lines.length && !lines[currentLine]?.includes('*** HOLE CARDS ***')) {
+        currentLine++;
+      }
       if (lines[currentLine]?.includes('*** HOLE CARDS ***')) {
         currentLine++;
       }
@@ -245,10 +248,10 @@ export class HandParser {
       }
 
       // Parse das outras streets (flop, turn, river) e showdown
-      let flopData = null;
-      let turnData = null;
-      let riverData = null;
-      let showdownData = null;
+      let flopData: { cards: Card[]; actions: Action[]; } | null = null;
+      let turnData: { card: Card; actions: Action[]; } | null = null;
+      let riverData: { card: Card; actions: Action[]; } | null = null;
+      let showdownData: { info: string; winners: string[]; potWon: number; rake?: number; } | null = null;
       let rakeAmount = 0;
       let totalPotAmount = 0;
 
@@ -491,10 +494,10 @@ export class HandParser {
         players,
         antes: anteActions.length > 0 ? anteActions : undefined, // Include ante actions
         preflop,
-        flop: flopData,
-        turn: turnData,
-        river: riverData,
-        showdown: showdownData,
+        flop: flopData || undefined,
+        turn: turnData || undefined,
+        river: riverData || undefined,
+        showdown: showdownData || undefined,
         totalPot: totalPotAmount || 0, // Use parsed total pot
         rake: rakeAmount, // Include rake (can be 0)
         currency: 'USD'
@@ -566,6 +569,7 @@ export class HandParser {
 
   /**
    * Locale-aware amount parsing with thousand separators
+   * Returns integer cents to prevent floating point arithmetic errors
    */
   private static parseAmount(rawValue: string): number {
     if (!rawValue) {
@@ -583,11 +587,27 @@ export class HandParser {
         return 0;
       }
 
-      return parsed;
+      // Convert to integer cents to prevent floating point errors
+      // Store all monetary values as integer cents internally
+      return Math.round(parsed * 100);
     } catch (error) {
       console.error('ERROR parseAmount rawValue:', rawValue, error);
       return 0;
     }
+  }
+
+  /**
+   * Convert cents to dollars for display
+   */
+  public static centsToDollars(cents: number): number {
+    return cents / 100;
+  }
+
+  /**
+   * Convert dollars to cents for internal calculations
+   */
+  public static dollarsToCents(dollars: number): number {
+    return Math.round(dollars * 100);
   }
 
   /**

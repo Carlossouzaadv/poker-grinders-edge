@@ -1,0 +1,23 @@
+PokerStars Hand #1009: Tournament #1009, $5.50+$0.50 USD Omaha Hi No Limit - Level I (10/20) - 2025/01/15 20:30:00 ET
+Table '1009 1' 9-max Seat #1 is the button
+Seat 1: PlayerA (2000 in chips)
+Seat 2: PlayerB (2000 in chips)
+
+PlayerA: posts small blind 10
+PlayerB: posts big blind 20
+*** HOLE CARDS ***
+Dealt to PlayerA [As Ks Qh Jd]
+PlayerA: raises 1980 to 2000 and is all-in
+PlayerB: calls 1980 and is all-in
+*** FLOP *** [2h 3d 4c]
+*** TURN *** [2h 3d 4c] [5s]
+*** RIVER *** [2h 3d 4c 5s] [6h]
+*** SHOW DOWN ***
+PlayerA: shows [As Ks Qh Jd] (Ace high)
+PlayerB: shows [Ac Ad 7h 8d] (a pair of Aces)
+PlayerB collected 4000 from pot
+*** SUMMARY ***
+Total pot 4000 | Rake 0
+Board [2h 3d 4c 5s 6h]
+Seat 1: PlayerA (button, small blind) showed [As Ks Qh Jd] and lost with Ace high
+Seat 2: PlayerB (big blind) showed [Ac Ad 7h 8d] and won (4000) with a pair of Aces

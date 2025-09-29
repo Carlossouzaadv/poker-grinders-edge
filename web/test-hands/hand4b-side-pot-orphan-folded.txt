@@ -1,0 +1,27 @@
+PokerStars Hand #1004b: Tournament #1004b, $5.50+$0.50 USD Hold'em No Limit - Level VII (50/100) - 2025/01/15 20:30:00 ET
+Table '1004b 1' 9-max Seat #3 is the button
+Seat 1: Player1 (2000 in chips)
+Seat 2: CashUrChecks (15969 in chips)
+Seat 3: Player3 (16169 in chips)
+
+Player1: posts small blind 50
+CashUrChecks: posts big blind 100
+*** HOLE CARDS ***
+Dealt to Player1 [As Ks]
+Player3: raises 200 to 300
+Player1: folds
+CashUrChecks: raises 15869 to 16169 and is all-in
+Player3: calls 15869
+*** FLOP *** [2h 3d 4c]
+*** TURN *** [2h 3d 4c] [5s]
+Player3: folds
+*** RIVER *** [2h 3d 4c 5s] [6h]
+*** SHOW DOWN ***
+CashUrChecks: shows [Ac Ad] (a pair of Aces)
+CashUrChecks collected 32138 from pot
+*** SUMMARY ***
+Total pot 32138 | Rake 0
+Board [2h 3d 4c 5s 6h]
+Seat 1: Player1 (small blind) folded before Flop
+Seat 2: CashUrChecks (big blind) showed [Ac Ad] and won (32138) with a pair of Aces
+Seat 3: Player3 (button) folded on the Turn
