@@ -5,6 +5,7 @@ import { ReplayState, ReplayStep } from '@/types/replay';
 import { normalizeKey, setNormalized, getNormalized, incrementNormalized } from './normalize-key';
 import { HandParser } from './hand-parser';
 import { isAnomalyFallbackAllowed } from '../config/sidepot-config';
+import { AnomalyLogger } from './anomaly-logger';
 
 export class SnapshotBuilder {
   // Site configuration for reveal behavior
@@ -141,7 +142,16 @@ export class SnapshotBuilder {
       console.error(`❌ DEBUG DUMP - totalCommittedMap:`, totalCommittedMap);
       console.error(`❌ DEBUG DUMP - computed pots:`, pots);
       console.error(`❌ DEBUG DUMP - commitmentLevels:`, commitmentLevels);
-      throw new Error(`CRITICAL: Mathematical inconsistency in pot calculation: ${sumPots} !== ${sumCommitted}`);
+
+      // Log mathematical inconsistency
+      const incidentId = AnomalyLogger.logMathematicalInconsistency(
+        sumCommitted,
+        sumPots,
+        'pot calculation',
+        totalCommittedMap
+      );
+
+      throw new Error(`CRITICAL: Incident ${incidentId} - Mathematical inconsistency in pot calculation: ${sumPots} !== ${sumCommitted}`);
     }
 
     // GUARD: Ensure no empty eligible arrays (should not happen in normal operation)
@@ -534,6 +544,9 @@ export class SnapshotBuilder {
           console.error(`❌ DEBUG DUMP - playerStatus:`, playerStatusAtShowdown);
           console.error(`❌ DEBUG DUMP - handHistory showdown:`, handHistory.showdown);
 
+          // Log the anomaly with structured logging
+          const handId = `hand_${Date.now()}`; // Simple hand ID for tracking
+
           // Check ALLOW_FALLBACK_ON_ANOMALY config flag
           if (isAnomalyFallbackAllowed()) {
             // FALLBACK: Award to earliest eligible contributor with anomaly logging
@@ -541,11 +554,28 @@ export class SnapshotBuilder {
             payouts[fallbackWinner] = (payouts[fallbackWinner] || 0) + pot.amount;
             console.log(`🔄 FALLBACK ALLOCATION: POT ${index} (${pot.amount} cents) → ${fallbackWinner} (earliest eligible, ANOMALY LOGGED)`);
 
-            // TODO: Log to structured anomaly log file
-            console.warn(`⚠️ ANOMALY FALLBACK APPLIED: Pot ${index} had eligible players but no showdown winners`);
+            // Log to structured anomaly log file
+            const incidentId = AnomalyLogger.logNoEligibleWinners(
+              index,
+              pot.amount,
+              pot.eligible,
+              totalCommitted,
+              playerStatusAtShowdown,
+              handId,
+              fallbackWinner
+            );
+            console.warn(`⚠️ ANOMALY FALLBACK APPLIED: Incident ${incidentId} - Pot ${index} had eligible players but no showdown winners`);
           } else {
-            // Fail-fast mode (default)
-            throw new Error(`CRITICAL ANOMALY: Pot ${index} has eligible players [${pot.eligible.join(', ')}] but none won at showdown. This indicates a bug in eligibility logic or hand parsing. Set ALLOW_FALLBACK_ON_ANOMALY=true to enable fallback allocation.`);
+            // Log anomaly and fail-fast (default mode)
+            const incidentId = AnomalyLogger.logNoEligibleWinners(
+              index,
+              pot.amount,
+              pot.eligible,
+              totalCommitted,
+              playerStatusAtShowdown,
+              handId
+            );
+            throw new Error(`CRITICAL ANOMALY: Incident ${incidentId} - Pot ${index} has eligible players [${pot.eligible.join(', ')}] but none won at showdown. This indicates a bug in eligibility logic or hand parsing. Set ALLOW_FALLBACK_ON_ANOMALY=true to enable fallback allocation.`);
           }
         }
 
