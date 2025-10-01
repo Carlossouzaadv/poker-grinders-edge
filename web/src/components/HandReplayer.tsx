@@ -4,13 +4,20 @@ import HowItWorksSection from './sections/HowItWorksSection';
 import FutureSection from './sections/FutureSection';
 import LeadCaptureModal from './LeadCaptureModal';
 
-const HandReplayer: React.FC = () => {
+interface HandReplayerProps {
+  initialHandHistory?: string;
+}
+
+const HandReplayer: React.FC<HandReplayerProps> = ({ initialHandHistory }) => {
   const [showLeadCapture, setShowLeadCapture] = useState(false);
 
   return (
     <div className="min-h-screen">
       {/* Hero Section - Main replayer */}
-      <HeroSection onShowLeadCapture={() => setShowLeadCapture(true)} />
+      <HeroSection
+        onShowLeadCapture={() => setShowLeadCapture(true)}
+        initialHandHistory={initialHandHistory}
+      />
 
       {/* How It Works Section */}
       <HowItWorksSection />

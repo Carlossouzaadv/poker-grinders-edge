@@ -64,7 +64,7 @@ export default function DashboardPage() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Hand Analyzer Card - Active */}
-            <Link href="/hand-analyzer">
+            <Link href="/hand-analyzer/new">
               <div className="group rounded-2xl p-8 border-2 border-[#00FF8C] transition-all duration-500 cursor-pointer hover:scale-105 hover:shadow-[0_16px_48px_rgba(0,255,140,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)', boxShadow: '0 0 20px rgba(0, 255, 140, 0.1)' }}>
                 <div className="flex items-center mb-6">
                   <div className="relative w-16 h-16">

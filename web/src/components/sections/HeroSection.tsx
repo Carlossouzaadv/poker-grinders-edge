@@ -11,16 +11,39 @@ import '@/styles/replayer.css';
 
 interface HeroSectionProps {
   onShowLeadCapture: () => void;
+  initialHandHistory?: string;
 }
 
-const HeroSection: React.FC<HeroSectionProps> = ({ onShowLeadCapture }) => {
+const HeroSection: React.FC<HeroSectionProps> = ({ onShowLeadCapture, initialHandHistory }) => {
   const { t } = useTranslation();
-  const [handText, setHandText] = useState('');
+  const [handText, setHandText] = useState(initialHandHistory || '');
   const [handHistory, setHandHistory] = useState<HandHistory | null>(null);
   const [error, setError] = useState<string>('');
   const [currentSnapshotIndex, setCurrentSnapshotIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
+
+  // Auto-parse if initialHandHistory is provided
+  useEffect(() => {
+    if (initialHandHistory && !handHistory) {
+      try {
+        console.log('🔍 Parsing initial hand history...');
+        const result = HandParser.parse(initialHandHistory);
+        console.log('✅ Parsed result:', result);
+
+        // Validate the parsed result
+        if (!result || !result.actions || !Array.isArray(result.actions)) {
+          throw new Error('Resultado do parser inválido: ações não encontradas');
+        }
+
+        setHandHistory(result);
+        setError('');
+      } catch (err: any) {
+        console.error('❌ Error auto-parsing initial hand:', err);
+        setError(err?.message || 'Erro ao processar o histórico da mão');
+      }
+    }
+  }, [initialHandHistory, handHistory]);
 
   // Generate snapshots when handHistory changes
   useEffect(() => {
@@ -30,10 +53,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onShowLeadCapture }) => {
         return;
       }
       try {
+        console.log('🔧 Building snapshots from handHistory:', handHistory);
         const result = await SnapshotBuilder.buildSnapshots(handHistory);
+        console.log('✅ Snapshots built:', result);
         setSnapshots(Array.isArray(result) ? result : []);
       } catch (error) {
-        console.error('Error building snapshots:', error);
+        console.error('❌ Error building snapshots:', error);
+        setError('Erro ao construir snapshots da mão');
         setSnapshots([]);
       }
     };

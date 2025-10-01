@@ -52,6 +52,11 @@ export class ReplayBuilder {
     const steps: ReplayStep[] = [];
     let stepId = 0;
 
+    // Validate handHistory
+    if (!handHistory || !handHistory.players || !Array.isArray(handHistory.players)) {
+      throw new Error('HandHistory inválido: players não encontrado');
+    }
+
     // Check if it's a tournament for proper formatting
     const isTournament = handHistory.gameContext?.isTournament || false;
 
