@@ -4,12 +4,16 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
-import Image from 'next/image';
+import { HandParser } from '@/lib/hand-parser';
+import { HandHistory } from '@/types/poker';
+import PokerReplayer from '@/components/PokerReplayer';
 
 export default function HandAnalyzerInputPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  const [handHistory, setHandHistory] = useState('');
+  const [handHistoryText, setHandHistoryText] = useState('');
+  const [parsedHandHistory, setParsedHandHistory] = useState<HandHistory | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -22,16 +26,57 @@ export default function HandAnalyzerInputPage() {
   }
 
   const handleAnalyze = () => {
-    if (!handHistory.trim()) {
+    if (!handHistoryText.trim()) {
       alert('Por favor, cole o histórico da mão antes de analisar.');
       return;
     }
 
-    // Armazena o histórico no sessionStorage para passar para a próxima página
-    sessionStorage.setItem('handHistoryToAnalyze', handHistory);
+    try {
+      console.log('🔍 Parsing hand history...');
+      const result = HandParser.parse(handHistoryText);
+      console.log('✅ Parse result:', result);
 
-    // Redireciona para a página do replayer
-    router.push('/hand-analyzer');
+      // Check if parse was successful
+      if (!result.success || !result.handHistory) {
+        throw new Error(result.error || 'Erro ao processar o histórico da mão');
+      }
+
+      const handHistory = result.handHistory;
+
+      // Validate the parsed hand history
+      if (!handHistory.players || !Array.isArray(handHistory.players)) {
+        throw new Error('Resultado do parser inválido: players não encontrado');
+      }
+
+      if (!handHistory.preflop || !Array.isArray(handHistory.preflop)) {
+        throw new Error('Resultado do parser inválido: preflop não encontrado');
+      }
+
+      setParsedHandHistory(handHistory);
+      setError('');
+
+      // Scroll suave para a mesa
+      setTimeout(() => {
+        document.getElementById('poker-table-section')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 100);
+
+    } catch (err: any) {
+      console.error('❌ Error parsing hand:', err);
+      setError(err?.message || 'Erro ao processar o histórico da mão');
+      setParsedHandHistory(null);
+    }
+  };
+
+  const handleNewHand = () => {
+    setParsedHandHistory(null);
+    setHandHistoryText('');
+    setError('');
+
+    // Scroll suave de volta ao topo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const exampleHand = `PokerStars Hand #2310810117: Tournament #10210210, $10+$1 USD Hold'em No Limit - Level V (100/200) - 2025/09/24 17:30:00 ET
@@ -77,6 +122,10 @@ Seat 4: Player 4 folded before Flop (didn't bet)
 Seat 5: Player 5 mucked [Ks Qs]
 Seat 6: Player 6 folded before Flop (didn't bet)`;
 
+  const handleUseExample = () => {
+    setHandHistoryText(exampleHand);
+  };
+
   return (
     <div className="min-h-screen bg-[#121212]">
       {/* Header */}
@@ -117,18 +166,35 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
               Histórico de Mãos
             </h3>
             <textarea
-              value={handHistory}
-              onChange={(e) => setHandHistory(e.target.value)}
+              value={handHistoryText}
+              onChange={(e) => setHandHistoryText(e.target.value)}
               placeholder="Cole aqui o histórico do PokerStars, GGPoker, Winamax, etc..."
               className="w-full h-96 px-4 py-3 bg-[#0a0a0a] border border-[rgba(76,95,213,0.3)] rounded-lg text-white placeholder-[#9E9E9E] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all resize-none font-mono text-sm"
             />
-            <button
-              onClick={handleAnalyze}
-              disabled={!handHistory.trim()}
-              className="w-full mt-6 bg-[#00FF8C] hover:bg-[#00DD7A] text-[#121212] py-4 rounded-lg font-open-sans font-semibold transition-all duration-300 shadow-lg hover:shadow-[0_8px_24px_rgba(0,255,140,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Analisar Mãos
-            </button>
+            {error && (
+              <div className="mt-4 p-4 bg-red-900/30 border border-red-500/30 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">⚠️</span>
+                  <span className="font-open-sans font-semibold text-red-200">Erro ao processar</span>
+                </div>
+                <p className="font-open-sans text-sm text-red-200">{error}</p>
+              </div>
+            )}
+            <div className="flex gap-4 mt-6">
+              <button
+                onClick={handleAnalyze}
+                disabled={!handHistoryText.trim()}
+                className="flex-1 bg-[#00FF8C] hover:bg-[#00DD7A] text-[#121212] py-4 rounded-lg font-open-sans font-semibold transition-all duration-300 shadow-lg hover:shadow-[0_8px_24px_rgba(0,255,140,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Analisar Mãos
+              </button>
+              <button
+                onClick={handleUseExample}
+                className="px-6 py-4 bg-transparent border-2 border-[#00FF8C] text-[#00FF8C] hover:bg-[rgba(0,255,140,0.1)] rounded-lg font-open-sans font-semibold transition-all duration-300"
+              >
+                Exemplo
+              </button>
+            </div>
           </div>
 
           {/* Preview/Info Section */}
@@ -195,26 +261,15 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
           </div>
         </div>
 
-        {/* Example Section */}
-        <div className="mt-12 rounded-2xl p-8 border border-[rgba(76,95,213,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
-          <h3 className="font-montserrat text-2xl font-semibold text-white mb-4">
-            Exemplo de Histórico
-          </h3>
-          <p className="font-open-sans text-[#E0E0E0] mb-6">
-            Não tem um histórico à mão? Use este exemplo para testar:
-          </p>
-          <div className="bg-[#0a0a0a] rounded-lg p-4 border border-[rgba(76,95,213,0.3)]">
-            <pre className="font-mono text-xs text-[#9E9E9E] overflow-x-auto whitespace-pre-wrap">
-{exampleHand}
-            </pre>
+        {/* Poker Table Section - Shown after clicking Analyze */}
+        {parsedHandHistory && (
+          <div id="poker-table-section" className="mt-12">
+            <PokerReplayer
+              handHistory={parsedHandHistory}
+              onNewHand={handleNewHand}
+            />
           </div>
-          <button
-            onClick={() => setHandHistory(exampleHand)}
-            className="mt-4 px-6 py-2 bg-transparent border border-[#00FF8C] text-[#00FF8C] hover:bg-[rgba(0,255,140,0.1)] rounded-lg font-open-sans text-sm font-semibold transition-all duration-300"
-          >
-            Usar Este Exemplo
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );
