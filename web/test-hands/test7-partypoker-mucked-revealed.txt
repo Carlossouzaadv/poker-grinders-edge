@@ -1,0 +1,32 @@
+PartyPoker Hand #987654321: Tournament #12345, $50+$5 Hold'em No Limit - Level III (25/50) - 2025/01/15 20:30:00 ET
+Table 'Tourney1' 9-max Seat #3 is the button
+Seat 1: PlayerX (2000 in chips)
+Seat 3: Hero (2000 in chips)
+Seat 5: PlayerY (2000 in chips)
+
+PlayerX: posts small blind 25
+Hero: posts big blind 50
+*** HOLE CARDS ***
+Dealt to Hero [Ah Ks]
+PlayerY: raises 150 to 200
+PlayerX: folds
+Hero: raises 450 to 650
+PlayerY: calls 450
+*** FLOP *** [Qh Jh Th]
+Hero: bets 800
+PlayerY: calls 800
+*** TURN *** [Qh Jh Th] [9h]
+Hero: checks
+PlayerY: bets 550 and is all-in
+Hero: calls 550 and is all-in
+*** RIVER *** [Qh Jh Th 9h] [2c]
+*** SHOW DOWN ***
+Hero: shows [Ah Ks] (a straight)
+PlayerY: mucks hand
+Hero collected 4025 from pot
+*** SUMMARY ***
+Total pot 4025 | Rake 0
+Board [Qh Jh Th 9h 2c]
+Seat 1: PlayerX (small blind) folded before Flop
+Seat 3: Hero (button, big blind) showed [Ah Ks] and won (4025) with a straight
+Seat 5: PlayerY (big blind) mucked [Js Jc]

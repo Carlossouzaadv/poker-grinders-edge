@@ -1,0 +1,189 @@
+'use client';
+
+import Link from 'next/link';
+import Image from 'next/image';
+import { useState } from 'react';
+
+export default function BlogPage() {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const posts = [
+    {
+      id: 1,
+      title: 'Os 5 Maiores Leaks de Jogadores de Torneio',
+      excerpt: 'Descubra os erros mais comuns que custam dinheiro aos jogadores de MTT e como o Hand Replayer ajuda a identificá-los.',
+      date: '2025-09-30',
+      category: 'Estratégia',
+      readTime: '5 min',
+    },
+    {
+      id: 2,
+      title: 'Como Fazer uma Gestão de Bankroll Profissional',
+      excerpt: 'Aprenda os princípios fundamentais de gerenciamento de banca e prepare-se para o nosso módulo de Gestor de Bankroll.',
+      date: '2025-09-25',
+      category: 'Bankroll',
+      readTime: '8 min',
+    },
+    {
+      id: 3,
+      title: 'GTO vs Exploitativo: Qual Estratégia Usar?',
+      excerpt: 'Entenda quando aplicar Game Theory Optimal e quando desviar para explorar seus oponentes de forma lucrativa.',
+      date: '2025-09-20',
+      category: 'GTO',
+      readTime: '6 min',
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#121212]">
+      {/* Hero */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="font-montserrat text-5xl sm:text-6xl font-bold text-white mb-6">
+            Blog
+          </h1>
+          <p className="font-open-sans text-xl text-[#E0E0E0]">
+            Conteúdo de qualidade para elevar seu jogo. Estratégia, dicas e insights do mundo do poker profissional.
+          </p>
+        </div>
+      </section>
+
+      {/* Blog Posts */}
+      <section className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {posts
+            .filter((post) => !selectedCategory || post.category === selectedCategory)
+            .map((post) => (
+            <article
+              key={post.id}
+              className="p-8 rounded-2xl border border-[rgba(76,95,213,0.2)] transition-all duration-500 hover:border-[rgba(0,255,140,0.5)] hover:scale-105 hover:shadow-[0_16px_48px_rgba(0,255,140,0.2)] group"
+              style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <span className="inline-block bg-[#00FF8C]/20 text-[#00FF8C] px-3 py-1 rounded-full font-montserrat text-xs font-bold">
+                  {post.category}
+                </span>
+                <span className="font-open-sans text-sm text-[#9E9E9E]">
+                  {new Date(post.date).toLocaleDateString('pt-BR')} • {post.readTime} de leitura
+                </span>
+              </div>
+
+              <h2 className="font-montserrat text-2xl font-bold text-white mb-3 group-hover:text-[#00FF8C] transition-colors">
+                {post.title}
+              </h2>
+
+              <p className="font-open-sans text-[#E0E0E0] leading-relaxed mb-6">
+                {post.excerpt}
+              </p>
+
+              <div className="flex items-center gap-4">
+                <button className="text-[#00FF8C] hover:text-[#00DD7A] font-open-sans font-semibold transition-colors inline-flex items-center gap-2 group">
+                  Ler artigo
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </article>
+          ))}
+
+          {/* Coming Soon Message */}
+          <div className="p-12 rounded-2xl border border-[rgba(76,95,213,0.2)] text-center transition-all duration-500 hover:border-[rgba(0,255,140,0.5)] hover:scale-105 hover:shadow-[0_16px_48px_rgba(0,255,140,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
+            <div className="relative w-16 h-16 mx-auto mb-6">
+              <Image
+                src="/assets/images/nova id visual/icon-idea.png"
+                alt="Mais conteúdo"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <h3 className="font-montserrat text-2xl font-bold text-white mb-3">
+              Mais Conteúdo em Breve
+            </h3>
+            <p className="font-open-sans text-[#E0E0E0] mb-6 max-w-2xl mx-auto">
+              Estamos preparando artigos incríveis sobre estratégia, mindset, bankroll e muito mais. Cadastre-se para ser notificado quando publicarmos novos posts.
+            </p>
+            <Link href="/register">
+              <button className="bg-[#00FF8C] hover:bg-[#00DD7A] text-[#121212] px-8 py-3 rounded-lg font-open-sans font-semibold transition-all duration-300 shadow-lg hover:shadow-[0_8px_24px_rgba(0,255,140,0.4)]">
+                Quero Ser Notificado
+              </button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="font-montserrat text-3xl font-bold text-white text-center mb-4">
+            Categorias
+          </h2>
+          <p className="font-open-sans text-[#9E9E9E] text-center mb-12">
+            Filtre o conteúdo por tema para encontrar exatamente o que você precisa
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className={`p-4 rounded-lg border transition-all duration-300 font-open-sans ${
+                selectedCategory === null
+                  ? 'bg-[#00FF8C]/20 border-[#00FF8C] text-[#00FF8C]'
+                  : 'border-[rgba(76,95,213,0.2)] text-[#E0E0E0] hover:border-[rgba(0,255,140,0.5)] hover:text-[#00FF8C]'
+              }`}
+              style={{ background: selectedCategory === null ? 'rgba(0, 255, 140, 0.2)' : 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}
+            >
+              Todos
+            </button>
+            {['Estratégia', 'GTO', 'Bankroll', 'Mindset', 'MTT', 'Cash Game', 'Hand Review'].map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`p-4 rounded-lg border transition-all duration-300 font-open-sans ${
+                  selectedCategory === category
+                    ? 'bg-[#00FF8C]/20 border-[#00FF8C] text-[#00FF8C]'
+                    : 'border-[rgba(76,95,213,0.2)] text-[#E0E0E0] hover:border-[rgba(0,255,140,0.5)] hover:text-[#00FF8C]'
+                }`}
+                style={{ background: selectedCategory === category ? 'rgba(0, 255, 140, 0.2)' : 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="font-montserrat text-4xl font-bold text-white mb-6">
+            Newsletter Semanal
+          </h2>
+          <p className="font-open-sans text-lg text-[#E0E0E0] mb-8">
+            Receba dicas exclusivas, análises de mãos e novidades direto no seu email. Toda semana.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <input
+              type="email"
+              placeholder="Seu melhor email"
+              className="flex-1 px-4 py-3 bg-[#1a1a1a] border border-[#4C5FD5]/30 rounded-lg text-white placeholder-[#9E9E9E] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all"
+            />
+            <button className="bg-[#00FF8C] hover:bg-[#00DD7A] text-[#121212] px-8 py-3 rounded-lg font-open-sans font-semibold transition-all duration-300 shadow-lg hover:shadow-[#00FF8C]/50 whitespace-nowrap">
+              Inscrever
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Back to Home */}
+      <div className="py-8 px-4 text-center">
+        <Link
+          href="/"
+          className="font-open-sans text-[#E0E0E0] hover:text-[#00FF8C] transition-colors inline-flex items-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Voltar para a página inicial
+        </Link>
+      </div>
+    </div>
+  );
+}

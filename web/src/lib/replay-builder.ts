@@ -2,9 +2,58 @@ import { HandHistory } from '@/types/poker';
 import { ReplayStep, ActionStep, StreetStep, ShowdownStep, ReplayState } from '@/types/replay';
 
 export class ReplayBuilder {
+  /**
+   * Format value based on game context
+   */
+  private static formatValue(amount: number, isTournament: boolean): string {
+    if (isTournament) {
+      // Tournament: show as integer chips without $ sign
+      return Math.round(amount).toString();
+    } else {
+      // Cash game: show as dollars with $ sign and 2 decimal places
+      return `$${amount.toFixed(2)}`;
+    }
+  }
+
+  /**
+   * Generate action description based on game context
+   */
+  private static getActionDescription(action: any, isTournament: boolean): string {
+    switch (action.action) {
+      case 'fold':
+        return `${action.player} folds`;
+      case 'call':
+        return action.amount ? `${action.player} calls ${this.formatValue(action.amount, isTournament)}` : `${action.player} calls`;
+      case 'bet':
+        return action.amount ? `${action.player} bets ${this.formatValue(action.amount, isTournament)}` : `${action.player} bets`;
+      case 'raise':
+        if (action.amount) {
+          const totalBet = action.totalBet || action.amount;
+          const raiseBy = action.raiseBy || action.amount;
+          return `${action.player} raises ${this.formatValue(raiseBy, isTournament)} to ${this.formatValue(totalBet, isTournament)}`;
+        }
+        return `${action.player} raises`;
+      case 'check':
+        return `${action.player} checks`;
+      case 'all-in':
+        return action.amount ? `${action.player} goes all-in for ${this.formatValue(action.amount, isTournament)}` : `${action.player} goes all-in`;
+      case 'uncalled_return':
+        if (action.amount) {
+          const valueStr = isTournament ? this.formatValue(action.amount, isTournament) : `(${this.formatValue(action.amount, isTournament)})`;
+          return `Uncalled bet ${valueStr} returned to ${action.player}`;
+        }
+        return `Uncalled bet returned to ${action.player}`;
+      default:
+        return `${action.player} ${action.action}`;
+    }
+  }
+
   static buildReplayFromHand(handHistory: HandHistory): ReplayState {
     const steps: ReplayStep[] = [];
     let stepId = 0;
+
+    // Check if it's a tournament for proper formatting
+    const isTournament = handHistory.gameContext?.isTournament || false;
 
     // Stacks iniciais dos jogadores
     const initialStacks: Record<string, number> = {};
@@ -25,41 +74,23 @@ export class ReplayBuilder {
       let stacksAfter = { ...currentStacks };
       let description = '';
 
+      // Generate description using helper function
+      description = this.getActionDescription(action, isTournament);
+
+      // Update pot and stacks based on action
       switch (action.action) {
-        case 'fold':
-          description = `${action.player} folds`;
-          break;
         case 'call':
-          if (action.amount) {
-            potAfter += action.amount;
-            stacksAfter[action.player] -= action.amount;
-            description = `${action.player} calls $${action.amount.toFixed(2)}`;
-          }
-          break;
         case 'bet':
-          if (action.amount) {
-            potAfter += action.amount;
-            stacksAfter[action.player] -= action.amount;
-            description = `${action.player} bets $${action.amount.toFixed(2)}`;
-          }
-          break;
         case 'raise':
           if (action.amount) {
             potAfter += action.amount;
             stacksAfter[action.player] -= action.amount;
-            const totalBet = action.totalBet || action.amount;
-            const raiseBy = action.raiseBy || action.amount;
-            description = `${action.player} raises $${raiseBy.toFixed(2)} to $${totalBet.toFixed(2)}`;
           }
-          break;
-        case 'check':
-          description = `${action.player} checks`;
           break;
         case 'all-in':
           if (action.amount) {
             potAfter += action.amount;
             stacksAfter[action.player] = 0;
-            description = `${action.player} goes all-in for $${action.amount.toFixed(2)}`;
           }
           break;
         case 'uncalled_return':
@@ -67,7 +98,6 @@ export class ReplayBuilder {
             // Uncalled bet is returned to player - subtract from pot, add to stack
             potAfter -= action.amount;
             stacksAfter[action.player] += action.amount;
-            description = `Uncalled bet ($${action.amount.toFixed(2)}) returned to ${action.player}`;
           }
           break;
       }
@@ -106,7 +136,7 @@ export class ReplayBuilder {
 
       // Processar ações do flop
       for (const action of handHistory.flop.actions) {
-        const actionStep = this.createActionStep(action, stepId++, currentPot, currentStacks);
+        const actionStep = this.createActionStep(action, stepId++, currentPot, currentStacks, isTournament);
         steps.push(actionStep);
         currentPot = actionStep.potAfter;
         currentStacks = actionStep.stacksAfter;
@@ -128,7 +158,7 @@ export class ReplayBuilder {
 
       // Processar ações do turn
       for (const action of handHistory.turn.actions) {
-        const actionStep = this.createActionStep(action, stepId++, currentPot, currentStacks);
+        const actionStep = this.createActionStep(action, stepId++, currentPot, currentStacks, isTournament);
         steps.push(actionStep);
         currentPot = actionStep.potAfter;
         currentStacks = actionStep.stacksAfter;
@@ -150,7 +180,7 @@ export class ReplayBuilder {
 
       // Processar ações do river
       for (const action of handHistory.river.actions) {
-        const actionStep = this.createActionStep(action, stepId++, currentPot, currentStacks);
+        const actionStep = this.createActionStep(action, stepId++, currentPot, currentStacks, isTournament);
         steps.push(actionStep);
         currentPot = actionStep.potAfter;
         currentStacks = actionStep.stacksAfter;
@@ -273,47 +303,29 @@ export class ReplayBuilder {
     action: any,
     stepId: number,
     currentPot: number,
-    currentStacks: Record<string, number>
+    currentStacks: Record<string, number>,
+    isTournament: boolean = false
   ): ActionStep {
     let potAfter = currentPot;
     let stacksAfter = { ...currentStacks };
-    let description = '';
 
+    // Generate description using helper function
+    const description = this.getActionDescription(action, isTournament);
+
+    // Update pot and stacks based on action
     switch (action.action) {
-      case 'fold':
-        description = `${action.player} folds`;
-        break;
       case 'call':
-        if (action.amount) {
-          potAfter += action.amount;
-          stacksAfter[action.player] -= action.amount;
-          description = `${action.player} calls $${action.amount.toFixed(2)}`;
-        }
-        break;
       case 'bet':
-        if (action.amount) {
-          potAfter += action.amount;
-          stacksAfter[action.player] -= action.amount;
-          description = `${action.player} bets $${action.amount.toFixed(2)}`;
-        }
-        break;
       case 'raise':
         if (action.amount) {
           potAfter += action.amount;
           stacksAfter[action.player] -= action.amount;
-          const totalBet = action.totalBet || action.amount;
-          const raiseBy = action.raiseBy || action.amount;
-          description = `${action.player} raises $${raiseBy.toFixed(2)} to $${totalBet.toFixed(2)}`;
         }
-        break;
-      case 'check':
-        description = `${action.player} checks`;
         break;
       case 'all-in':
         if (action.amount) {
           potAfter += action.amount;
           stacksAfter[action.player] = 0;
-          description = `${action.player} goes all-in for $${action.amount.toFixed(2)}`;
         }
         break;
       case 'uncalled_return':
@@ -321,7 +333,6 @@ export class ReplayBuilder {
           // Uncalled bet is returned to player - subtract from pot, add to stack
           potAfter -= action.amount;
           stacksAfter[action.player] += action.amount;
-          description = `Uncalled bet ($${action.amount.toFixed(2)}) returned to ${action.player}`;
         }
         break;
     }

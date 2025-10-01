@@ -57,6 +57,7 @@ model User {
   password  String
   firstName String
   lastName  String
+  phone     String?  // Optional phone for future MFA/notifications
   userType  UserType @default(PLAYER)
   plan      SubscriptionPlan @default(FREE)
 
@@ -72,6 +73,7 @@ model User {
   // Relations
   sessions Session[]
   hands    Hand[]
+  handHistorySessions HandHistorySession[] // New: hand history analysis sessions
 
   // Coach specific
   coachProfile CoachProfile?
@@ -300,4 +302,59 @@ model GTORange {
 
   @@unique([position, stackBBs, action, scenario])
   @@map("gto_ranges")
+}
+
+// ==============================================================================
+// HAND HISTORY ANALYZER - Multi-Hand Session Support
+// ==============================================================================
+
+/// Represents a session of hand history analysis (e.g., a tournament or cash game session)
+/// containing multiple hands that can be reviewed and navigated by the user
+model HandHistorySession {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Session metadata
+  name        String      // Descriptive name (e.g., "Tournament #123456", "Cash Game 10/20")
+  siteFormat  String      // Poker site format: "PokerStars", "GGPoker", "PartyPoker", "Ignition"
+  totalHands  Int         // Total number of hands in this session
+
+  // Raw data for future reprocessing or debugging
+  rawHandHistory String   @db.Text // Complete original .txt content
+
+  // Relations
+  hands       HandHistoryHand[]
+
+  // Timestamps
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("hand_history_sessions")
+  @@index([userId, createdAt]) // Optimize queries for user's recent sessions
+}
+
+/// Represents an individual parsed hand within a hand history session
+/// Stores both the raw text and parsed JSON data for efficient querying and display
+model HandHistoryHand {
+  id          String              @id @default(cuid())
+  sessionId   String
+  session     HandHistorySession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  // Position in session (0-based index for ordering)
+  handIndex   Int
+
+  // Raw hand text for debugging/reprocessing
+  handText    String              @db.Text
+
+  // Parsed hand data stored as JSON for efficient queries
+  // Contains the complete ParsedHand object from the parser
+  parsedData  Json
+
+  // Timestamps
+  createdAt   DateTime            @default(now())
+
+  @@unique([sessionId, handIndex]) // Ensure no duplicate hands at same position
+  @@map("hand_history_hands")
+  @@index([sessionId, handIndex]) // Optimize sequential navigation queries
 }

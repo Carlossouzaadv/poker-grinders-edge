@@ -20,17 +20,25 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onShowLeadCapture }) => {
   const [error, setError] = useState<string>('');
   const [currentSnapshotIndex, setCurrentSnapshotIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
 
   // Generate snapshots when handHistory changes
-  const snapshots = useMemo(() => {
-    if (!handHistory) return [];
-    try {
-      const result = SnapshotBuilder.buildSnapshots(handHistory);
-      return Array.isArray(result) ? result : [];
-    } catch (error) {
-      console.error('Error building snapshots:', error);
-      return [];
-    }
+  useEffect(() => {
+    const buildSnapshots = async () => {
+      if (!handHistory) {
+        setSnapshots([]);
+        return;
+      }
+      try {
+        const result = await SnapshotBuilder.buildSnapshots(handHistory);
+        setSnapshots(Array.isArray(result) ? result : []);
+      } catch (error) {
+        console.error('Error building snapshots:', error);
+        setSnapshots([]);
+      }
+    };
+
+    buildSnapshots();
   }, [handHistory]);
 
   const currentSnapshot = snapshots[currentSnapshotIndex] || null;

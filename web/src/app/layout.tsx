@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Poppins } from "next/font/google";
+import { Inter, Poppins, Montserrat, Open_Sans } from "next/font/google";
 import "./globals.css";
 import I18nProvider from '@/components/I18nProvider';
 
@@ -12,6 +12,18 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-poppins"
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-montserrat"
+});
+
+const openSans = Open_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-open-sans"
 });
 
 export const metadata: Metadata = {
@@ -33,7 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${inter.variable} ${poppins.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${poppins.variable} ${montserrat.variable} ${openSans.variable} font-sans antialiased`}>
         <I18nProvider>
           {children}
         </I18nProvider>

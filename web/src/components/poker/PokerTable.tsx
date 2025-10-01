@@ -32,6 +32,26 @@ const PokerTable: React.FC<PokerTableProps> = ({
   const currentStacks = snapshot.playerStacks;
   const foldedPlayers = snapshot.folded;
 
+  // Function to get last action for a player from snapshot description
+  const getLastActionForPlayer = (playerName: string): string | undefined => {
+    if (!snapshot.description) return undefined;
+
+    // Check if the current snapshot description mentions this player
+    const normalizedName = normalizeKey(playerName);
+    const normalizedActivePlayer = activePlayer ? normalizeKey(activePlayer) : null;
+
+    // If this player is the active player, show their current action from description
+    if (normalizedActivePlayer === normalizedName && snapshot.description) {
+      // Extract action from description like "Player calls 400" -> "calls 400"
+      const actionMatch = snapshot.description.match(new RegExp(`${playerName}\\s+(.+)`));
+      if (actionMatch) {
+        return actionMatch[1];
+      }
+    }
+
+    return undefined;
+  };
+
   // Função de mapeamento Hero-cêntrico
   const calcularPosicoesVisuais = (players: any[], heroSeat: number) => {
     const totalSeats = players.length;
@@ -533,6 +553,7 @@ const PokerTable: React.FC<PokerTableProps> = ({
                 hasFolded={hasPlayerFolded}
                 isWinner={snapshot.street === 'showdown' && snapshot.winners?.includes(player.name)}
                 isShowdown={snapshot.street === 'showdown'}
+                lastAction={getLastActionForPlayer(player.name)}
               />
 
               {/* Dealer Button */}
@@ -559,24 +580,45 @@ const PokerTable: React.FC<PokerTableProps> = ({
         const playersWithVisualSeats = calcularPosicoesVisuais(handHistory.players, heroSeat);
 
         return playersWithVisualSeats.map((player) => {
-          let betAmount = snapshot.pendingContribs[player.name] || 0;
+          // Use pendingContribs from snapshot - these represent chips in front of player during current street
+          // IMPORTANT: Use the EXACT same normalized key function as snapshot-builder
+          const normalizeKey = (name: string): string => {
+            if (!name) return '';
+            return name
+              .trim()
+              .toLowerCase()
+              .normalize('NFKD')
+              .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+              .replace(/\s+/g, ' ') // SAME as normalize-key.ts - keep spaces!
+              .trim();
+          };
 
-          // Mostrar blinds até o jogador agir pela primeira vez
-          // SB e BB devem manter suas fichas na frente até agirem
-          if ((player.position === 'SB' || player.position === 'BB') && betAmount === 0) {
-            // Verificar se o jogador ainda não agiu (olhando snapshots anteriores)
-            // Se ainda não agiu, mostrar a blind
-            const blindAmount = player.position === 'SB' ? handHistory.smallBlind : handHistory.bigBlind;
+          const getNormalized = (obj: Record<string, number> | undefined, key: string): number => {
+            if (!obj) return 0;
+            const normalizedKey = normalizeKey(key);
+            return obj[normalizedKey] ?? obj[key] ?? 0;
+          };
 
-            // Só mostrar se o jogador não foldou ainda
-            if (!foldedPlayers.has(player.name)) {
-              betAmount = blindAmount;
-            }
-          }
+          let betAmount = getNormalized(snapshot.pendingContribs, player.name);
+
+          // DEBUG: Log pending contribs for all players
+          console.log(`🎰 ${player.name}: betAmount=${betAmount}, normalizedKey=${normalizeKey(player.name)}, pendingContribs:`, JSON.stringify(snapshot.pendingContribs, null, 2));
+
+          // pendingContribs automatically handles:
+          // - Initial blinds (SB/BB) in preflop snapshots
+          // - Bets/raises during current street
+          // - Reset to 0 when street changes (chips move to pot)
 
 
-          // Render bet chips in action area
-          if (betAmount > 0 && snapshot.street !== 'showdown') {
+          // Obter payout do jogador no showdown
+          const playerPayout = snapshot.street === 'showdown' && snapshot.payouts
+            ? getNormalized(snapshot.payouts, player.name) ?? 0
+            : 0;
+
+          // Render bet chips in action area (durante jogo) ou payout chips (no showdown)
+          const chipsToShow = snapshot.street === 'showdown' ? playerPayout : betAmount;
+
+          if (chipsToShow > 0) {
             const actionStyle = getActionAreaPosition(player.visualSeat, playersWithVisualSeats.length);
             return (
               <div key={`action-${player.name}`} style={{
@@ -590,7 +632,7 @@ const PokerTable: React.FC<PokerTableProps> = ({
                 }}>
                   {/* Professional chip display without connecting lines like PokerStars */}
                   <ChipStack
-                    valor={betAmount}
+                    valor={chipsToShow}
                     size="medium"
                     showLabel={true}
                     enableRealisticStacking={true}
@@ -603,22 +645,20 @@ const PokerTable: React.FC<PokerTableProps> = ({
         });
       })()}
 
-      {/* Sistema de Showdown Melhorado */}
+      {/* Sistema de Showdown - Moved to top-right background */}
       {snapshot.street === 'showdown' && snapshot.winners && (
-        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 35 }}>
-          {/* Sem overlay escuro - mantém mesa visível para estudo */}
-
-          {/* Resultado do showdown - movido para cima para não tampar board/pot */}
-          <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-            <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-black px-6 py-3 rounded-xl shadow-2xl border-4 border-yellow-300 mb-4">
-              <div className="text-xl font-bold text-center">
+        <div className="absolute top-4 right-4 pointer-events-none" style={{ zIndex: 35 }}>
+          {/* Winner info in top-right background */}
+          <div className="flex flex-col items-end">
+            <div className="bg-gradient-to-r from-yellow-400/90 via-yellow-500/90 to-yellow-600/90 text-black px-4 py-2 rounded-lg shadow-xl border-2 border-yellow-300/80 mb-2 backdrop-blur-sm">
+              <div className="text-sm font-bold text-center">
                 {snapshot.winners.length === 1
                   ? `${snapshot.winners[0]} ${t('replayer.winner')}`
                   : `${snapshot.winners.join(', ')} ${t('replayer.winner')}`
                 }
               </div>
               {handHistory.showdown?.potWon && (
-                <div className="text-md text-center mt-1">
+                <div className="text-xs text-center mt-1">
                   Pote: ${handHistory.showdown.potWon}
                 </div>
               )}
@@ -634,10 +674,10 @@ const PokerTable: React.FC<PokerTableProps> = ({
               const winningHandDescription = PokerHandEvaluator.getBestHandDescription(winner, communityCards);
 
               return (
-                <div className="bg-black/90 text-white px-4 py-2 rounded-lg border border-yellow-400/30">
-                  <div className="text-center">
-                    <div className="text-xs text-yellow-400 mb-1">Mão Vencedora</div>
-                    <div className="text-sm font-medium">{winningHandDescription}</div>
+                <div className="bg-black/80 text-white px-3 py-1.5 rounded-lg border border-yellow-400/30 backdrop-blur-sm">
+                  <div className="text-right">
+                    <div className="text-xs text-yellow-400 mb-0.5">Mão Vencedora</div>
+                    <div className="text-xs font-medium">{winningHandDescription}</div>
                   </div>
                 </div>
               );

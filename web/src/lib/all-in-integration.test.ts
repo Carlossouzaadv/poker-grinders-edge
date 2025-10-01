@@ -66,14 +66,14 @@ Seat 2: Player2 (big blind) showed [Ac Ad] and won (3000) with a pair of Aces
 
 describe('All-in Integration Tests', () => {
   describe('CashUrChecks Specific Test Case', () => {
-    it('should correctly process CashUrChecks all-in with proper stack calculation', () => {
+    it('should correctly process CashUrChecks all-in with proper stack calculation', async () => {
       const parseResult = HandParser.parse(CASH_UR_CHECKS_HAND);
       expect(parseResult.success).toBe(true);
 
       if (!parseResult.success) return;
 
       const handHistory = parseResult.handHistory;
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       // Find the all-in snapshot
       const allInSnapshot = snapshots.find(s =>
@@ -105,14 +105,14 @@ describe('All-in Integration Tests', () => {
   });
 
   describe('Heads-up All-in Card Reveal', () => {
-    it('should reveal cards immediately when all-in with 2 players', () => {
+    it('should reveal cards immediately when all-in with 2 players', async () => {
       const parseResult = HandParser.parse(HEADS_UP_ALL_IN_HAND);
       expect(parseResult.success).toBe(true);
 
       if (!parseResult.success) return;
 
       const handHistory = parseResult.handHistory;
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       // Find the all-in snapshot
       const allInSnapshot = snapshots.find(s =>
@@ -142,14 +142,14 @@ describe('All-in Integration Tests', () => {
   });
 
   describe('Side Pot Calculation', () => {
-    it('should calculate side pots deterministically', () => {
+    it('should calculate side pots deterministically', async () => {
       const parseResult = HandParser.parse(CASH_UR_CHECKS_HAND);
       expect(parseResult.success).toBe(true);
 
       if (!parseResult.success) return;
 
       const handHistory = parseResult.handHistory;
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       const finalSnapshot = snapshots[snapshots.length - 1];
 
@@ -179,14 +179,14 @@ describe('All-in Integration Tests', () => {
   });
 
   describe('Stack Reconciliation', () => {
-    it('should reconcile final stacks correctly', () => {
+    it('should reconcile final stacks correctly', async () => {
       const parseResult = HandParser.parse(CASH_UR_CHECKS_HAND);
       expect(parseResult.success).toBe(true);
 
       if (!parseResult.success) return;
 
       const handHistory = parseResult.handHistory;
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       const showdownSnapshot = snapshots.find(s => s.street === 'showdown');
 
@@ -216,13 +216,13 @@ describe('All-in Integration Tests', () => {
   });
 
   describe('Logging Requirements', () => {
-    it('should produce required log messages', () => {
+    it('should produce required log messages', async () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
       try {
         const parseResult = HandParser.parse(CASH_UR_CHECKS_HAND);
         if (parseResult.success) {
-          SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+          await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         }
 
         const logs = consoleSpy.mock.calls.map(call => call.join(' '));
@@ -247,14 +247,14 @@ describe('All-in Integration Tests', () => {
   });
 
   describe('Normalized Key Consistency', () => {
-    it('should use normalized keys consistently across all maps', () => {
+    it('should use normalized keys consistently across all maps', async () => {
       const parseResult = HandParser.parse(CASH_UR_CHECKS_HAND);
       expect(parseResult.success).toBe(true);
 
       if (!parseResult.success) return;
 
       const handHistory = parseResult.handHistory;
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       snapshots.forEach((snapshot, index) => {
         // Test requirement: all maps should use normalized keys

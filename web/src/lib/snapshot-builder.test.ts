@@ -85,9 +85,9 @@ describe('SnapshotBuilder', () => {
   });
 
   describe('Basic Snapshot Generation', () => {
-    test('should generate snapshots from valid hand history', () => {
+    test('should generate snapshots from valid hand history', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       expect(snapshots).toBeDefined();
       expect(Array.isArray(snapshots)).toBe(true);
@@ -112,17 +112,17 @@ describe('SnapshotBuilder', () => {
       });
     });
 
-    test('should handle empty or null hand history gracefully', () => {
-      const snapshots1 = SnapshotBuilder.buildSnapshots(null as any);
-      const snapshots2 = SnapshotBuilder.buildSnapshots(undefined as any);
+    test('should handle empty or null hand history gracefully', async () => {
+      const snapshots1 = await SnapshotBuilder.buildSnapshots(null as any);
+      const snapshots2 = await SnapshotBuilder.buildSnapshots(undefined as any);
 
       expect(snapshots1).toEqual([]);
       expect(snapshots2).toEqual([]);
     });
 
-    test('should maintain chronological order of snapshots', () => {
+    test('should maintain chronological order of snapshots', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       for (let i = 1; i < snapshots.length; i++) {
         expect(snapshots[i].id).toBe(snapshots[i-1].id + 1);
@@ -131,9 +131,9 @@ describe('SnapshotBuilder', () => {
   });
 
   describe('Side-Pot Algorithm Validation', () => {
-    test('should calculate side-pots correctly for all-in scenario', () => {
+    test('should calculate side-pots correctly for all-in scenario', async () => {
       const handHistory = createAllInHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       expect(snapshots.length).toBeGreaterThan(0);
 
@@ -162,9 +162,9 @@ describe('SnapshotBuilder', () => {
       expect(totalPotValue).toBeGreaterThan(50); // Should be around 53-58
     });
 
-    test('should ensure main pot is never marked as side pot', () => {
+    test('should ensure main pot is never marked as side pot', async () => {
       const handHistory = createAllInHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       snapshots.forEach(snapshot => {
         if (snapshot.pots.length > 0) {
@@ -179,9 +179,9 @@ describe('SnapshotBuilder', () => {
       });
     });
 
-    test('should exclude folded players from pot eligibility', () => {
+    test('should exclude folded players from pot eligibility', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       // Find snapshot after Villain3 folds
       const postFoldSnapshot = snapshots.find(s => s.folded.has('Villain3'));
@@ -193,7 +193,7 @@ describe('SnapshotBuilder', () => {
       }
     });
 
-    test('should handle edge case of all players folding except one', () => {
+    test('should handle edge case of all players folding except one', async () => {
       const singlePlayerHand = createBasicHandHistory();
       // Modify to have all but one player fold
       singlePlayerHand.preflop = [
@@ -203,7 +203,7 @@ describe('SnapshotBuilder', () => {
         { player: 'Villain3', action: 'fold' },
       ];
 
-      const snapshots = SnapshotBuilder.buildSnapshots(singlePlayerHand);
+      const snapshots = await SnapshotBuilder.buildSnapshots(singlePlayerHand);
       const finalSnapshot = snapshots[snapshots.length - 1];
 
       expect(finalSnapshot.pots.length).toBe(1);
@@ -213,9 +213,9 @@ describe('SnapshotBuilder', () => {
   });
 
   describe('Invariant Checking', () => {
-    test('chip conservation: total chips should remain constant', () => {
+    test('chip conservation: total chips should remain constant', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       const initialTotalChips = handHistory.players.reduce((sum, p) => sum + p.stack, 0);
 
@@ -231,18 +231,18 @@ describe('SnapshotBuilder', () => {
       });
     });
 
-    test('pot progression: total displayed pot should never decrease', () => {
+    test('pot progression: total displayed pot should never decrease', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       for (let i = 1; i < snapshots.length; i++) {
         expect(snapshots[i].totalDisplayedPot).toBeGreaterThanOrEqual(snapshots[i-1].totalDisplayedPot);
       }
     });
 
-    test('stack integrity: player stacks should only decrease or stay same', () => {
+    test('stack integrity: player stacks should only decrease or stay same', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       const players = handHistory.players.map(p => p.name);
 
@@ -260,9 +260,9 @@ describe('SnapshotBuilder', () => {
       });
     });
 
-    test('folded players should remain folded', () => {
+    test('folded players should remain folded', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       for (let i = 1; i < snapshots.length; i++) {
         const previousFolded = snapshots[i-1].folded;
@@ -275,9 +275,9 @@ describe('SnapshotBuilder', () => {
       }
     });
 
-    test('active player should be eligible in current pots', () => {
+    test('active player should be eligible in current pots', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       snapshots.forEach(snapshot => {
         if (snapshot.activePlayer) {
@@ -295,9 +295,9 @@ describe('SnapshotBuilder', () => {
   });
 
   describe('Street Transitions and Community Cards', () => {
-    test('should correctly transition between streets', () => {
+    test('should correctly transition between streets', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       const streets = snapshots.map(s => s.street);
 
@@ -315,9 +315,9 @@ describe('SnapshotBuilder', () => {
       });
     });
 
-    test('should show correct community cards for each street', () => {
+    test('should show correct community cards for each street', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       snapshots.forEach(snapshot => {
         switch (snapshot.street) {
@@ -337,9 +337,9 @@ describe('SnapshotBuilder', () => {
       });
     });
 
-    test('should reset pending contributions between streets', () => {
+    test('should reset pending contributions between streets', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       for (let i = 1; i < snapshots.length; i++) {
         const currentSnapshot = snapshots[i];
@@ -356,7 +356,7 @@ describe('SnapshotBuilder', () => {
   });
 
   describe('Performance and Memory', () => {
-    test('should handle large number of actions efficiently', () => {
+    test('should handle large number of actions efficiently', async () => {
       const handHistory = createBasicHandHistory();
 
       // Add many preflop actions to simulate a complex hand
@@ -368,7 +368,7 @@ describe('SnapshotBuilder', () => {
       handHistory.preflop = manyActions;
 
       const startTime = Date.now();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
       const endTime = Date.now();
 
       expect(snapshots).toBeDefined();
@@ -377,9 +377,9 @@ describe('SnapshotBuilder', () => {
       expect(endTime - startTime).toBeLessThan(5000);
     });
 
-    test('should not leak memory with deeply nested objects', () => {
+    test('should not leak memory with deeply nested objects', async () => {
       const handHistory = createBasicHandHistory();
-      const snapshots = SnapshotBuilder.buildSnapshots(handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
 
       // Verify that snapshots have independent folded sets (no shared references)
       if (snapshots.length >= 2) {

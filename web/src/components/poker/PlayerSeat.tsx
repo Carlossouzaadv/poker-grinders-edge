@@ -10,6 +10,7 @@ interface PlayerSeatProps {
   hasFolded?: boolean;
   isWinner?: boolean;
   isShowdown?: boolean;
+  lastAction?: string; // Add action display support
 }
 
 const PlayerSeat: React.FC<PlayerSeatProps> = ({
@@ -19,7 +20,8 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
   currentBet = 0,
   hasFolded = false,
   isWinner = false,
-  isShowdown = false
+  isShowdown = false,
+  lastAction
 }) => {
   return (
     <div className={`seat-pod relative flex flex-col items-center transition-all duration-500 ${
@@ -101,6 +103,17 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
                 <div className="w-16 h-4"></div>
               )}
             </div>
+
+            {/* Player Action Display */}
+            {lastAction && !hasFolded && (
+              <div className="text-center mb-1">
+                <div className="px-2 py-1 rounded-md bg-purple-500/20 border border-purple-400/30 backdrop-blur-sm">
+                  <div className="text-xs text-purple-300 font-medium">
+                    {lastAction}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Stack */}
             <div className="text-center mb-1">

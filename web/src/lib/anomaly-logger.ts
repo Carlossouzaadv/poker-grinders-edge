@@ -1,6 +1,77 @@
-import fs from 'fs';
-import path from 'path';
 import { getAnomalyLogDir } from '../config/sidepot-config';
+
+// Dynamic imports for Node.js modules (server-side only)
+const getNodeModules = async () => {
+  if (typeof window !== 'undefined') {
+    // Browser environment - return mock implementations
+    return {
+      fs: {
+        existsSync: () => false,
+        mkdirSync: () => {},
+        appendFileSync: () => {},
+        readFileSync: () => '',
+        unlinkSync: () => {}
+      },
+      path: {
+        join: (...args: string[]) => args.join('/')
+      }
+    };
+  }
+
+  // Additional client-side check for webpack environment
+  if (typeof process === 'undefined' || process.env.__NEXT_PROCESSED_ENV) {
+    // Client-side webpack environment
+    return {
+      fs: {
+        existsSync: () => false,
+        mkdirSync: () => {},
+        appendFileSync: () => {},
+        readFileSync: () => '',
+        unlinkSync: () => {}
+      },
+      path: {
+        join: (...args: string[]) => args.join('/')
+      }
+    };
+  }
+
+  // Test environment detection and fallback
+  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+    // Jest test environment - use require instead of dynamic import
+    const fs = require('fs');
+    const path = require('path');
+
+    return { fs, path };
+  }
+
+  try {
+    // Server environment - use actual Node.js modules
+    const [fs, path] = await Promise.all([
+      import('fs'),
+      import('path')
+    ]);
+
+    return {
+      fs: fs.default || fs,
+      path: path.default || path
+    };
+  } catch (error) {
+    // Fallback to mock if imports fail
+    console.warn('Failed to import Node.js modules, using mocks:', error);
+    return {
+      fs: {
+        existsSync: () => false,
+        mkdirSync: () => {},
+        appendFileSync: () => {},
+        readFileSync: () => '',
+        unlinkSync: () => {}
+      },
+      path: {
+        join: (...args: string[]) => args.join('/')
+      }
+    };
+  }
+};
 
 /**
  * Structured Anomaly Logger
@@ -27,13 +98,26 @@ export class AnomalyLogger {
   private static logDir: string | null = null;
 
   /**
+   * Check if we're in a server environment
+   */
+  private static isServerSide(): boolean {
+    return typeof window === 'undefined' && typeof process !== 'undefined';
+  }
+
+  /**
    * Initialize the logger and ensure log directory exists
    */
-  private static ensureLogDir(): string {
+  private static async ensureLogDir(): Promise<string> {
+    // Only initialize on server side
+    if (!this.isServerSide()) {
+      return './'; // Return dummy path for client side
+    }
+
     if (!this.logDir) {
       this.logDir = getAnomalyLogDir();
 
       try {
+        const { fs } = await getNodeModules();
         if (!fs.existsSync(this.logDir)) {
           fs.mkdirSync(this.logDir, { recursive: true });
         }
@@ -59,7 +143,7 @@ export class AnomalyLogger {
   /**
    * Log an anomaly to structured JSON file
    */
-  public static logAnomaly(entry: Omit<AnomalyLogEntry, 'incidentId' | 'timestamp'>): string {
+  public static async logAnomaly(entry: Omit<AnomalyLogEntry, 'incidentId' | 'timestamp'>): Promise<string> {
     const incidentId = this.generateIncidentId();
     const timestamp = new Date().toISOString();
 
@@ -76,18 +160,24 @@ export class AnomalyLogger {
     console.error(`   Pot ${entry.potIndex}: ${entry.potAmountInCents} cents`);
     console.error(`   Eligible: [${entry.eligibleAtCreation.join(', ')}]`);
 
-    try {
-      const logDir = this.ensureLogDir();
-      const logFile = path.join(logDir, 'anomalies.log');
+    // Only attempt file logging on server side
+    if (this.isServerSide()) {
+      try {
+        const { fs, path } = await getNodeModules();
+        const logDir = await this.ensureLogDir();
+        const logFile = path.join(logDir, 'anomalies.log');
 
-      // Append to log file (one JSON object per line)
-      const logLine = JSON.stringify(fullEntry) + '\n';
-      fs.appendFileSync(logFile, logLine, 'utf8');
+        // Append to log file (one JSON object per line)
+        const logLine = JSON.stringify(fullEntry) + '\n';
+        fs.appendFileSync(logFile, logLine, 'utf8');
 
-      console.log(`📝 Anomaly logged to: ${logFile}`);
-    } catch (error) {
-      console.error(`❌ Failed to write anomaly log:`, error);
-      // Still return the incident ID even if file write failed
+        console.log(`📝 Anomaly logged to: ${logFile}`);
+      } catch (error) {
+        console.error(`❌ Failed to write anomaly log:`, error);
+        // Still return the incident ID even if file write failed
+      }
+    } else {
+      console.log(`📝 Anomaly logged (client-side, no file write)`);
     }
 
     return incidentId;
@@ -96,7 +186,7 @@ export class AnomalyLogger {
   /**
    * Log a "no eligible winners" anomaly
    */
-  public static logNoEligibleWinners(
+  public static async logNoEligibleWinners(
     potIndex: number,
     potAmount: number,
     eligible: string[],
@@ -104,7 +194,7 @@ export class AnomalyLogger {
     playerStatus: Record<string, 'folded' | 'all-in' | 'active'>,
     handId?: string,
     fallbackWinner?: string
-  ): string {
+  ): Promise<string> {
     return this.logAnomaly({
       handId,
       potIndex,
@@ -122,13 +212,13 @@ export class AnomalyLogger {
   /**
    * Log a mathematical inconsistency anomaly
    */
-  public static logMathematicalInconsistency(
+  public static async logMathematicalInconsistency(
     expected: number,
     actual: number,
     context: string,
     totalCommitted: Record<string, number>,
     handId?: string
-  ): string {
+  ): Promise<string> {
     return this.logAnomaly({
       handId,
       potIndex: -1, // Not applicable for mathematical errors
@@ -145,9 +235,16 @@ export class AnomalyLogger {
   /**
    * Read all anomaly log entries (for testing/analysis)
    */
-  public static readAnomalyLog(): AnomalyLogEntry[] {
+  public static async readAnomalyLog(): Promise<AnomalyLogEntry[]> {
+    // Only read on server side
+    if (!this.isServerSide()) {
+      console.warn('⚠️ Cannot read anomaly log on client side');
+      return [];
+    }
+
     try {
-      const logDir = this.ensureLogDir();
+      const { fs, path } = await getNodeModules();
+      const logDir = await this.ensureLogDir();
       const logFile = path.join(logDir, 'anomalies.log');
 
       if (!fs.existsSync(logFile)) {
@@ -155,9 +252,9 @@ export class AnomalyLogger {
       }
 
       const content = fs.readFileSync(logFile, 'utf8');
-      const lines = content.trim().split('\n').filter(line => line.trim());
+      const lines = content.trim().split('\n').filter((line: string) => line.trim());
 
-      return lines.map(line => JSON.parse(line) as AnomalyLogEntry);
+      return lines.map((line: string) => JSON.parse(line) as AnomalyLogEntry);
     } catch (error) {
       console.error(`❌ Failed to read anomaly log:`, error);
       return [];
@@ -167,9 +264,16 @@ export class AnomalyLogger {
   /**
    * Clear the anomaly log (for testing)
    */
-  public static clearAnomalyLog(): void {
+  public static async clearAnomalyLog(): Promise<void> {
+    // Only clear on server side
+    if (!this.isServerSide()) {
+      console.warn('⚠️ Cannot clear anomaly log on client side');
+      return;
+    }
+
     try {
-      const logDir = this.ensureLogDir();
+      const { fs, path } = await getNodeModules();
+      const logDir = await this.ensureLogDir();
       const logFile = path.join(logDir, 'anomalies.log');
 
       if (fs.existsSync(logFile)) {

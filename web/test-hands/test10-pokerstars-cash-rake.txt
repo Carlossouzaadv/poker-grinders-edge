@@ -1,0 +1,38 @@
+PokerStars Hand #2468135790: Hold'em No Limit ($0.25/$0.50 USD) - 2025/01/15 20:30:00 ET
+Table 'Andromeda II' 6-max Seat #3 is the button
+Seat 1: PlayerA ($75.50 in chips)
+Seat 2: PlayerB ($50.00 in chips)
+Seat 3: Hero ($100.00 in chips)
+Seat 4: PlayerC ($80.25 in chips)
+
+PlayerC: posts small blind $0.25
+PlayerA: posts big blind $0.50
+*** HOLE CARDS ***
+Dealt to Hero [Ah Kh]
+PlayerB: raises $1.50 to $2.00
+Hero: raises $5.00 to $7.00
+PlayerC: folds
+PlayerA: folds
+PlayerB: calls $5.00
+*** FLOP *** [Kd Kc 9h]
+PlayerB: checks
+Hero: bets $8.00
+PlayerB: calls $8.00
+*** TURN *** [Kd Kc 9h] [3s]
+PlayerB: checks
+Hero: bets $18.00
+PlayerB: calls $18.00
+*** RIVER *** [Kd Kc 9h 3s] [7c]
+PlayerB: bets $17.00 and is all-in
+Hero: calls $17.00
+*** SHOW DOWN ***
+PlayerB: shows [Qh Qd] (two pair, Kings and Queens)
+Hero: shows [Ah Kh] (three of a kind, Kings)
+Hero collected $98.25 from pot
+*** SUMMARY ***
+Total pot $100.75 | Rake $2.50
+Board [Kd Kc 9h 3s 7c]
+Seat 1: PlayerA (big blind) folded before Flop
+Seat 2: PlayerB showed [Qh Qd] and lost with two pair, Kings and Queens
+Seat 3: Hero (button) showed [Ah Kh] and won ($98.25) with three of a kind, Kings
+Seat 4: PlayerC (small blind) folded before Flop

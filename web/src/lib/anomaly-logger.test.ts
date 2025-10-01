@@ -9,19 +9,19 @@ import { SIDEPOT_CONFIG } from '../config/sidepot-config';
 
 describe('Anomaly Logger', () => {
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Clear any existing anomaly log before each test
-    AnomalyLogger.clearAnomalyLog();
+    await AnomalyLogger.clearAnomalyLog();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     // Clean up after each test
-    AnomalyLogger.clearAnomalyLog();
+    await AnomalyLogger.clearAnomalyLog();
   });
 
   describe('Basic Logging', () => {
-    it('should log no-eligible-winners anomaly to file', () => {
-      const incidentId = AnomalyLogger.logNoEligibleWinners(
+    it('should log no-eligible-winners anomaly to file', async () => {
+      const incidentId = await AnomalyLogger.logNoEligibleWinners(
         1,
         20000, // 200 dollars in cents
         ['player3'],
@@ -34,7 +34,7 @@ describe('Anomaly Logger', () => {
       expect(incidentId).toMatch(/^ANOMALY_\d+_\d{4}$/);
 
       // Verify log entry was written
-      const logEntries = AnomalyLogger.readAnomalyLog();
+      const logEntries = await AnomalyLogger.readAnomalyLog();
       expect(logEntries).toHaveLength(1);
 
       const entry = logEntries[0];
@@ -47,8 +47,8 @@ describe('Anomaly Logger', () => {
       expect(entry.fallbackWinner).toBe('player3');
     });
 
-    it('should log mathematical inconsistency anomaly', () => {
-      const incidentId = AnomalyLogger.logMathematicalInconsistency(
+    it('should log mathematical inconsistency anomaly', async () => {
+      const incidentId = await AnomalyLogger.logMathematicalInconsistency(
         100000, // expected
         99950,  // actual
         'payout distribution',
@@ -59,7 +59,7 @@ describe('Anomaly Logger', () => {
       expect(incidentId).toMatch(/^ANOMALY_\d+_\d{4}$/);
 
       // Verify log entry
-      const logEntries = AnomalyLogger.readAnomalyLog();
+      const logEntries = await AnomalyLogger.readAnomalyLog();
       expect(logEntries).toHaveLength(1);
 
       const entry = logEntries[0];
@@ -68,19 +68,19 @@ describe('Anomaly Logger', () => {
       expect(entry.handId).toBe('test_hand_456');
     });
 
-    it('should append multiple anomalies to same log file', () => {
+    it('should append multiple anomalies to same log file', async () => {
       // Log first anomaly
-      const id1 = AnomalyLogger.logNoEligibleWinners(
+      const id1 = await AnomalyLogger.logNoEligibleWinners(
         0, 100, ['player1'], { 'player1': 100 }, { 'player1': 'active' }
       );
 
       // Log second anomaly
-      const id2 = AnomalyLogger.logMathematicalInconsistency(
+      const id2 = await AnomalyLogger.logMathematicalInconsistency(
         200, 150, 'test context', { 'player2': 200 }
       );
 
       // Verify both entries exist
-      const logEntries = AnomalyLogger.readAnomalyLog();
+      const logEntries = await AnomalyLogger.readAnomalyLog();
       expect(logEntries).toHaveLength(2);
 
       const incidentIds = logEntries.map(entry => entry.incidentId);
@@ -90,11 +90,11 @@ describe('Anomaly Logger', () => {
   });
 
   describe('File System Integration', () => {
-    it('should create logs directory if it does not exist', () => {
+    it('should create logs directory if it does not exist', async () => {
       const logDir = SIDEPOT_CONFIG.ANOMALY_LOG_DIR;
 
       // Log an anomaly (this should create the directory)
-      AnomalyLogger.logNoEligibleWinners(
+      await AnomalyLogger.logNoEligibleWinners(
         0, 100, ['test'], { 'test': 100 }, { 'test': 'active' }
       );
 
@@ -103,14 +103,14 @@ describe('Anomaly Logger', () => {
       expect(fs.existsSync(logFile)).toBe(true);
     });
 
-    it('should handle missing log file gracefully when reading', () => {
+    it('should handle missing log file gracefully when reading', async () => {
       // Try to read from non-existent log
-      const entries = AnomalyLogger.readAnomalyLog();
+      const entries = await AnomalyLogger.readAnomalyLog();
       expect(entries).toEqual([]);
     });
 
-    it('should write valid JSON format', () => {
-      AnomalyLogger.logNoEligibleWinners(
+    it('should write valid JSON format', async () => {
+      await AnomalyLogger.logNoEligibleWinners(
         2, 50000, ['playerA', 'playerB'],
         { 'playerA': 25000, 'playerB': 25000 },
         { 'playerA': 'active', 'playerB': 'folded' }
@@ -133,12 +133,12 @@ describe('Anomaly Logger', () => {
   });
 
   describe('Incident ID Generation', () => {
-    it('should generate unique incident IDs', () => {
-      const id1 = AnomalyLogger.logNoEligibleWinners(
+    it('should generate unique incident IDs', async () => {
+      const id1 = await AnomalyLogger.logNoEligibleWinners(
         0, 100, ['test1'], { 'test1': 100 }, { 'test1': 'active' }
       );
 
-      const id2 = AnomalyLogger.logNoEligibleWinners(
+      const id2 = await AnomalyLogger.logNoEligibleWinners(
         0, 100, ['test2'], { 'test2': 100 }, { 'test2': 'active' }
       );
 
@@ -147,10 +147,10 @@ describe('Anomaly Logger', () => {
       expect(id2).toMatch(/^ANOMALY_\d+_\d{4}$/);
     });
 
-    it('should include timestamp in incident ID', () => {
+    it('should include timestamp in incident ID', async () => {
       const beforeTime = Date.now();
 
-      const incidentId = AnomalyLogger.logNoEligibleWinners(
+      const incidentId = await AnomalyLogger.logNoEligibleWinners(
         0, 100, ['test'], { 'test': 100 }, { 'test': 'active' }
       );
 
@@ -167,7 +167,7 @@ describe('Anomaly Logger', () => {
   });
 
   describe('Data Integrity', () => {
-    it('should preserve all provided data in log entry', () => {
+    it('should preserve all provided data in log entry', async () => {
       const testData = {
         potIndex: 5,
         potAmount: 123450,
@@ -178,7 +178,7 @@ describe('Anomaly Logger', () => {
         fallbackWinner: 'alpha'
       };
 
-      const incidentId = AnomalyLogger.logNoEligibleWinners(
+      const incidentId = await AnomalyLogger.logNoEligibleWinners(
         testData.potIndex,
         testData.potAmount,
         testData.eligible,
@@ -188,7 +188,7 @@ describe('Anomaly Logger', () => {
         testData.fallbackWinner
       );
 
-      const logEntries = AnomalyLogger.readAnomalyLog();
+      const logEntries = await AnomalyLogger.readAnomalyLog();
       const entry = logEntries[0];
 
       expect(entry.potIndex).toBe(testData.potIndex);

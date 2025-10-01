@@ -1,0 +1,38 @@
+Poker Hand #HD123456: Tournament #654321, $10+$1 USD Hold'em No Limit - Level V (100/200/20) - 2025/01/15 20:30:00 ET
+Table '654321 1' 6-max Seat #3 is the button
+Seat 1: PlayerA (2500 in chips)
+Seat 2: PlayerB (1500 in chips)
+Seat 3: PlayerC (1000 in chips)
+Seat 4: PlayerD (3000 in chips)
+
+PlayerA: posts ante 20
+PlayerB: posts ante 20
+PlayerC: posts ante 20
+PlayerD: posts ante 20
+PlayerD: posts small blind 100
+PlayerA: posts big blind 200
+*** HOLE CARDS ***
+Dealt to PlayerA [Ah Kh]
+PlayerB: raises 1280 to 1480 and is all-in
+PlayerC: calls 980 and is all-in
+PlayerD: calls 1380
+PlayerA: raises 800 to 2480 and is all-in
+PlayerD: calls 1000
+*** FLOP *** [Qh Jh Th]
+*** TURN *** [Qh Jh Th] [9h]
+*** RIVER *** [Qh Jh Th 9h] [2c]
+*** SHOW DOWN ***
+PlayerA: shows [Ah Kh] (a straight flush)
+PlayerB: shows [Ks Qd] (a pair of Queens)
+PlayerC: shows [Jc Js] (three of a kind, Jacks)
+PlayerD: shows [Ad Ac] (a pair of Aces)
+PlayerA collected 2000 from side pot-2
+PlayerA collected 1500 from side pot-1
+PlayerA collected 4080 from main pot
+*** SUMMARY ***
+Total pot 7580 Main pot 4080. Side pot-1 1500. Side pot-2 2000. | Rake 0
+Board [Qh Jh Th 9h 2c]
+Seat 1: PlayerA (big blind) showed [Ah Kh] and won (7580) with a straight flush
+Seat 2: PlayerB showed [Ks Qd] and lost with a pair of Queens
+Seat 3: PlayerC (button) showed [Jc Js] and lost with three of a kind, Jacks
+Seat 4: PlayerD (small blind) showed [Ad Ac] and lost with a pair of Aces

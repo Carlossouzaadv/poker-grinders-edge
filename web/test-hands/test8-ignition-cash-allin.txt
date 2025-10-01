@@ -1,0 +1,42 @@
+Ignition Hand #1234567890 - Hold'em No Limit ($0.05/$0.10) - 2025/01/15 20:30:00 ET
+Table '6-max' 6-max Seat #3 is the button
+Seat 1: PlayerA ($10.50 in chips)
+Seat 2: PlayerB ($8.25 in chips)
+Seat 3: PlayerC ($15.00 in chips)
+Seat 4: PlayerD ($12.75 in chips)
+
+PlayerD: posts small blind $0.05
+PlayerA: posts big blind $0.10
+*** HOLE CARDS ***
+Dealt to PlayerA [Ah As]
+PlayerB: raises $0.30 to $0.40
+PlayerC: calls $0.40
+PlayerD: raises $1.20 to $1.60
+PlayerA: raises $8.90 to $10.50 and is all-in
+PlayerB: calls $7.85 and is all-in
+PlayerC: calls $10.10
+PlayerD: calls $8.90
+*** FLOP *** [Kh 9d 2c]
+PlayerC: checks
+PlayerD: checks
+*** TURN *** [Kh 9d 2c] [5h]
+PlayerC: checks
+PlayerD: checks
+*** RIVER *** [Kh 9d 2c 5h] [3s]
+PlayerC: checks
+PlayerD: checks
+*** SHOW DOWN ***
+PlayerA: shows [Ah As] (a pair of Aces)
+PlayerB: shows [Kc Qc] (a pair of Kings)
+PlayerC: shows [Jc Jd] (a pair of Jacks)
+PlayerD: shows [Tc Td] (a pair of Tens)
+PlayerA collected $4.50 from side pot-2
+PlayerA collected $6.75 from side pot-1
+PlayerA collected $33.00 from main pot
+*** SUMMARY ***
+Total pot $44.25 Main pot $33.00. Side pot-1 $6.75. Side pot-2 $4.50. | Rake $0
+Board [Kh 9d 2c 5h 3s]
+Seat 1: PlayerA (big blind) showed [Ah As] and won ($44.25) with a pair of Aces
+Seat 2: PlayerB showed [Kc Qc] and lost with a pair of Kings
+Seat 3: PlayerC (button) showed [Jc Jd] and lost with a pair of Jacks
+Seat 4: PlayerD (small blind) showed [Tc Td] and lost with a pair of Tens

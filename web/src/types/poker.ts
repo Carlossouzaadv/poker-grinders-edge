@@ -3,6 +3,15 @@ export type Card = {
   suit: 'h' | 'd' | 'c' | 's'; // hearts, diamonds, clubs, spades
 };
 
+export interface GameContext {
+  isTournament: boolean;
+  isHighStakes: boolean;
+  currencyUnit: 'chips' | 'dollars';
+  conversionNeeded: boolean;
+  buyIn?: string; // For tournaments: "$10+$1"
+  level?: string;  // For tournaments: "Level V"
+}
+
 export type Position =
   | 'SB' | 'BB' | 'UTG' | 'UTG+1' | 'UTG+2' | 'MP1' | 'MP2' | 'MP3'
   | 'LJ' | 'HJ' | 'CO' | 'BTN' | 'EP' | 'MP' | 'LP';
@@ -94,6 +103,7 @@ export type HandHistory = {
   ante?: number;
   timestamp: Date;
   players: Player[];
+  gameContext?: GameContext; // NEW: Context for proper value interpretation
 
   // Antes (if tournament)
   antes?: Action[];
@@ -123,11 +133,13 @@ export type HandHistory = {
   totalPot: number;
   rake?: number;
   currency: string;
+  originalText?: string; // NEW: Original raw hand history text for debugging/storage
 };
 
 export type ParseResult = {
   success: boolean;
-  handHistory?: HandHistory;
+  data?: HandHistory; // Renamed from handHistory for consistency
+  handHistory?: HandHistory; // Keep for backward compatibility
   error?: string;
   warnings?: string[];
 };

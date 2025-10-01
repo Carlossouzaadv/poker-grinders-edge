@@ -12,7 +12,7 @@ describe('Side Pot Regression Tests', () => {
 
   describe('200-Chip Case Variants', () => {
 
-    it('4a: Player3 active - should award 200 to Player3 with SINGLE-ELIGIBLE log', () => {
+    it('4a: Player3 active - should award 200 to Player3 with SINGLE-ELIGIBLE log', async () => {
       const handHistory = `PokerStars Hand #1004: Tournament #1004, $5.50+$0.50 USD Hold'em No Limit - Level I (10/20) - 2025/01/15 20:30:00 ET
 Table '1004a 1' 9-max Seat #3 is the button
 Seat 1: Player1 (2000 in chips)
@@ -54,7 +54,7 @@ Seat 3: Player3 (button) showed [Kh Qh] and lost with King high`;
         expect(parseResult.success).toBe(true);
         if (!parseResult.success) return;
 
-        const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+        const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];
 
         expect(finalSnapshot.totalCommitted).toBeDefined();
@@ -98,7 +98,7 @@ Seat 3: Player3 (button) showed [Kh Qh] and lost with King high`;
       }
     });
 
-    it('4b: Player3 folded - should trigger anomaly detection (no eligible winners)', () => {
+    it('4b: Player3 folded - should trigger anomaly detection (no eligible winners)', async () => {
       // This is a variant where Player3 folds after contributing to side pot
       const handHistory = `PokerStars Hand #1005: Tournament #1005, $5.50+$0.50 USD Hold'em No Limit - Level I (10/20) - 2025/01/15 20:30:00 ET
 Table '1005 1' 9-max Seat #3 is the button
@@ -133,7 +133,7 @@ Seat 3: Player3 (button) folded after Flop`;
       // This should parse successfully but potentially trigger anomaly during side pot calculation
       if (parseResult.success) {
         try {
-          const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+          const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
           const finalSnapshot = snapshots[snapshots.length - 1];
 
           if (finalSnapshot.totalCommitted && finalSnapshot.payouts) {
@@ -158,7 +158,7 @@ Seat 3: Player3 (button) folded after Flop`;
       }
     });
 
-    it('should handle exact 200-cent side pot allocation', () => {
+    it('should handle exact 200-cent side pot allocation', async () => {
       // Simplified test focusing on the exact 200-cent allocation
       const commits = {
         'cashurchecks': 1596900, // 15969 * 100 cents
@@ -197,7 +197,7 @@ Seat 2: Player3 showed [Kh Qh] and lost with King high`;
 
       const parseResult = HandParser.parse(mockHand);
       if (parseResult.success) {
-        const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+        const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];
 
         if (finalSnapshot.totalCommitted && finalSnapshot.payouts) {
@@ -272,7 +272,7 @@ Seat 3: Player3 (button) showed [Kh Qh] and lost with King high`;
         expect(parseResult.success).toBe(true);
         if (!parseResult.success) return;
 
-        const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+        const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
 
         // Check that each expected log string appears
         expectedLogStrings.forEach(expectedLog => {

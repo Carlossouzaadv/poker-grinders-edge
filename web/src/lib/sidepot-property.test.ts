@@ -60,12 +60,12 @@ ${players.map((name, i) => {
   };
 
   describe('Invariant Properties', () => {
-    it('should always satisfy mathematical consistency', () => {
+    it('should always satisfy mathematical consistency', async () => {
       fc.assert(fc.property(
         fc.integer({ min: 2, max: 8 }),                           // playerCount
         fc.array(fc.integer({ min: 0, max: 10000 }), { minLength: 2, maxLength: 8 }), // commits (in cents)
         fc.array(fc.integer({ min: 0, max: 100 }), { minLength: 2, maxLength: 8 }),   // foldTimes (0-100, <=50 means fold)
-        (playerCount, rawCommits, rawFoldTimes) => {
+        async (playerCount, rawCommits, rawFoldTimes) => {
           // Ensure arrays match player count
           const commits = rawCommits.slice(0, playerCount);
           const foldTimes = rawFoldTimes.slice(0, playerCount);
@@ -83,7 +83,7 @@ ${players.map((name, i) => {
               return true;
             }
 
-            const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+            const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
             const finalSnapshot = snapshots[snapshots.length - 1];
 
             if (finalSnapshot.totalCommitted && finalSnapshot.payouts) {
@@ -137,12 +137,12 @@ ${players.map((name, i) => {
       ), { numRuns: 100 }); // Limit to 100 runs for CI performance
     });
 
-    it('should handle single-eligible-player scenarios correctly', () => {
+    it('should handle single-eligible-player scenarios correctly', async () => {
       fc.assert(fc.property(
         fc.integer({ min: 2, max: 5 }),                     // playerCount
         fc.integer({ min: 50, max: 1000 }),                // baseCommit
         fc.integer({ min: 1, max: 500 }),                  // extraCommit
-        (playerCount, baseCommit, extraCommit) => {
+        async (playerCount, baseCommit, extraCommit) => {
           // Create scenario where one player commits more (creating side pot)
           const commits = Array(playerCount).fill(baseCommit);
           commits[0] = baseCommit + extraCommit; // Player1 commits more
@@ -155,7 +155,7 @@ ${players.map((name, i) => {
 
             if (!parseResult.success) return true;
 
-            const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+            const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
             const finalSnapshot = snapshots[snapshots.length - 1];
 
             if (finalSnapshot.totalCommitted && finalSnapshot.payouts) {
@@ -191,7 +191,7 @@ ${players.map((name, i) => {
   });
 
   describe('Edge Case Properties', () => {
-    it('should handle all-zero commits gracefully', () => {
+    it('should handle all-zero commits gracefully', async () => {
       const commits = [0, 0, 0];
       const foldTimes = [100, 100, 100];
 
@@ -200,7 +200,7 @@ ${players.map((name, i) => {
         const parseResult = HandParser.parse(handHistory);
 
         if (parseResult.success) {
-          const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+          const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
           const finalSnapshot = snapshots[snapshots.length - 1];
 
           if (finalSnapshot.totalCommitted && finalSnapshot.payouts) {
@@ -216,7 +216,7 @@ ${players.map((name, i) => {
       }
     });
 
-    it('should handle maximum commitment scenarios', () => {
+    it('should handle maximum commitment scenarios', async () => {
       const commits = [10000, 10000, 10000]; // Max commits
       const foldTimes = [100, 100, 100];
 
@@ -225,7 +225,7 @@ ${players.map((name, i) => {
         const parseResult = HandParser.parse(handHistory);
 
         if (parseResult.success) {
-          const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+          const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
           const finalSnapshot = snapshots[snapshots.length - 1];
 
           if (finalSnapshot.totalCommitted && finalSnapshot.payouts) {

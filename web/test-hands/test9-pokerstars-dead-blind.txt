@@ -1,0 +1,31 @@
+PokerStars Hand #123456794: Tournament #987654321, $10+$1 USD Hold'em No Limit - Level VII (200/400) - 2024/01/15 21:00:00 ET
+Table '987654321 1' 6-max Seat #1 is the button
+Seat 1: PlayerA (4000 in chips)
+Seat 2: PlayerB (4000 in chips)
+Seat 3: PlayerC (4000 in chips)
+PlayerB: posts small blind 200
+PlayerC: posts big blind 400
+*** HOLE CARDS ***
+Dealt to PlayerA [As Ks]
+PlayerA: raises 800 to 1200
+PlayerB: folds
+PlayerC: calls 800
+*** FLOP *** [7h 8s 9d]
+PlayerC: checks
+PlayerA: bets 1000
+PlayerC: calls 1000
+*** TURN *** [7h 8s 9d] [Ts]
+PlayerC: checks
+PlayerA: bets 1800 and is all-in
+PlayerC: calls 1800
+*** RIVER *** [7h 8s 9d Ts] [Jc]
+*** SHOW DOWN ***
+PlayerA: shows [As Ks] (a straight, Seven to Jack)
+PlayerC: mucks hand
+PlayerA collected 8200 from pot
+*** SUMMARY ***
+Total pot 8200 | Rake 0
+Board [7h 8s 9d Ts Jc]
+Seat 1: PlayerA (button) showed [As Ks] and won (8200) with a straight, Seven to Jack
+Seat 2: PlayerB (small blind) folded before Flop
+Seat 3: PlayerC (big blind) mucked hand

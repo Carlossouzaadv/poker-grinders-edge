@@ -38,14 +38,14 @@ describe('Canonical Side Pot Tests', () => {
   };
 
   describe('Hand 1: Heads-up All-in Simple', () => {
-    it('should distribute main pot correctly with no orphaned chips', () => {
+    it('should distribute main pot correctly with no orphaned chips', async () => {
       const handHistory = loadHandHistory('hand1-heads-up-all-in.txt');
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
       if (!parseResult.success) return;
 
-      const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
 
       expect(finalSnapshot.totalCommitted).toBeDefined();
@@ -72,14 +72,14 @@ describe('Canonical Side Pot Tests', () => {
   });
 
   describe('Hand 2: Multiway Equal Stacks', () => {
-    it('should handle 3-way all-in with equal commitments', () => {
+    it('should handle 3-way all-in with equal commitments', async () => {
       const handHistory = loadHandHistory('hand2-multiway-equal-stacks.txt');
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
       if (!parseResult.success) return;
 
-      const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
 
       expect(finalSnapshot.totalCommitted).toBeDefined();
@@ -97,14 +97,14 @@ describe('Canonical Side Pot Tests', () => {
   });
 
   describe('Hand 3: Side Pot Two Eligible', () => {
-    it('should create proper main pot and side pot with correct eligibility', () => {
+    it('should create proper main pot and side pot with correct eligibility', async () => {
       const handHistory = loadHandHistory('hand3-side-pot-two-eligible.txt');
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
       if (!parseResult.success) return;
 
-      const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
 
       expect(finalSnapshot.totalCommitted).toBeDefined();
@@ -127,7 +127,7 @@ describe('Canonical Side Pot Tests', () => {
   });
 
   describe('Hand 4a: Side Pot Orphan - Active Player', () => {
-    it('should award side pot to only eligible player', () => {
+    it('should award side pot to only eligible player', async () => {
       const handHistory = loadHandHistory('hand4a-side-pot-orphan-active.txt');
       const parseResult = HandParser.parse(handHistory);
 
@@ -139,7 +139,7 @@ describe('Canonical Side Pot Tests', () => {
       expect(parseResult.success).toBe(true);
       if (!parseResult.success) return;
 
-      const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
 
       expect(finalSnapshot.totalCommitted).toBeDefined();
@@ -161,14 +161,14 @@ describe('Canonical Side Pot Tests', () => {
   });
 
   describe('Hand 4b: Side Pot Orphan - Folded Player', () => {
-    it('should apply fallback rule when side pot contributor folds', () => {
+    it('should apply fallback rule when side pot contributor folds', async () => {
       const handHistory = loadHandHistory('hand4b-side-pot-orphan-folded.txt');
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
       if (!parseResult.success) return;
 
-      const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
 
       expect(finalSnapshot.totalCommitted).toBeDefined();
@@ -182,14 +182,14 @@ describe('Canonical Side Pot Tests', () => {
   });
 
   describe('Hand 5: Nested Side Pots', () => {
-    it('should handle complex 3-level side pot structure', () => {
+    it('should handle complex 3-level side pot structure', async () => {
       const handHistory = loadHandHistory('hand5-nested-side-pots.txt');
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
       if (!parseResult.success) return;
 
-      const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
 
       expect(finalSnapshot.totalCommitted).toBeDefined();
@@ -210,14 +210,14 @@ describe('Canonical Side Pot Tests', () => {
   });
 
   describe('Hand 6: Folded Contributor', () => {
-    it('should not award pots to players who folded', () => {
+    it('should not award pots to players who folded', async () => {
       const handHistory = loadHandHistory('hand6-folded-contributor.txt');
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
       if (!parseResult.success) return;
 
-      const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
 
       expect(finalSnapshot.totalCommitted).toBeDefined();
@@ -234,14 +234,14 @@ describe('Canonical Side Pot Tests', () => {
   });
 
   describe('Hand 7: Tournament Antes', () => {
-    it('should include antes in pot calculation', () => {
+    it('should include antes in pot calculation', async () => {
       const handHistory = loadHandHistory('hand7-tournament-antes.txt');
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
       if (!parseResult.success) return;
 
-      const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
 
       expect(finalSnapshot.totalCommitted).toBeDefined();
@@ -255,14 +255,14 @@ describe('Canonical Side Pot Tests', () => {
   });
 
   describe('Hand 8: Muck Then Audit', () => {
-    it('should not reveal folded player cards despite audit show', () => {
+    it('should not reveal folded player cards despite audit show', async () => {
       const handHistory = loadHandHistory('hand8-muck-then-audit.txt');
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
       if (!parseResult.success) return;
 
-      const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
 
       expect(finalSnapshot.totalCommitted).toBeDefined();
@@ -279,14 +279,14 @@ describe('Canonical Side Pot Tests', () => {
   });
 
   describe('Hand 9: PLO 4-card', () => {
-    it('should handle 4-card PLO hands correctly', () => {
+    it('should handle 4-card PLO hands correctly', async () => {
       const handHistory = loadHandHistory('hand9-plo-4card.txt');
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
       if (!parseResult.success) return;
 
-      const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
 
       expect(finalSnapshot.totalCommitted).toBeDefined();
@@ -300,14 +300,14 @@ describe('Canonical Side Pot Tests', () => {
   });
 
   describe('Hand 10: Cancelled Hand', () => {
-    it('should handle cancelled hands with refunds', () => {
+    it('should handle cancelled hands with refunds', async () => {
       const handHistory = loadHandHistory('hand10-cancelled-hand.txt');
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
       if (!parseResult.success) return;
 
-      const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+      const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
 
       if (snapshots.length > 0) {
         const finalSnapshot = snapshots[snapshots.length - 1];
@@ -334,14 +334,14 @@ describe('Canonical Side Pot Tests', () => {
     ];
 
     allHandFiles.forEach((filename, index) => {
-      it(`Hand ${index + 1}: ${filename} - should have perfect pot math`, () => {
+      it(`Hand ${index + 1}: ${filename} - should have perfect pot math`, async () => {
         const handHistory = loadHandHistory(filename);
         const parseResult = HandParser.parse(handHistory);
 
         expect(parseResult.success).toBe(true);
         if (!parseResult.success) return;
 
-        const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+        const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];
 
         expect(finalSnapshot.totalCommitted).toBeDefined();

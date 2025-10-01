@@ -96,7 +96,7 @@ ${players.map((name, i) => {
       const casesForPlayerCount = testCases.filter(tc => tc.playerCount === playerCount);
 
       casesForPlayerCount.forEach((testCase, index) => {
-        it(`should maintain mathematical invariants: ${testCase.description}`, () => {
+        it(`should maintain mathematical invariants: ${testCase.description}`, async () => {
           const { commits } = testCase;
 
           // Skip cases where no one commits anything
@@ -113,7 +113,7 @@ ${players.map((name, i) => {
               return;
             }
 
-            const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+            const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
             const finalSnapshot = snapshots[snapshots.length - 1];
 
             if (finalSnapshot.totalCommitted && finalSnapshot.payouts) {
@@ -158,14 +158,14 @@ ${players.map((name, i) => {
   });
 
   describe('Mathematical Properties', () => {
-    it('should always satisfy: sum(payouts) <= sum(committed)', () => {
+    it('should always satisfy: sum(payouts) <= sum(committed)', async () => {
       // Property test: even in anomaly cases, we never pay out more than was committed
       const commits = [100, 200, 300]; // 3 players with different commits
       const handHistory = createMockHandHistory(3, commits);
       const parseResult = HandParser.parse(handHistory);
 
       if (parseResult.success) {
-        const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+        const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];
 
         if (finalSnapshot.totalCommitted && finalSnapshot.payouts) {
@@ -177,13 +177,13 @@ ${players.map((name, i) => {
       }
     });
 
-    it('should handle edge case: all players commit same amount', () => {
+    it('should handle edge case: all players commit same amount', async () => {
       const commits = [100, 100, 100]; // All same
       const handHistory = createMockHandHistory(3, commits);
       const parseResult = HandParser.parse(handHistory);
 
       if (parseResult.success) {
-        const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+        const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];
 
         if (finalSnapshot.totalCommitted && finalSnapshot.payouts) {
@@ -195,13 +195,13 @@ ${players.map((name, i) => {
       }
     });
 
-    it('should handle edge case: single player commits, others fold', () => {
+    it('should handle edge case: single player commits, others fold', async () => {
       const commits = [100, 0, 0]; // Only first player commits
       const handHistory = createMockHandHistory(3, commits);
       const parseResult = HandParser.parse(handHistory);
 
       if (parseResult.success) {
-        const snapshots = SnapshotBuilder.buildSnapshots(parseResult.handHistory);
+        const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];
 
         if (finalSnapshot.totalCommitted && finalSnapshot.payouts) {
