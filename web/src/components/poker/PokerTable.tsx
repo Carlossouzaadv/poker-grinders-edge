@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HandHistory, Card as CardType, Snapshot } from '@/types/poker';
 import PlayerSeat from './PlayerSeat';
@@ -7,6 +7,9 @@ import ChipStack from './ChipStack';
 import DealerButton from './DealerButton';
 import { PokerHandEvaluator } from '@/lib/poker-hand-evaluator';
 import { normalizeKey, getNormalized } from '@/lib/normalize-key';
+import { PokerUtils } from '@/lib/poker/poker-utils';
+import { PokerUIUtils } from '@/lib/poker/poker-ui-utils';
+import { CurrencyUtils } from '@/utils/currency-utils';
 
 interface PokerTableProps {
   handHistory: HandHistory;
@@ -14,7 +17,7 @@ interface PokerTableProps {
   showAllCards?: boolean;
 }
 
-const PokerTable: React.FC<PokerTableProps> = ({
+const PokerTable: React.FC<PokerTableProps> = React.memo(({
   handHistory,
   snapshot,
   showAllCards = false
@@ -52,8 +55,8 @@ const PokerTable: React.FC<PokerTableProps> = ({
     return undefined;
   };
 
-  // Função de mapeamento Hero-cêntrico
-  const calcularPosicoesVisuais = (players: any[], heroSeat: number) => {
+  // Memoize hero-centric position calculation
+  const calcularPosicoesVisuais = useCallback((players: any[], heroSeat: number) => {
     const totalSeats = players.length;
 
     // O deslocamento necessário para colocar o Hero no assento visual #1 (inferior central)
@@ -70,214 +73,15 @@ const PokerTable: React.FC<PokerTableProps> = ({
       player.visualSeat = visualSeat;
       return player;
     });
-  };
+  }, []);
 
-  const getPositionStyle = (visualSeat: number, total: number) => {
-    // Layouts otimizados para diferentes números de jogadores
-    // Hero sempre na posição visual 1 (bottom center)
 
-    switch (total) {
-      case 2: // Heads-up
-        const pos2 = [
-          { left: '50%', bottom: '5%', transform: 'translateX(-50%)' }, // Hero
-          { left: '50%', top: '5%', transform: 'translateX(-50%)' }    // Oponente
-        ];
-        return { position: 'absolute' as const, ...pos2[visualSeat - 1] };
+  // Memoize community cards calculation
+  const communityCards = useMemo(() =>
+    PokerUtils.getCommunityCardsForStreet(handHistory, snapshot.street),
+    [handHistory, snapshot.street]
+  );
 
-      case 3: // 3-max
-        const pos3 = [
-          { left: '50%', bottom: '5%', transform: 'translateX(-50%)' }, // Hero
-          { left: '15%', top: '35%', transform: 'none' },               // Left
-          { right: '15%', top: '35%', transform: 'none' }               // Right
-        ];
-        return { position: 'absolute' as const, ...pos3[visualSeat - 1] };
-
-      case 4: // 4-max
-        const pos4 = [
-          { left: '50%', bottom: '5%', transform: 'translateX(-50%)' }, // Hero
-          { left: '12%', bottom: '35%', transform: 'none' },            // Bottom Left
-          { left: '50%', top: '5%', transform: 'translateX(-50%)' },    // Top Center
-          { right: '12%', bottom: '35%', transform: 'none' }            // Bottom Right
-        ];
-        return { position: 'absolute' as const, ...pos4[visualSeat - 1] };
-
-      case 5: // 5-max
-        const pos5 = [
-          { left: '50%', bottom: '5%', transform: 'translateX(-50%)' }, // Hero
-          { left: '12%', bottom: '35%', transform: 'none' },            // Bottom Left
-          { left: '12%', top: '35%', transform: 'none' },               // Top Left
-          { right: '12%', top: '35%', transform: 'none' },              // Top Right
-          { right: '12%', bottom: '35%', transform: 'none' }            // Bottom Right
-        ];
-        return { position: 'absolute' as const, ...pos5[visualSeat - 1] };
-
-      case 6: // 6-max (padrão)
-        const pos6 = [
-          { left: '50%', bottom: '3%', transform: 'translateX(-50%)' }, // Hero
-          { left: '9%', bottom: '28%', transform: 'none' },             // Bottom Left
-          { left: '9%', top: '28%', transform: 'none' },                // Top Left
-          { left: '50%', top: '3%', transform: 'translateX(-50%)' },    // Top Center
-          { right: '9%', top: '28%', transform: 'none' },               // Top Right
-          { right: '9%', bottom: '28%', transform: 'none' }             // Bottom Right
-        ];
-        return { position: 'absolute' as const, ...pos6[visualSeat - 1] };
-
-      case 7: // 7-max
-        const pos7 = [
-          { left: '50%', bottom: '3%', transform: 'translateX(-50%)' }, // Hero
-          { left: '8%', bottom: '25%', transform: 'none' },             // Bottom Left
-          { left: '8%', top: '45%', transform: 'none' },                // Left Mid
-          { left: '8%', top: '18%', transform: 'none' },                // Top Left
-          { left: '50%', top: '3%', transform: 'translateX(-50%)' },    // Top Center
-          { right: '8%', top: '18%', transform: 'none' },               // Top Right
-          { right: '8%', bottom: '25%', transform: 'none' }             // Bottom Right
-        ];
-        return { position: 'absolute' as const, ...pos7[visualSeat - 1] };
-
-      case 8: // 8-max - Final positioning adjustments
-        const pos8 = [
-          { left: '50%', bottom: '3%', transform: 'translateX(-50%)' }, // Hero
-          { left: '15%', bottom: '15%', transform: 'none' },            // Bottom Left - closer to center and down
-          { left: '3%', bottom: '42%', transform: 'none' },             // Left Mid-Low - down to table curve
-          { left: '20%', top: '8%', transform: 'none' },                // Left Mid-High - higher up
-          { left: '50%', top: '3%', transform: 'translateX(-50%)' },    // Top Center
-          { right: '20%', top: '8%', transform: 'none' },               // Right Mid-High - higher up
-          { right: '3%', bottom: '42%', transform: 'none' },            // Right Mid-Low - down to table curve
-          { right: '15%', bottom: '15%', transform: 'none' }            // Bottom Right - closer to center and down
-        ];
-        return { position: 'absolute' as const, ...pos8[visualSeat - 1] };
-
-      case 9: // 9-max (full ring)
-        const pos9 = [
-          { left: '50%', bottom: '3%', transform: 'translateX(-50%)' }, // Hero
-          { left: '8%', bottom: '20%', transform: 'none' },             // Bottom Left
-          { left: '8%', bottom: '40%', transform: 'none' },             // Left Mid-Low
-          { left: '8%', top: '35%', transform: 'none' },                // Left Mid-High
-          { left: '25%', top: '3%', transform: 'translateX(-50%)' },    // Top Left
-          { right: '25%', top: '3%', transform: 'translateX(50%)' },    // Top Right
-          { right: '8%', top: '35%', transform: 'none' },               // Right Mid-High
-          { right: '8%', bottom: '40%', transform: 'none' },            // Right Mid-Low
-          { right: '8%', bottom: '20%', transform: 'none' }             // Bottom Right
-        ];
-        return { position: 'absolute' as const, ...pos9[visualSeat - 1] };
-
-      case 10: // 10-max
-        const pos10 = [
-          { left: '50%', bottom: '3%', transform: 'translateX(-50%)' }, // Hero
-          { left: '8%', bottom: '18%', transform: 'none' },             // Bottom Left
-          { left: '8%', bottom: '35%', transform: 'none' },             // Left Mid-Low
-          { left: '8%', bottom: '52%', transform: 'none' },             // Left Mid
-          { left: '8%', top: '32%', transform: 'none' },                // Left Mid-High
-          { left: '25%', top: '3%', transform: 'translateX(-50%)' },    // Top Left
-          { right: '25%', top: '3%', transform: 'translateX(50%)' },    // Top Right
-          { right: '8%', top: '32%', transform: 'none' },               // Right Mid-High
-          { right: '8%', bottom: '52%', transform: 'none' },            // Right Mid
-          { right: '8%', bottom: '18%', transform: 'none' }             // Bottom Right
-        ];
-        return { position: 'absolute' as const, ...pos10[visualSeat - 1] };
-
-      default: // Fallback para mesas com mais de 10 jogadores (raro)
-        const angle = ((visualSeat - 1) / total) * 2 * Math.PI - Math.PI / 2;
-        const radiusX = 42;
-        const radiusY = 28;
-        const x = 50 + radiusX * Math.cos(angle);
-        const y = 50 + radiusY * Math.sin(angle);
-        return {
-          position: 'absolute' as const,
-          left: `${x}%`,
-          top: `${y}%`,
-          transform: 'translate(-50%, -50%)',
-        };
-    }
-  };
-
-  // Build persistent community cards based on street and hand history
-  const buildCommunityCards = () => {
-    const cards: CardType[] = [];
-
-    // Add flop cards if we're at flop or later
-    if (['flop', 'turn', 'river', 'showdown'].includes(snapshot.street) && handHistory.flop) {
-      cards.push(...handHistory.flop.cards);
-    }
-
-    // Add turn card if we're at turn or later
-    if (['turn', 'river', 'showdown'].includes(snapshot.street) && handHistory.turn) {
-      cards.push(handHistory.turn.card);
-    }
-
-    // Add river card if we're at river or showdown
-    if (['river', 'showdown'].includes(snapshot.street) && handHistory.river) {
-      cards.push(handHistory.river.card);
-    }
-
-    return cards;
-  };
-
-  const communityCards = buildCommunityCards();
-
-  // Função para calcular posição da "área de ação" (fichas de aposta)
-  const getActionAreaPosition = (visualSeat: number, totalPlayers: number) => {
-    // Posições específicas para cada asiento visual para evitar sobreposição
-    switch (totalPlayers) {
-      case 8: // 8-max - Final bet positions matching adjusted player positions
-        const pos8 = [
-          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' }, // Hero - frente do centro
-          { left: '28%', bottom: '30%', transform: 'translateX(-50%)' }, // Bottom Left
-          { left: '18%', bottom: '45%', transform: 'translateX(-50%)' }, // Left Mid-Low - adjusted for curve
-          { left: '34%', top: '25%', transform: 'translateX(-50%)' },   // Left Mid-High - adjusted higher
-          { left: '50%', top: '25%', transform: 'translateX(-50%)' },   // Top Center
-          { right: '34%', top: '25%', transform: 'translateX(50%)' },   // Right Mid-High - adjusted higher
-          { right: '18%', bottom: '45%', transform: 'translateX(50%)' }, // Right Mid-Low - adjusted for curve
-          { right: '28%', bottom: '30%', transform: 'translateX(50%)' } // Bottom Right
-        ];
-        return { position: 'absolute' as const, zIndex: 25, ...pos8[visualSeat - 1] };
-
-      case 6: // 6-max
-        const pos6 = [
-          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' }, // Hero - frente do centro
-          { left: '25%', bottom: '40%', transform: 'translateX(-50%)' }, // Bottom Left
-          { left: '25%', top: '40%', transform: 'translateX(-50%)' },   // Top Left
-          { left: '50%', top: '25%', transform: 'translateX(-50%)' },   // Top Center
-          { right: '25%', top: '40%', transform: 'translateX(50%)' },   // Top Right
-          { right: '25%', bottom: '40%', transform: 'translateX(50%)' } // Bottom Right
-        ];
-        return { position: 'absolute' as const, zIndex: 25, ...pos6[visualSeat - 1] };
-
-      case 5: // 5-max
-        const pos5 = [
-          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' },
-          { left: '25%', bottom: '40%', transform: 'translateX(-50%)' },
-          { left: '20%', top: '35%', transform: 'translateX(-50%)' },
-          { right: '20%', top: '35%', transform: 'translateX(50%)' },
-          { right: '25%', bottom: '40%', transform: 'translateX(50%)' }
-        ];
-        return { position: 'absolute' as const, zIndex: 25, ...pos5[visualSeat - 1] };
-
-      case 4: // 4-max
-        const pos4 = [
-          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' },
-          { left: '25%', bottom: '50%', transform: 'translateX(-50%)' },
-          { left: '50%', top: '25%', transform: 'translateX(-50%)' },
-          { right: '25%', bottom: '50%', transform: 'translateX(50%)' }
-        ];
-        return { position: 'absolute' as const, zIndex: 25, ...pos4[visualSeat - 1] };
-
-      default:
-        // Fallback para outros números
-        const angle = ((visualSeat - 1) / totalPlayers) * 2 * Math.PI - Math.PI / 2;
-        const radiusX = 22;
-        const radiusY = 16;
-        const x = 50 + radiusX * Math.cos(angle);
-        const y = 50 + radiusY * Math.sin(angle);
-        return {
-          position: 'absolute' as const,
-          left: `${x}%`,
-          top: `${y}%`,
-          transform: 'translate(-50%, -50%)',
-          zIndex: 25
-        };
-    }
-  };
 
   return (
     <div className="hand-replayer w-full max-w-[1125px] mx-auto" style={{
@@ -471,23 +275,24 @@ const PokerTable: React.FC<PokerTableProps> = ({
       {/* Jogadores - SISTEMA HERO-CÊNTRICO */}
       {(() => {
         // Encontrar Hero e seu seat original
-        const heroPlayer = handHistory.players.find(p => p.isHero);
+        let heroPlayer = handHistory.players.find(p => p.isHero);
         if (!heroPlayer && handHistory.players.length > 0) {
-          handHistory.players[0].isHero = true;
+          // Se não há hero definido, marca o primeiro jogador temporariamente
+          heroPlayer = { ...handHistory.players[0], isHero: true };
         }
 
         const heroSeat = heroPlayer?.seat || 1;
         console.log(`🎯 Hero encontrado: ${heroPlayer?.name} no Seat ${heroSeat} (${heroPlayer?.position})`);
 
         // Calcular posições visuais com Hero sempre na posição central inferior
-        const playersWithVisualSeats = calcularPosicoesVisuais(handHistory.players, heroSeat);
+        const playersWithVisualSeats = calcularPosicoesVisuais([...handHistory.players], heroSeat);
 
         console.log('🔄 Posições visuais calculadas:', playersWithVisualSeats.map(p =>
           `${p.name} (Seat ${p.seat}) → Visual ${p.visualSeat} ${p.isHero ? '[HERO]' : ''}`
         ));
 
         return playersWithVisualSeats.map((player) => {
-          const style = getPositionStyle(player.visualSeat, playersWithVisualSeats.length);
+          const style = PokerUIUtils.getPlayerPosition(player.visualSeat, playersWithVisualSeats.length);
           const playerKey = normalizeKey(player.name);
           const isPlayerActive = activePlayer === player.name;
           const hasPlayerFolded = foldedPlayers.has(player.name);
@@ -572,12 +377,12 @@ const PokerTable: React.FC<PokerTableProps> = ({
 
       {/* Sistema de Área de Ação - Fichas de Aposta Centralizadas */}
       {(() => {
-        const heroPlayer = handHistory.players.find(p => p.isHero);
+        let heroPlayer = handHistory.players.find(p => p.isHero);
         if (!heroPlayer && handHistory.players.length > 0) {
-          handHistory.players[0].isHero = true;
+          heroPlayer = { ...handHistory.players[0], isHero: true };
         }
         const heroSeat = heroPlayer?.seat || 1;
-        const playersWithVisualSeats = calcularPosicoesVisuais(handHistory.players, heroSeat);
+        const playersWithVisualSeats = calcularPosicoesVisuais([...handHistory.players], heroSeat);
 
         return playersWithVisualSeats.map((player) => {
           // Use pendingContribs from snapshot - these represent chips in front of player during current street
@@ -619,7 +424,7 @@ const PokerTable: React.FC<PokerTableProps> = ({
           const chipsToShow = snapshot.street === 'showdown' ? playerPayout : betAmount;
 
           if (chipsToShow > 0) {
-            const actionStyle = getActionAreaPosition(player.visualSeat, playersWithVisualSeats.length);
+            const actionStyle = PokerUIUtils.getActionAreaPosition(player.visualSeat, playersWithVisualSeats.length);
             return (
               <div key={`action-${player.name}`} style={{
                 ...actionStyle,
@@ -645,43 +450,67 @@ const PokerTable: React.FC<PokerTableProps> = ({
         });
       })()}
 
-      {/* Sistema de Showdown - Moved to top-right background */}
+      {/* Sistema de Showdown - Improved winner info display */}
       {snapshot.street === 'showdown' && snapshot.winners && (
         <div className="absolute top-4 right-4 pointer-events-none" style={{ zIndex: 35 }}>
           {/* Winner info in top-right background */}
-          <div className="flex flex-col items-end">
-            <div className="bg-gradient-to-r from-yellow-400/90 via-yellow-500/90 to-yellow-600/90 text-black px-4 py-2 rounded-lg shadow-xl border-2 border-yellow-300/80 mb-2 backdrop-blur-sm">
-              <div className="text-sm font-bold text-center">
-                {snapshot.winners.length === 1
-                  ? `${snapshot.winners[0]} ${t('replayer.winner')}`
-                  : `${snapshot.winners.join(', ')} ${t('replayer.winner')}`
-                }
-              </div>
-              {handHistory.showdown?.potWon && (
-                <div className="text-xs text-center mt-1">
-                  Pote: ${handHistory.showdown.potWon}
-                </div>
-              )}
-            </div>
-
-            {/* Combinação vencedora */}
-            {(() => {
-              if (!snapshot.winners || snapshot.winners.length === 0) return null;
-
-              const winner = handHistory.players.find(p => p.name === snapshot.winners?.[0]);
-              if (!winner?.cards || communityCards.length < 3) return null;
-
-              const winningHandDescription = PokerHandEvaluator.getBestHandDescription(winner, communityCards);
+          <div className="flex flex-col items-end gap-2">
+            {snapshot.winners.map((winner, idx) => {
+              const winnerKey = normalizeKey(winner);
+              const totalWon = snapshot.payouts ? getNormalized(snapshot.payouts, winnerKey) ?? 0 : 0;
+              const winnerPlayer = handHistory.players.find(p => p.name === winner);
+              const winningHandDescription = winnerPlayer?.cards && communityCards.length >= 3
+                ? PokerHandEvaluator.getBestHandDescription(winnerPlayer, communityCards)
+                : null;
 
               return (
-                <div className="bg-black/80 text-white px-3 py-1.5 rounded-lg border border-yellow-400/30 backdrop-blur-sm">
-                  <div className="text-right">
-                    <div className="text-xs text-yellow-400 mb-0.5">Mão Vencedora</div>
-                    <div className="text-xs font-medium">{winningHandDescription}</div>
+                <div key={idx} className="flex flex-col items-end gap-1">
+                  <div className="bg-gradient-to-r from-yellow-400/90 via-yellow-500/90 to-yellow-600/90 text-black px-4 py-2 rounded-lg shadow-xl border-2 border-yellow-300/80 backdrop-blur-sm">
+                    <div className="text-sm font-bold text-center">
+                      🏆 {winner}
+                    </div>
+                    {totalWon > 0 && (
+                      <div className="text-xs text-center mt-1">
+                        Won: {CurrencyUtils.formatCurrency(totalWon)}
+                      </div>
+                    )}
                   </div>
+
+                  {/* Winning hand description */}
+                  {winningHandDescription && (
+                    <div className="bg-black/80 text-white px-3 py-1.5 rounded-lg border border-yellow-400/30 backdrop-blur-sm">
+                      <div className="text-right">
+                        <div className="text-xs text-yellow-400 mb-0.5">Mão Vencedora</div>
+                        <div className="text-xs font-medium">{winningHandDescription}</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
-            })()}
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Pot Display - Clear breakdown of main pot and side pots */}
+      {snapshot.pots && snapshot.pots.length > 0 && snapshot.street !== 'showdown' && (
+        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 pointer-events-none" style={{ zIndex: 25 }}>
+          <div className="bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2 border border-gray-600/50">
+            {snapshot.pots.map((pot, index) => (
+              <div key={index} className="text-center">
+                <div className="text-xs text-gray-400">
+                  {index === 0 ? 'Main Pot' : `Side Pot ${index}`}
+                </div>
+                <div className="text-sm font-bold text-yellow-400">
+                  {CurrencyUtils.formatCurrency(pot.value)}
+                </div>
+                {pot.eligiblePlayers && pot.eligiblePlayers.length < handHistory.players.length && (
+                  <div className="text-xs text-gray-500">
+                    ({pot.eligiblePlayers.length} players)
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -707,6 +536,6 @@ const PokerTable: React.FC<PokerTableProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default PokerTable;
