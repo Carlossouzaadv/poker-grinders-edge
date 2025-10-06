@@ -52,13 +52,13 @@ enum BookingStatus {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String           @id @default(cuid())
+  email     String           @unique
   password  String
   firstName String
   lastName  String
-  phone     String?  // Optional phone for future MFA/notifications
-  userType  UserType @default(PLAYER)
+  phone     String? // Optional phone for future MFA/notifications
+  userType  UserType         @default(PLAYER)
   plan      SubscriptionPlan @default(FREE)
 
   // Timestamps
@@ -66,13 +66,13 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Free plan limits
-  sessionCount Int @default(0)
-  dailyTrainerHands Int @default(0)
-  lastTrainerReset DateTime @default(now())
+  sessionCount      Int      @default(0)
+  dailyTrainerHands Int      @default(0)
+  lastTrainerReset  DateTime @default(now())
 
   // Relations
-  sessions Session[]
-  hands    Hand[]
+  sessions            Session[]
+  hands               Hand[]
   handHistorySessions HandHistorySession[] // New: hand history analysis sessions
 
   // Coach specific
@@ -99,44 +99,44 @@ model RefreshToken {
 }
 
 model Session {
-  id          String        @id @default(cuid())
-  userId      String
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Basic info
-  gameType    GameType
-  location    String?       // "PokerStars", "Clube Local", etc.
-  status      SessionStatus @default(ACTIVE)
+  gameType GameType
+  location String? // "PokerStars", "Clube Local", etc.
+  status   SessionStatus @default(ACTIVE)
 
   // Timing
-  startTime   DateTime      @default(now())
-  endTime     DateTime?
-  duration    Int?          // in minutes
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+  duration  Int? // in minutes
 
   // Cash Game specific
-  buyIn       Decimal?      @db.Decimal(10, 2)
-  cashOut     Decimal?      @db.Decimal(10, 2)
+  buyIn   Decimal? @db.Decimal(10, 2)
+  cashOut Decimal? @db.Decimal(10, 2)
 
   // Tournament specific
   tournamentName String?
-  rebuys      Int?          @default(0)
-  addOns      Int?          @default(0)
-  bounties    Decimal?      @db.Decimal(10, 2)
-  prize       Decimal?      @db.Decimal(10, 2)
+  rebuys         Int?     @default(0)
+  addOns         Int?     @default(0)
+  bounties       Decimal? @db.Decimal(10, 2)
+  prize          Decimal? @db.Decimal(10, 2)
 
   // Calculated fields
-  result      Decimal?      @db.Decimal(10, 2) // profit/loss
-  roi         Float?        // return on investment %
+  result Decimal? @db.Decimal(10, 2) // profit/loss
+  roi    Float? // return on investment %
 
   // Notes and tags
-  notes       String?
-  tags        String[]
+  notes String?
+  tags  String[]
 
   // Relations
-  hands       Hand[]
+  hands Hand[]
 
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("sessions")
 }
@@ -149,118 +149,118 @@ model Hand {
   session   Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
 
   // Hand details
-  position      String?
-  myCards       String?   // "AhKd"
-  boardCards    String?   // "As2h7c"
-  stackSize     Int?      // in BBs
-  potSize       Decimal?  @db.Decimal(10, 2)
+  position   String?
+  myCards    String? // "AhKd"
+  boardCards String? // "As2h7c"
+  stackSize  Int? // in BBs
+  potSize    Decimal? @db.Decimal(10, 2)
 
   // Action taken
-  actionTaken   String?   // "FOLD", "CALL", "RAISE", "ALL_IN"
-  betAmount     Decimal?  @db.Decimal(10, 2)
+  actionTaken String? // "FOLD", "CALL", "RAISE", "ALL_IN"
+  betAmount   Decimal? @db.Decimal(10, 2)
 
   // GTO Analysis
-  gtoAction     String?   // recommended action
-  gtoAnalysis   Json?     // detailed analysis
-  isOptimal     Boolean?  // was the action optimal
+  gtoAction   String? // recommended action
+  gtoAnalysis Json? // detailed analysis
+  isOptimal   Boolean? // was the action optimal
 
   // OCR Data
-  screenshot    String?   // path to screenshot
-  ocrData       Json?     // raw OCR results
+  screenshot String? // path to screenshot
+  ocrData    Json? // raw OCR results
 
   // Training
-  isTrainingHand Boolean  @default(false)
-  difficulty     Int?     // 1-5
-  scenario       String?  // "push_fold", "3bet_spot", etc.
+  isTrainingHand Boolean @default(false)
+  difficulty     Int? // 1-5
+  scenario       String? // "push_fold", "3bet_spot", etc.
 
   // Meta
-  handType      HandType?
-  timestamp     DateTime  @default(now())
-  notes         String?
-  tags          String[]
+  handType  HandType?
+  timestamp DateTime  @default(now())
+  notes     String?
+  tags      String[]
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("hands")
 }
 
 model CoachProfile {
-  id              String      @id @default(cuid())
-  userId          String      @unique
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Verification
   status          CoachStatus @default(PENDING)
-  verificationDoc String?     // link to proof document
-  socialLink      String?     // Twitter/LinkedIn
-  hendonMobLink   String?     // results proof
+  verificationDoc String? // link to proof document
+  socialLink      String? // Twitter/LinkedIn
+  hendonMobLink   String? // results proof
 
   // Profile
-  bio             String?
-  specialties     String[]    // ["MTT", "CASH", "SNG"]
-  languages       String[]    // ["PT", "EN"]
-  experience      Int?        // years
+  bio         String?
+  specialties String[] // ["MTT", "CASH", "SNG"]
+  languages   String[] // ["PT", "EN"]
+  experience  Int? // years
 
   // Pricing
-  hourlyRateUSD   Decimal?    @db.Decimal(8, 2)
-  hourlyRateBRL   Decimal?    @db.Decimal(8, 2)
+  hourlyRateUSD Decimal? @db.Decimal(8, 2)
+  hourlyRateBRL Decimal? @db.Decimal(8, 2)
 
   // Stats
-  totalHours      Int         @default(0)
-  rating          Float?      @default(0)
-  reviewCount     Int         @default(0)
+  totalHours  Int    @default(0)
+  rating      Float? @default(0)
+  reviewCount Int    @default(0)
 
   // Commission tier (15% -> 10% after 50h)
-  commissionRate  Float       @default(0.15)
+  commissionRate Float @default(0.15)
 
   // Relations
-  bookings        Booking[]   @relation("CoachBookings")
-  reviews         Review[]
+  bookings Booking[] @relation("CoachBookings")
+  reviews  Review[]
 
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("coach_profiles")
 }
 
 model Booking {
-  id          String        @id @default(cuid())
+  id String @id @default(cuid())
 
   // Relations
-  studentId   String
-  student     User          @relation("StudentBookings", fields: [studentId], references: [id], onDelete: Cascade)
-  coachId     String
-  coach       CoachProfile  @relation("CoachBookings", fields: [coachId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User         @relation("StudentBookings", fields: [studentId], references: [id], onDelete: Cascade)
+  coachId   String
+  coach     CoachProfile @relation("CoachBookings", fields: [coachId], references: [id], onDelete: Cascade)
 
   // Booking details
   status      BookingStatus @default(PENDING)
   scheduledAt DateTime
-  duration    Int           // minutes
+  duration    Int // minutes
 
   // Payment
-  amount      Decimal       @db.Decimal(8, 2)
-  currency    String        @default("USD")
-  commission  Decimal       @db.Decimal(8, 2)
+  amount     Decimal @db.Decimal(8, 2)
+  currency   String  @default("USD")
+  commission Decimal @db.Decimal(8, 2)
 
   // Session details
-  topic       String?
-  notes       String?
+  topic String?
+  notes String?
 
   // Completion
   completedAt DateTime?
 
   // Relations
-  review      Review?
+  review Review?
 
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("bookings")
 }
 
 model Review {
-  id        String       @id @default(cuid())
+  id String @id @default(cuid())
 
   // Relations
   bookingId String       @unique
@@ -269,36 +269,36 @@ model Review {
   coach     CoachProfile @relation(fields: [coachId], references: [id], onDelete: Cascade)
 
   // Review content
-  rating    Int          // 1-5 stars
-  comment   String?
+  rating  Int // 1-5 stars
+  comment String?
 
   // Meta
-  isPublic  Boolean      @default(true)
+  isPublic Boolean @default(true)
 
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("reviews")
 }
 
 model GTORange {
-  id          String @id @default(cuid())
+  id String @id @default(cuid())
 
   // Scenario identification
-  position    String
-  stackBBs    String // "20-30", "50+", etc.
-  action      String // "RFI", "3BET", "CALL", etc.
+  position String
+  stackBBs String // "20-30", "50+", etc.
+  action   String // "RFI", "3BET", "CALL", etc.
 
   // Range data
-  range       String // "22+,A2s+,K9s+,QTs+,JTs,T9s,98s,87s,76s,65s,54s,ATo+,KQo"
-  frequency   Float  // 0.0 to 1.0
+  range     String // "22+,A2s+,K9s+,QTs+,JTs,T9s,98s,87s,76s,65s,54s,ATo+,KQo"
+  frequency Float // 0.0 to 1.0
 
   // Metadata
-  scenario    String // "6max_cash", "mtt_20bb", etc.
-  source      String @default("custom") // "solver", "custom", "imported"
+  scenario String // "6max_cash", "mtt_20bb", etc.
+  source   String @default("custom") // "solver", "custom", "imported"
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([position, stackBBs, action, scenario])
   @@map("gto_ranges")
@@ -311,50 +311,50 @@ model GTORange {
 /// Represents a session of hand history analysis (e.g., a tournament or cash game session)
 /// containing multiple hands that can be reviewed and navigated by the user
 model HandHistorySession {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Session metadata
-  name        String      // Descriptive name (e.g., "Tournament #123456", "Cash Game 10/20")
-  siteFormat  String      // Poker site format: "PokerStars", "GGPoker", "PartyPoker", "Ignition"
-  totalHands  Int         // Total number of hands in this session
+  name       String // Descriptive name (e.g., "Tournament #123456", "Cash Game 10/20")
+  siteFormat String // Poker site format: "PokerStars", "GGPoker", "PartyPoker", "Ignition"
+  totalHands Int // Total number of hands in this session
 
   // Raw data for future reprocessing or debugging
-  rawHandHistory String   @db.Text // Complete original .txt content
+  rawHandHistory String @db.Text // Complete original .txt content
 
   // Relations
-  hands       HandHistoryHand[]
+  hands HandHistoryHand[]
 
   // Timestamps
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@map("hand_history_sessions")
   @@index([userId, createdAt]) // Optimize queries for user's recent sessions
+  @@map("hand_history_sessions")
 }
 
 /// Represents an individual parsed hand within a hand history session
 /// Stores both the raw text and parsed JSON data for efficient querying and display
 model HandHistoryHand {
-  id          String              @id @default(cuid())
-  sessionId   String
-  session     HandHistorySession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  id        String             @id @default(cuid())
+  sessionId String
+  session   HandHistorySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   // Position in session (0-based index for ordering)
-  handIndex   Int
+  handIndex Int
 
   // Raw hand text for debugging/reprocessing
-  handText    String              @db.Text
+  handText String @db.Text
 
   // Parsed hand data stored as JSON for efficient queries
   // Contains the complete ParsedHand object from the parser
-  parsedData  Json
+  parsedData Json
 
   // Timestamps
-  createdAt   DateTime            @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([sessionId, handIndex]) // Ensure no duplicate hands at same position
-  @@map("hand_history_hands")
   @@index([sessionId, handIndex]) // Optimize sequential navigation queries
+  @@map("hand_history_hands")
 }

@@ -73,125 +73,31 @@ A senha tem `@` que precisa ser URL-encoded como `%40`:
 
 ---
 
-## 🗄️ Aplicar Migrations (Opção SQL Editor)
+## 🗄️ Aplicar Migrations no Supabase
 
-Se a migration automática falhar no Vercel, use o SQL Editor do Supabase:
+⚠️ **IMPORTANTE**: Migrations devem ser aplicadas **MANUALMENTE** no Supabase SQL Editor.
 
-### Acesse:
-1. https://app.supabase.com/project/fazhfnhmemgwwvisiftz
+**Por quê?** Prisma Migrate não funciona com Connection Pooling (pgbouncer). O Vercel usa a porta 6543 (pooling), mas migrations precisam da porta 5432 (conexão direta).
+
+### 📖 Guia Completo de Migration
+
+**Consulte o documento completo**:
+```
+Docs/SUPABASE_MIGRATION_MANUAL.md
+```
+
+Este documento contém:
+- ✅ SQL completo do schema atualizado (10 tabelas + 7 ENUMs)
+- ✅ Passo a passo detalhado
+- ✅ Comandos de verificação
+- ✅ Troubleshooting
+
+### ⚡ Resumo Rápido
+
+1. Acesse: https://app.supabase.com/project/fazhfnhmemgwwvisiftz
 2. **SQL Editor** → **New query**
-
-### Execute este SQL:
-
-```sql
--- ============================================
--- MIGRATIONS DO PRISMA
--- ============================================
-
--- Tabela: _prisma_migrations
-CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
-    "id" VARCHAR(36) PRIMARY KEY,
-    "checksum" VARCHAR(64) NOT NULL,
-    "finished_at" TIMESTAMPTZ,
-    "migration_name" VARCHAR(255) NOT NULL,
-    "logs" TEXT,
-    "rolled_back_at" TIMESTAMPTZ,
-    "started_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "applied_steps_count" INTEGER NOT NULL DEFAULT 0
-);
-
--- Tabela: User
-CREATE TABLE IF NOT EXISTS "User" (
-    "id" TEXT PRIMARY KEY,
-    "email" TEXT NOT NULL UNIQUE,
-    "password" TEXT NOT NULL,
-    "name" TEXT,
-    "plan" TEXT NOT NULL DEFAULT 'FREE',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS "User_email_idx" ON "User"("email");
-
--- Tabela: Session
-CREATE TABLE IF NOT EXISTS "Session" (
-    "id" TEXT PRIMARY KEY,
-    "userId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
-    "gameType" TEXT NOT NULL,
-    "buyIn" DOUBLE PRECISION NOT NULL,
-    "cashOut" DOUBLE PRECISION NOT NULL,
-    "result" DOUBLE PRECISION NOT NULL,
-    "location" TEXT,
-    "notes" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS "Session_userId_idx" ON "Session"("userId");
-
--- Tabela: HandHistorySession
-CREATE TABLE IF NOT EXISTS "HandHistorySession" (
-    "id" TEXT PRIMARY KEY,
-    "userId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
-    "rawHandHistory" TEXT NOT NULL,
-    "pokerSite" TEXT NOT NULL,
-    "handCount" INTEGER NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS "HandHistorySession_userId_idx" ON "HandHistorySession"("userId");
-
--- Registrar migration
-INSERT INTO "_prisma_migrations" (
-    "id",
-    "checksum",
-    "migration_name",
-    "applied_steps_count",
-    "started_at",
-    "finished_at"
-)
-VALUES (
-    gen_random_uuid()::text,
-    '',
-    '20240101000000_init',
-    1,
-    NOW(),
-    NOW()
-)
-ON CONFLICT DO NOTHING;
-
--- Verificar tabelas criadas
-SELECT table_name
-FROM information_schema.tables
-WHERE table_schema = 'public'
-ORDER BY table_name;
-```
-
----
-
-## ✅ Verificação Pós-Migration
-
-Execute no SQL Editor:
-
-```sql
--- Ver tabelas
-SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
-
--- Ver migrations aplicadas
-SELECT migration_name, finished_at FROM "_prisma_migrations";
-
--- Testar criação de usuário
-INSERT INTO "User" (id, email, name, password, plan)
-VALUES (
-    gen_random_uuid()::text,
-    'teste@pokergrinders.com',
-    'Usuário Teste',
-    '$2b$10$FAKEHASHFORTESTING',
-    'FREE'
-)
-RETURNING id, email, name, plan;
-```
+3. Copie e cole o SQL completo de `SUPABASE_MIGRATION_MANUAL.md`
+4. Execute e verifique sucesso
 
 ---
 

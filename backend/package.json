@@ -24,11 +24,8 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "ts-node prisma/seed.ts",
     "db:studio": "prisma studio",
-    "vercel-build": "prisma generate && prisma migrate deploy && nest build",
+    "vercel-build": "prisma generate && nest build",
     "postinstall": "prisma generate"
-  },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
