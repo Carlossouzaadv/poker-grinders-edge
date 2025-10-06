@@ -5,6 +5,7 @@ export type Card = {
 
 export interface GameContext {
   readonly isTournament: boolean;
+  readonly isCashGame?: boolean; // For cash games
   readonly isHighStakes: boolean;
   readonly currencyUnit: 'chips' | 'dollars';
   readonly conversionNeeded: boolean;
@@ -97,6 +98,7 @@ export type HandHistory = {
   readonly gameType: 'Hold\'em' | 'Omaha' | 'Stud';
   readonly limit: 'No Limit' | 'Pot Limit' | 'Fixed Limit';
   readonly stakes: string; // e.g., "$0.25/$0.50"
+  readonly tableName?: string; // Table name from hand history
   readonly maxPlayers: number;
   readonly buttonSeat: number;
   readonly dealerSeat: number;

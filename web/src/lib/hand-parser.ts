@@ -132,7 +132,7 @@ export class HandParser {
         return { success: false, error: 'Informações da mesa inválidas' };
       }
 
-      const [, , maxPlayers, buttonSeat] = tableMatch;
+      const [, tableName, maxPlayers, buttonSeat] = tableMatch;
 
       // NOVA: Detectar contexto do jogo (Tournament vs Cash)
       const detectionResult = this.detectGameContext(lines[0], 'PokerStars');
@@ -543,6 +543,7 @@ export class HandParser {
         gameType: gameType as 'Hold\'em' | 'Omaha' | 'Stud',
         limit: limit as 'No Limit' | 'Pot Limit' | 'Fixed Limit',
         stakes: stakes, // Use the properly set stakes (tournament name or cash blinds)
+        tableName, // Add table name
         maxPlayers: parseInt(maxPlayers),
         buttonSeat: parseInt(buttonSeat),
         dealerSeat: parseInt(buttonSeat),
@@ -1036,6 +1037,7 @@ export class HandParser {
         gameType: gameType as 'Hold\'em' | 'Omaha' | 'Stud',
         limit: limit as 'No Limit' | 'Pot Limit' | 'Fixed Limit',
         stakes: tournamentName ?? 'Unknown',
+        tableName, // Add table name
         maxPlayers: parseInt(maxPlayers),
         buttonSeat: parseInt(buttonSeat),
         dealerSeat: parseInt(buttonSeat),
@@ -1132,7 +1134,7 @@ export class HandParser {
         return { success: false, error: 'Informações da mesa inválidas' };
       }
 
-      const [, , maxPlayers, buttonSeat] = tableMatch;
+      const [, tableName, maxPlayers, buttonSeat] = tableMatch;
 
       // Parse players
       const players: Player[] = [];
@@ -1365,6 +1367,7 @@ export class HandParser {
         gameType: gameType as 'Hold\'em' | 'Omaha' | 'Stud',
         limit: limit as 'No Limit' | 'Pot Limit' | 'Fixed Limit',
         stakes: buyIn,
+        tableName, // Add table name
         maxPlayers: parseInt(maxPlayers),
         buttonSeat: parseInt(buttonSeat),
         dealerSeat: parseInt(buttonSeat),
@@ -1973,6 +1976,7 @@ export class HandParser {
 
       gameContext = {
         isTournament: true,
+        isCashGame: false,
         isHighStakes: false, // Tournaments use chips, not "high stakes"
         currencyUnit: 'chips',
         conversionNeeded: false, // NO conversion for tournaments
@@ -1991,6 +1995,7 @@ export class HandParser {
 
         gameContext = {
           isTournament: false,
+          isCashGame: true,
           isHighStakes: isHighStakes,
           currencyUnit: 'dollars',
           conversionNeeded: true // Cash games need dollar-to-cents conversion
@@ -2001,6 +2006,7 @@ export class HandParser {
         warnings.push('⚠️ Could not parse stakes, using default values');
         gameContext = {
           isTournament: false,
+          isCashGame: true,
           isHighStakes: false,
           currencyUnit: 'dollars',
           conversionNeeded: true

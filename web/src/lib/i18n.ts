@@ -18,6 +18,9 @@ const resources = {
 const geoLocationDetector = {
   name: 'geoLocation',
   lookup() {
+    // Check if we're in the browser
+    if (typeof window === 'undefined') return 'en';
+
     // Check if already stored in localStorage
     const stored = localStorage.getItem('i18nextLng');
     if (stored) return stored;
@@ -51,16 +54,20 @@ const geoLocationDetector = {
     }
 
     // Check browser language as fallback
-    const browserLang = navigator.language || (navigator as any).userLanguage;
-    if (browserLang?.startsWith('pt')) {
-      return 'pt';
+    if (typeof navigator !== 'undefined') {
+      const browserLang = navigator.language || (navigator as any).userLanguage;
+      if (browserLang?.startsWith('pt')) {
+        return 'pt';
+      }
     }
 
     // Default to English for rest of the world
     return 'en';
   },
   cacheUserLanguage(lng: string) {
-    localStorage.setItem('i18nextLng', lng);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('i18nextLng', lng);
+    }
   }
 };
 
