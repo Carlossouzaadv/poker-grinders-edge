@@ -1035,7 +1035,7 @@ export class HandParser {
         site: 'GGPoker',
         gameType: gameType as 'Hold\'em' | 'Omaha' | 'Stud',
         limit: limit as 'No Limit' | 'Pot Limit' | 'Fixed Limit',
-        stakes: tournamentName,
+        stakes: tournamentName ?? 'Unknown',
         maxPlayers: parseInt(maxPlayers),
         buttonSeat: parseInt(buttonSeat),
         dealerSeat: parseInt(buttonSeat),
