@@ -476,7 +476,7 @@ export class SnapshotBuilder {
 
         // CORREÇÃO CRÍTICA: Side pots SÓ devem ser calculados quando há all-in
         // Durante betting rounds normais: apenas Main Pot
-        let pots: Array<{value: number, eligiblePlayers: string[]}> = [];
+        let pots: Pot[] = [];
         const hasAllIn = Object.values(isAllIn).some(allIn => allIn);
 
         if (hasAllIn || currentStreet === 'showdown') {
