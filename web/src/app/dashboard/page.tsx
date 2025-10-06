@@ -96,30 +96,32 @@ export default function DashboardPage() {
               </div>
             </Link>
 
-            {/* Sessions History Card - Coming Soon */}
-            <div className="rounded-2xl p-8 border-2 border-[#4C5FD5] opacity-75" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
-              <div className="flex items-center mb-6">
-                <div className="relative w-16 h-16">
-                  <Image
-                    src="/assets/images/nova id visual/icon-session-history.png"
-                    alt="Histórico de Sessões"
-                    fill
-                    className="object-contain"
-                  />
+            {/* Sessions History Card */}
+            <Link href="/hand-analyzer/history" className="block group">
+              <div className="rounded-2xl p-8 border-2 border-[#4C5FD5] group-hover:border-[#6C7FE5] transition-all duration-300 group-hover:scale-[1.02]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
+                <div className="flex items-center mb-6">
+                  <div className="relative w-16 h-16">
+                    <Image
+                      src="/assets/images/nova id visual/icon-session-history.png"
+                      alt="Histórico de Sessões"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <div className="ml-4">
+                    <h4 className="font-montserrat text-2xl font-bold text-white mb-1 group-hover:text-[#4C5FD5] transition-colors">
+                      Histórico de Sessões
+                    </h4>
+                    <span className="inline-block bg-green-500/20 text-green-400 px-2 py-1 rounded-full font-montserrat text-xs font-bold">
+                      DISPONÍVEL
+                    </span>
+                  </div>
                 </div>
-                <div className="ml-4">
-                  <h4 className="font-montserrat text-2xl font-bold text-white mb-1">
-                    Histórico de Sessões
-                  </h4>
-                  <span className="inline-block bg-[#4C5FD5]/20 text-[#4C5FD5] px-2 py-1 rounded-full font-montserrat text-xs font-bold">
-                    EM BREVE
-                  </span>
-                </div>
+                <p className="font-open-sans text-[#9E9E9E] leading-relaxed">
+                  Veja suas sessões anteriores e análises salvas. Acompanhe sua evolução ao longo do tempo.
+                </p>
               </div>
-              <p className="font-open-sans text-[#9E9E9E] leading-relaxed">
-                Veja suas sessões anteriores e análises salvas. Acompanhe sua evolução ao longo do tempo.
-              </p>
-            </div>
+            </Link>
           </div>
         </div>
 
