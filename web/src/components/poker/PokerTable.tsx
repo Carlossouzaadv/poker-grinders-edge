@@ -56,8 +56,10 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
   };
 
   // Memoize hero-centric position calculation
-  const calcularPosicoesVisuais = useCallback((players: any[], heroSeat: number) => {
-    const totalSeats = players.length;
+  const calcularPosicoesVisuais = useCallback((players: any[], heroSeat: number, maxPlayers: number) => {
+    // Use maxPlayers (capacidade da mesa) e não players.length (jogadores ativos)
+    // Isso garante que os assentos sejam distribuídos corretamente (ex: 7 jogadores em mesa 8-max)
+    const totalSeats = maxPlayers;
 
     // O deslocamento necessário para colocar o Hero no assento visual #1 (inferior central)
     const offset = heroSeat - 1;
@@ -229,7 +231,7 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
                   enableRealisticStacking={true}
                 />
                 <div className="mt-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold px-4 py-2 rounded-full shadow-xl border-2 border-yellow-400">
-                  <div className="text-sm">Pote Total: ${potTotal.toFixed(0)}</div>
+                  <div className="text-sm">Pote Total: {CurrencyUtils.formatValue(potTotal, handHistory.gameContext?.isTournament)}</div>
                 </div>
               </div>
             )}
@@ -282,26 +284,19 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
         }
 
         const heroSeat = heroPlayer?.seat || 1;
-        console.log(`🎯 Hero encontrado: ${heroPlayer?.name} no Seat ${heroSeat} (${heroPlayer?.position})`);
+        const maxPlayers = handHistory.maxPlayers || handHistory.players.length;
 
         // Calcular posições visuais com Hero sempre na posição central inferior
-        const playersWithVisualSeats = calcularPosicoesVisuais([...handHistory.players], heroSeat);
-
-        console.log('🔄 Posições visuais calculadas:', playersWithVisualSeats.map(p =>
-          `${p.name} (Seat ${p.seat}) → Visual ${p.visualSeat} ${p.isHero ? '[HERO]' : ''}`
-        ));
+        const playersWithVisualSeats = calcularPosicoesVisuais([...handHistory.players], heroSeat, maxPlayers);
 
         return playersWithVisualSeats.map((player) => {
-          const style = PokerUIUtils.getPlayerPosition(player.visualSeat, playersWithVisualSeats.length);
+          const style = PokerUIUtils.getPlayerPosition(player.visualSeat, maxPlayers);
           const playerKey = normalizeKey(player.name);
           const isPlayerActive = activePlayer === player.name;
           const hasPlayerFolded = foldedPlayers.has(player.name);
 
           // Read stack from snapshot with normalized keys (prioritize snapshot over player.stack)
           const playerCurrentStack = currentStacks ? (getNormalized(currentStacks, playerKey) ?? player.stack) : player.stack;
-
-          console.log(`🎲 ${player.name}: Seat ${player.seat} → Visual ${player.visualSeat} ${player.isHero ? '[HERO]' : ''}`);
-          console.log(`💰 ${player.name} stack: ${player.stack} → ${playerCurrentStack}`);
 
           // Calcular stack final considerando ganhos do showdown (evitar double-count)
           let finalStack = playerCurrentStack;
@@ -314,24 +309,17 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
             const initialStack = player.stack ?? 0; // stack inicial vindo do handHistory
             // totalCommitted = total que o jogador colocou na mão (usando normalized keys)
             const totalCommitted = snapshot.totalCommitted ? getNormalized(snapshot.totalCommitted, playerKey) ?? 0 : 0;
-            // payout: quanto esse jogador ganhou no showdown (por jogador, não o pot total)
-            const payout = snapshot.payouts ? getNormalized(snapshot.payouts, playerKey) ?? 0 : 0;
+            // CRITICAL FIX: payout from SUMMARY section if available
+            let payout = 0;
+            if (handHistory.showdown?.playerWinnings?.[player.name]) {
+              payout = handHistory.showdown.playerWinnings[player.name];
+            } else if (snapshot.payouts) {
+              payout = getNormalized(snapshot.payouts, playerKey) ?? 0;
+            }
 
             finalStack = initialStack - totalCommitted + payout;
-            console.log(`🏆 ${player.name} stack calculation: ${initialStack} - ${totalCommitted} + ${payout} = ${finalStack}`);
           }
 
-          // Detailed logging for suspect players (like CashUrChecks)
-          if (playerKey === 'cashurchecks' || snapshot.isAllIn?.[playerKey]) {
-            console.log(`DETAILS for ${playerKey}:`, {
-              playerStacks: snapshot.playerStacks ? getNormalized(snapshot.playerStacks, playerKey) : undefined,
-              totalCommitted: snapshot.totalCommitted ? getNormalized(snapshot.totalCommitted, playerKey) : undefined,
-              pendingContribs: snapshot.pendingContribs ? getNormalized(snapshot.pendingContribs, playerKey) : undefined,
-              isAllIn: snapshot.isAllIn?.[playerKey],
-              revealedHands: snapshot.revealedHands?.[playerKey],
-              payouts: snapshot.payouts ? getNormalized(snapshot.payouts, playerKey) : undefined
-            });
-          }
 
           // Criar player dinâmico com stack atualizado
           const dynamicPlayer = {
@@ -359,6 +347,7 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
                 isWinner={snapshot.street === 'showdown' && snapshot.winners?.includes(player.name)}
                 isShowdown={snapshot.street === 'showdown'}
                 lastAction={getLastActionForPlayer(player.name)}
+                isTournament={handHistory.gameContext?.isTournament}
               />
 
               {/* Dealer Button */}
@@ -382,7 +371,8 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
           heroPlayer = { ...handHistory.players[0], isHero: true };
         }
         const heroSeat = heroPlayer?.seat || 1;
-        const playersWithVisualSeats = calcularPosicoesVisuais([...handHistory.players], heroSeat);
+        const maxPlayers = handHistory.maxPlayers || handHistory.players.length;
+        const playersWithVisualSeats = calcularPosicoesVisuais([...handHistory.players], heroSeat, maxPlayers);
 
         return playersWithVisualSeats.map((player) => {
           // Use pendingContribs from snapshot - these represent chips in front of player during current street
@@ -406,25 +396,31 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
 
           let betAmount = getNormalized(snapshot.pendingContribs, player.name);
 
-          // DEBUG: Log pending contribs for all players
-          console.log(`🎰 ${player.name}: betAmount=${betAmount}, normalizedKey=${normalizeKey(player.name)}, pendingContribs:`, JSON.stringify(snapshot.pendingContribs, null, 2));
-
           // pendingContribs automatically handles:
           // - Initial blinds (SB/BB) in preflop snapshots
           // - Bets/raises during current street
           // - Reset to 0 when street changes (chips move to pot)
 
 
-          // Obter payout do jogador no showdown
-          const playerPayout = snapshot.street === 'showdown' && snapshot.payouts
-            ? getNormalized(snapshot.payouts, player.name) ?? 0
-            : 0;
+          // CRITICAL FIX: Obter payout do jogador no showdown
+          // Prioriza handHistory.showdown.playerWinnings (extraído da SUMMARY) sobre snapshot.payouts (calculado)
+          let playerPayout = 0;
+          if (snapshot.street === 'showdown') {
+            const playerKey = normalizeKey(player.name);
+            if (handHistory.showdown?.playerWinnings?.[player.name]) {
+              // Use EXACT value from "and won (X)" in SUMMARY section
+              playerPayout = handHistory.showdown.playerWinnings[player.name];
+            } else if (snapshot.payouts) {
+              // Fallback to calculated payouts
+              playerPayout = getNormalized(snapshot.payouts, playerKey) ?? 0;
+            }
+          }
 
           // Render bet chips in action area (durante jogo) ou payout chips (no showdown)
           const chipsToShow = snapshot.street === 'showdown' ? playerPayout : betAmount;
 
           if (chipsToShow > 0) {
-            const actionStyle = PokerUIUtils.getActionAreaPosition(player.visualSeat, playersWithVisualSeats.length);
+            const actionStyle = PokerUIUtils.getActionAreaPosition(player.visualSeat, maxPlayers);
             return (
               <div key={`action-${player.name}`} style={{
                 ...actionStyle,
@@ -457,7 +453,10 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
           <div className="flex flex-col items-end gap-2">
             {snapshot.winners.map((winner, idx) => {
               const winnerKey = normalizeKey(winner);
-              const totalWon = snapshot.payouts ? getNormalized(snapshot.payouts, winnerKey) ?? 0 : 0;
+              // CRITICAL FIX: Use playerWinnings from SUMMARY section if available
+              const totalWon = handHistory.showdown?.playerWinnings?.[winner]
+                ? handHistory.showdown.playerWinnings[winner]
+                : (snapshot.payouts ? getNormalized(snapshot.payouts, winnerKey) ?? 0 : 0);
               const winnerPlayer = handHistory.players.find(p => p.name === winner);
               const winningHandDescription = winnerPlayer?.cards && communityCards.length >= 3
                 ? PokerHandEvaluator.getBestHandDescription(winnerPlayer, communityCards)
@@ -471,7 +470,7 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
                     </div>
                     {totalWon > 0 && (
                       <div className="text-xs text-center mt-1">
-                        Won: {CurrencyUtils.formatCurrency(totalWon)}
+                        Won: {CurrencyUtils.formatValue(totalWon, handHistory.gameContext?.isTournament)}
                       </div>
                     )}
                   </div>
@@ -492,33 +491,18 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
         </div>
       )}
 
-      {/* Pot Display - Clear breakdown of main pot and side pots */}
-      {snapshot.pots && snapshot.pots.length > 0 && snapshot.street !== 'showdown' && (
-        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 pointer-events-none" style={{ zIndex: 25 }}>
-          <div className="bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2 border border-gray-600/50">
-            {snapshot.pots.map((pot, index) => (
-              <div key={index} className="text-center">
-                <div className="text-xs text-gray-400">
-                  {index === 0 ? 'Main Pot' : `Side Pot ${index}`}
-                </div>
-                <div className="text-sm font-bold text-yellow-400">
-                  {CurrencyUtils.formatCurrency(pot.value)}
-                </div>
-                {pot.eligiblePlayers && pot.eligiblePlayers.length < handHistory.players.length && (
-                  <div className="text-xs text-gray-500">
-                    ({pot.eligiblePlayers.length} players)
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* POD DE POTS REMOVIDO - informação redundante e atrapalha visualização */}
 
       {/* Controles de navegação */}
       <div className="absolute text-white text-sm" style={{ bottom: '1%', right: '2%' }}>
         <div>{t('replayer.street', { street: t(`streets.${snapshot.street}`) })}</div>
         <div>Snapshot: {snapshot.id + 1}</div>
+      </div>
+
+      {/* Hand info - canto superior esquerdo do background (mesmo layer que SB/BB) */}
+      <div className="absolute text-white text-sm" style={{ top: '1%', left: '2%' }}>
+        <div className="font-mono text-white/90">#{handHistory.handId.slice(-8)}</div>
+        <div className="font-semibold text-white">{handHistory.stakes} {handHistory.gameType}</div>
       </div>
 
       {/* Blinds info */}
@@ -527,12 +511,6 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
         <div>{t('table.bb', { amount: handHistory.bigBlind })}</div>
         {handHistory.ante && <div>{t('table.ante', { amount: handHistory.ante })}</div>}
       </div>
-      </div>
-
-      {/* Informações da mão - canto superior esquerdo do background */}
-      <div className="absolute top-2 left-2 text-white/70 text-xs text-left bg-black/50 backdrop-blur-sm px-3 py-2 rounded-lg border border-white/20" style={{ zIndex: 50 }}>
-        <div className="font-mono text-white/90">#{handHistory.handId.slice(-8)}</div>
-        <div className="font-semibold text-white">{handHistory.stakes} {handHistory.gameType}</div>
       </div>
     </div>
   );

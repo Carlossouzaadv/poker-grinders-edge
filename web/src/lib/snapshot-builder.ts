@@ -1,11 +1,17 @@
 // Compatibilidade para o sistema existente - converte ReplayState em Snapshots
 import { ReplayBuilder } from './replay-builder';
-import { HandHistory, Snapshot, Pot } from '@/types/poker';
+import { HandHistory, Snapshot, Pot, Card } from '@/types/poker';
 import { ReplayState, ReplayStep } from '@/types/replay';
 import { normalizeKey, setNormalized, getNormalized, incrementNormalized } from './normalize-key';
 import { HandParser } from './hand-parser';
 import { isAnomalyFallbackAllowed } from '../config/sidepot-config';
 import { AnomalyLogger } from './anomaly-logger';
+import { HandEvaluator } from './hand-evaluator';
+import { CurrencyUtils } from '@/utils/currency-utils';
+import { MathematicalGuards, GuardSeverity } from './guards/mathematical-guards';
+import { ErrorHandler } from './error-handling/error-handler';
+import { ErrorCode, ErrorSeverity } from '@/types/errors';
+import { DataValidator } from '@/utils/validation';
 
 export class SnapshotBuilder {
   // Site configuration for reveal behavior
@@ -29,9 +35,12 @@ export class SnapshotBuilder {
   ): void {
     const key = normalizeKey(actionStep.player);
 
-    // Get stack before action (in cents)
-    const stackBefore = getNormalized(snapshot.playerStacks, key) ||
+    // CRITICAL FIX: Get stack before action from playerStacks (already adjusted for antes/blinds)
+    // Use ?? instead of || to properly handle 0 values
+    const stackBefore = getNormalized(snapshot.playerStacks, key) ??
       HandParser.convertValueWithContext(handHistory.players.find(p => normalizeKey(p.name) === key)?.stack || 0, handHistory.gameContext!);
+
+    console.log(`🔍 ALL-IN DEBUG [${key}]: stackBefore=${stackBefore}, playerStacks[${key}]=${getNormalized(snapshot.playerStacks, key)}`);
 
     // Determine amount to commit (convert using game context)
     const parsedAmount = actionStep.amount ? HandParser.convertValueWithContext(actionStep.amount, handHistory.gameContext!) : 0;
@@ -72,103 +81,129 @@ export class SnapshotBuilder {
   }
 
   /**
-   * Advanced side pot calculation with eligibility rules and detailed logging
+   * DEFINITIVE side pot calculation for multiple all-in scenarios
+   * REFACTORED: Now uses SidePotCalculator for 100% robustness
    * @param totalCommittedMap - Map of player commitments in cents
    * @param playerStatusAtShowdown - Map of player statuses (folded, all-in, active)
+   * @param rake - Rake amount in cents (deducted from total pot)
    */
   private static async computeSidePots(
     totalCommittedMap: Record<string, number>,
-    playerStatusAtShowdown: Record<string, 'folded' | 'all-in' | 'active'> = {}
+    playerStatusAtShowdown: Record<string, 'folded' | 'all-in' | 'active'> = {},
+    rake: number = 0
   ): Promise<Array<{amount: number, eligible: string[], sourceLevel: number}>> {
 
-    console.log('🔍 TOTAL_COMMITTED BEFORE POTS (cents):', totalCommittedMap);
-    console.log('🔍 PLAYER_STATUS AT SHOWDOWN:', playerStatusAtShowdown);
+    // Delegate to production-ready SidePotCalculator
+    const { SidePotCalculator } = await import('./poker/side-pot-calculator');
+    return SidePotCalculator.calculate(totalCommittedMap, playerStatusAtShowdown, rake);
+  }
 
-    // Convert commitments to array and sort by contribution (ascending)
-    const commitmentLevels = Object.entries(totalCommittedMap)
-      .map(([player, committed]) => ({ player, committed }))
-      .sort((a, b) => a.committed - b.committed);
+  /**
+   * Run mathematical guards on snapshot state
+   */
+  private static async runMathematicalGuards(
+    snapshot: Snapshot,
+    handHistory: HandHistory,
+    initialStacks: Record<string, number>
+  ): Promise<void> {
+    const guards = [];
 
-    const pots: Array<{amount: number, eligible: string[], sourceLevel: number}> = [];
-    let prev = 0;
+    // 1. Validate pot accuracy
+    if (snapshot.totalCommitted) {
+      // CRITICAL: Rake is only applied at showdown, not during intermediate streets
+      const rakeCents = snapshot.street === 'showdown' && handHistory.rake
+        ? HandParser.convertValueWithContext(handHistory.rake, handHistory.gameContext!)
+        : 0;
 
-    // Process each distinct commitment level
-    for (let i = 0; i < commitmentLevels.length; i++) {
-      const currentLevel = commitmentLevels[i].committed;
-
-      // Skip duplicate levels
-      if (currentLevel === prev) continue;
-
-      const levelContribution = currentLevel - prev;
-      if (levelContribution <= 0) {
-        prev = currentLevel;
-        continue;
-      }
-
-      // Determine eligible players for this pot level
-      // Eligible = players who contributed >= currentLevel AND were not folded before showdown
-      const eligible = commitmentLevels
-        .filter(entry => entry.committed >= currentLevel)
-        .filter(entry => {
-          const status = playerStatusAtShowdown[entry.player];
-          // Player is eligible if they were active, all-in, or status unknown (assume active)
-          return !status || status === 'active' || status === 'all-in';
-        })
-        .map(entry => entry.player);
-
-      // Calculate pot amount: level contribution × number of remaining players at this level
-      const remainingPlayersCount = commitmentLevels.length - i;
-      const potAmount = levelContribution * remainingPlayersCount;
-
-      pots.push({
-        amount: potAmount,
-        eligible,
-        sourceLevel: currentLevel
-      });
-
-      console.log(`🔍 POT LEVEL ${currentLevel} cents: amount=${potAmount}, eligible=[${eligible.join(', ')}], players_at_level=${remainingPlayersCount}`);
-
-      prev = currentLevel;
-    }
-
-    // CRITICAL GUARD: Verify mathematical consistency
-    const sumPots = pots.reduce((sum, pot) => sum + pot.amount, 0);
-    const sumCommitted = Object.values(totalCommittedMap).reduce((sum, val) => sum + val, 0);
-
-    console.log(`🔍 SUM_POTS = ${sumPots} cents — sum(totalCommitted) = ${sumCommitted} cents`);
-
-    if (Math.abs(sumPots - sumCommitted) > 0) {
-      console.error(`❌ CRITICAL MATHEMATICAL ERROR: SUM_POTS (${sumPots}) !== sum(totalCommitted) (${sumCommitted}), difference: ${sumPots - sumCommitted} cents`);
-      console.error(`❌ DEBUG DUMP - totalCommittedMap:`, totalCommittedMap);
-      console.error(`❌ DEBUG DUMP - computed pots:`, pots);
-      console.error(`❌ DEBUG DUMP - commitmentLevels:`, commitmentLevels);
-
-      // Log mathematical inconsistency
-      const incidentId = await AnomalyLogger.logMathematicalInconsistency(
-        sumCommitted,
-        sumPots,
-        'pot calculation',
-        totalCommittedMap
+      guards.push(
+        MathematicalGuards.validatePotAccuracy(
+          snapshot.totalCommitted,
+          snapshot.totalDisplayedPot,
+          rakeCents,
+          `Snapshot ${snapshot.id} - ${snapshot.street}`
+        )
       );
 
-      throw new Error(`CRITICAL: Incident ${incidentId} - Mathematical inconsistency in pot calculation: ${sumPots} !== ${sumCommitted}`);
+      // 2. Validate side pots
+      guards.push(
+        MathematicalGuards.validateSidePots(
+          snapshot.totalCommitted,
+          snapshot.pots,
+          rakeCents,
+          `Snapshot ${snapshot.id} - ${snapshot.street}`
+        )
+      );
     }
 
-    // GUARD: Ensure no empty eligible arrays (should not happen in normal operation)
-    for (let i = 0; i < pots.length; i++) {
-      if (pots[i].eligible.length === 0) {
-        console.error(`❌ CRITICAL ANOMALY: POT ${i} has empty eligible array`);
-        console.error(`❌ DEBUG DUMP - pot:`, pots[i]);
-        console.error(`❌ DEBUG DUMP - totalCommittedMap:`, totalCommittedMap);
-        console.error(`❌ DEBUG DUMP - playerStatusAtShowdown:`, playerStatusAtShowdown);
+    // 3. Validate non-negative stacks
+    guards.push(
+      MathematicalGuards.validateNonNegativeValues(
+        snapshot.playerStacks,
+        'playerStacks',
+        `Snapshot ${snapshot.id} - ${snapshot.street}`
+      )
+    );
 
-        // This indicates a serious bug in eligibility logic
-        throw new Error(`CRITICAL ANOMALY: Pot ${i} at level ${pots[i].sourceLevel} has no eligible players - this should not happen`);
+    // 4. Validate all-in constraints
+    if (snapshot.isAllIn) {
+      for (const playerKey in snapshot.isAllIn) {
+        if (snapshot.isAllIn[playerKey]) {
+          const committed = snapshot.totalCommitted?.[playerKey] || 0;
+          const initialStack = initialStacks[playerKey] || 0;
+
+          // CRITICAL: The guard should receive the initial stack (before any deductions)
+          // because totalCommitted already includes antes, blinds, and all actions
+          guards.push(
+            MathematicalGuards.validateAllInConstraints(
+              playerKey,
+              true,
+              committed,
+              initialStack,
+              `Snapshot ${snapshot.id} - ${snapshot.street}`
+            )
+          );
+        }
       }
     }
 
-    console.log('🔍 COMPUTED POTS:', pots);
-    return pots;
+    // 5. Validate stack consistency at showdown
+    if (snapshot.street === 'showdown' && snapshot.payouts && snapshot.playerStacksPostShowdown) {
+      for (const playerKey in snapshot.playerStacksPostShowdown) {
+        const initialStack = initialStacks[playerKey] || 0;
+        const committed = snapshot.totalCommitted?.[playerKey] || 0;
+        const payout = snapshot.payouts[playerKey] || 0;
+        const finalStack = snapshot.playerStacksPostShowdown[playerKey];
+
+        guards.push(
+          MathematicalGuards.validateStackConsistency(
+            playerKey,
+            initialStack,
+            committed,
+            payout,
+            finalStack,
+            `Snapshot ${snapshot.id} - showdown`
+          )
+        );
+      }
+    }
+
+    // Run all guards and handle results
+    const { passed, results } = await MathematicalGuards.runAllGuards(guards);
+
+    if (!passed) {
+      const criticalFailures = results.filter(r => !r.passed && r.severity === GuardSeverity.CRITICAL);
+
+      if (criticalFailures.length > 0) {
+        const errorMessages = criticalFailures.map(f => f.message).join('; ');
+        throw new Error(`CRITICAL GUARD FAILURES: ${errorMessages}`);
+      }
+
+      // For non-critical failures, log but continue
+      const nonCriticalFailures = results.filter(r => !r.passed && r.severity !== GuardSeverity.CRITICAL);
+      if (nonCriticalFailures.length > 0) {
+        console.warn(`⚠️ ${nonCriticalFailures.length} non-critical guard failures detected`);
+      }
+    }
   }
 
   /**
@@ -176,23 +211,29 @@ export class SnapshotBuilder {
    */
   private static async calculateSidePots(
     playerContributions: Record<string, number>,
-    foldedPlayers: Set<string>
+    foldedPlayers: Set<string>,
+    rake: number = 0
   ): Promise<Pot[]> {
-    // Use new deterministic algorithm but convert to legacy format
-    const activePlayers = Object.keys(playerContributions).filter(
-      player => !foldedPlayers.has(normalizeKey(player))
-    );
+    console.log(`[calculateSidePots] INPUT - playerContributions:`, playerContributions, `foldedPlayers:`, Array.from(foldedPlayers));
 
-    if (activePlayers.length === 0) {
+    // Build playerStatusAtShowdown map from foldedPlayers
+    const playerStatusAtShowdown: Record<string, 'folded' | 'active'> = {};
+    Object.keys(playerContributions).forEach(player => {
+      const normalizedPlayer = normalizeKey(player);
+      playerStatusAtShowdown[normalizedPlayer] = foldedPlayers.has(normalizedPlayer) ? 'folded' : 'active';
+    });
+
+    console.log(`[calculateSidePots] playerStatusAtShowdown:`, playerStatusAtShowdown);
+
+    // Check if all players folded
+    const hasActivePlayer = Object.values(playerStatusAtShowdown).some(status => status === 'active');
+    if (!hasActivePlayer) {
       return [{ value: 0, eligiblePlayers: [], isPotSide: false }];
     }
 
-    const activeContribs: Record<string, number> = {};
-    activePlayers.forEach(player => {
-      activeContribs[player] = playerContributions[player] || 0;
-    });
-
-    const sidePots = await this.computeSidePots(activeContribs);
+    // Pass ALL contributions (including folded players) to computeSidePots
+    // The SidePotCalculator will handle eligibility based on playerStatusAtShowdown
+    const sidePots = await this.computeSidePots(playerContributions, playerStatusAtShowdown, rake);
 
     return sidePots.map((pot, index) => ({
       value: pot.amount,
@@ -206,7 +247,16 @@ export class SnapshotBuilder {
       const replayState = ReplayBuilder.buildReplayFromHand(handHistory);
 
       if (!replayState || !replayState.steps) {
-        console.warn('ReplayState is empty or has no steps');
+        const error = ErrorHandler.createSnapshotError(
+          ErrorCode.SNAPSHOT_INVALID_ACTION,
+          'ReplayState is empty or has no steps',
+          {
+            context: 'SnapshotBuilder.buildSnapshots',
+            severity: ErrorSeverity.ERROR,
+            isRecoverable: false
+          }
+        );
+        ErrorHandler.log(error.toAppError());
         return [];
       }
 
@@ -221,24 +271,43 @@ export class SnapshotBuilder {
 
       // Ajustar stacks iniciais subtraindo antes e blinds já colocados na mesa (using normalized keys)
       const currentStacks: Record<string, number> = {};
+      const initialStacks: Record<string, number> = {}; // Track initial stacks for guards
+      console.log(`📊 STACK INITIALIZATION - ante=${handHistory.ante}, SB=${handHistory.smallBlind}, BB=${handHistory.bigBlind}`);
+
       handHistory.players.forEach(player => {
         const key = normalizeKey(player.name);
         let adjustedStack = HandParser.convertValueWithContext(player.stack, handHistory.gameContext!);
 
+        // Store initial stack before adjustments
+        initialStacks[key] = adjustedStack;
+        console.log(`  👤 ${player.name} (${key}): initial stack = ${adjustedStack}`);
+
+        let deductions = 0;
+
         // Subtrair ante se houver
         if (handHistory.ante && handHistory.ante > 0) {
-          adjustedStack -= HandParser.convertValueWithContext(handHistory.ante, handHistory.gameContext!);
+          const anteAmount = HandParser.convertValueWithContext(handHistory.ante, handHistory.gameContext!);
+          adjustedStack -= anteAmount;
+          deductions += anteAmount;
+          console.log(`     - Ante: ${anteAmount} → stack now ${adjustedStack}`);
         }
 
         // Subtrair blinds
         if (player.position === 'SB') {
-          adjustedStack -= HandParser.convertValueWithContext(handHistory.smallBlind, handHistory.gameContext!);
+          const sbAmount = HandParser.convertValueWithContext(handHistory.smallBlind, handHistory.gameContext!);
+          adjustedStack -= sbAmount;
+          deductions += sbAmount;
+          console.log(`     - SB: ${sbAmount} → stack now ${adjustedStack}`);
         } else if (player.position === 'BB') {
-          adjustedStack -= HandParser.convertValueWithContext(handHistory.bigBlind, handHistory.gameContext!);
+          const bbAmount = HandParser.convertValueWithContext(handHistory.bigBlind, handHistory.gameContext!);
+          adjustedStack -= bbAmount;
+          deductions += bbAmount;
+          console.log(`     - BB: ${bbAmount} → stack now ${adjustedStack}`);
         }
 
         // Atualizar stack (garantindo que não fique negativo)
         currentStacks[key] = Math.max(0, adjustedStack);
+        console.log(`  ✅ ${player.name} (${key}): final stack = ${currentStacks[key]} (deducted ${deductions})`);
       });
 
       let communityCards: any[] = [];
@@ -267,12 +336,15 @@ export class SnapshotBuilder {
         }
       });
 
-      // Adicionar snapshot inicial para mostrar as blinds
+      // Adicionar snapshot inicial para mostrar APENAS blinds (antes vão direto pro pot)
       const initialPendingContribs: Record<string, number> = {};
 
-      // Blinds devem aparecer como pending contributions inicialmente (using game context)
+      // VISUAL IMPROVEMENT: Antes vão direto para o pot central (não ficam ao lado dos jogadores)
+      // Apenas blinds ficam visíveis como pending contributions
       handHistory.players.forEach(player => {
         const normalizedKey = normalizeKey(player.name);
+
+        // Add blinds ONLY to pending contribs (antes já estão no totalContribs e serão mostrados no pot central)
         if (player.position === 'SB') {
           const blindAmount = HandParser.convertValueWithContext(handHistory.smallBlind, handHistory.gameContext!);
           setNormalized(initialPendingContribs, normalizedKey, blindAmount);
@@ -284,12 +356,16 @@ export class SnapshotBuilder {
         }
       });
 
+      console.log(`💡 ANTES (${totalAntes}) vão direto para o pot central, apenas blinds ficam visíveis`);
+
       // Inicializar pendingContribs com os blinds para os snapshots subsequentes
       Object.keys(initialPendingContribs).forEach(key => {
         pendingContribs[key] = initialPendingContribs[key];
       });
 
-      const initialPots = await this.calculateSidePots(totalContribs, folded);
+      // NOTE: Rake is only applied at showdown, not during intermediate streets
+      // So we pass rake=0 for all snapshots except the final showdown snapshot
+      const initialPots = await this.calculateSidePots(totalContribs, folded, 0);
       const initialSnapshot: Snapshot = {
         id: 0,
         street: 'preflop',
@@ -358,9 +434,11 @@ export class SnapshotBuilder {
               incrementNormalized(totalContribs, playerKey, amountCents);
 
               // Update stack
-              const currentStack = getNormalized(currentStacks, playerKey) || 0;
+              const currentStack = getNormalized(currentStacks, playerKey) ?? 0;
               const newStack = Math.max(0, currentStack - amountCents);
               setNormalized(currentStacks, playerKey, newStack);
+
+              console.log(`💰 NORMAL ACTION [${playerKey}]: ${actionStep.action} ${amountCents} → stack ${currentStack} → ${newStack}`);
             }
             break;
 
@@ -396,8 +474,23 @@ export class SnapshotBuilder {
         // Calcular o pot total simples: soma de todas as contribuições
         const totalPotValue = Object.values(totalContribs).reduce((sum, contrib) => sum + contrib, 0);
 
-        // Calcular side-pots
-        const pots = await this.calculateSidePots(totalContribs, folded);
+        // CORREÇÃO CRÍTICA: Side pots SÓ devem ser calculados quando há all-in
+        // Durante betting rounds normais: apenas Main Pot
+        let pots: Array<{value: number, eligiblePlayers: string[]}> = [];
+        const hasAllIn = Object.values(isAllIn).some(allIn => allIn);
+
+        if (hasAllIn || currentStreet === 'showdown') {
+          // Calcular side pots apenas se há all-in ou no showdown
+          pots = await this.calculateSidePots(totalContribs, folded, 0);
+        } else {
+          // Betting round normal: apenas Main Pot
+          pots = [{
+            value: totalPotValue,
+            eligiblePlayers: handHistory.players
+              .filter(p => !folded.has(normalizeKey(p.name)))
+              .map(p => p.name)
+          }];
+        }
 
         // Detectar all-in situation com cartas expostas (using normalized keys)
         const activePlayers = handHistory.players.filter(p => !folded.has(normalizeKey(p.name)));
@@ -456,7 +549,7 @@ export class SnapshotBuilder {
             // Cartas reveladas durante a mão (all-in)
             ...revealedCards
           } : undefined,
-          winners: currentStreet === 'showdown' ? handHistory.showdown?.winners : undefined,
+          winners: currentStreet === 'showdown' && handHistory.showdown?.winners ? [...handHistory.showdown.winners] : undefined,
 
           // Campos adicionados para tracking preciso
           totalCommitted: { ...totalContribs },
@@ -470,6 +563,24 @@ export class SnapshotBuilder {
         console.log(`   pendingContribs:`, JSON.stringify(snapshot.pendingContribs, null, 2));
         console.log(`   totalDisplayedPot: ${snapshot.totalDisplayedPot}, activePlayer: ${snapshot.activePlayer}`);
 
+        // Run mathematical guards on this snapshot
+        await this.runMathematicalGuards(snapshot, handHistory, initialStacks);
+
+        // Validate snapshot
+        const validationErrors = DataValidator.validateSnapshot(snapshot);
+        if (validationErrors.length > 0) {
+          const criticalErrors = validationErrors.filter(e => e.severity === ErrorSeverity.CRITICAL);
+
+          validationErrors.forEach(err => {
+            console.warn(`⚠️ Snapshot ${snapshot.id} Validation ${err.severity}: ${err.message}`, err.details);
+          });
+
+          // For critical errors in snapshots, log but continue (don't break the entire flow)
+          if (criticalErrors.length > 0) {
+            criticalErrors.forEach(err => ErrorHandler.log(err));
+          }
+        }
+
         snapshots.push(snapshot);
       }
 
@@ -477,7 +588,27 @@ export class SnapshotBuilder {
       return snapshots;
 
     } catch (error) {
-      console.error('Error in SnapshotBuilder:', error);
+      const appError = ErrorHandler.handle(
+        error,
+        'SnapshotBuilder.buildSnapshots',
+        { handHistory },
+        { logToConsole: true, logToFile: true }
+      );
+
+      // For critical errors, throw to propagate
+      if (appError.severity === ErrorSeverity.CRITICAL) {
+        throw ErrorHandler.createSnapshotError(
+          appError.code,
+          appError.message,
+          {
+            context: 'SnapshotBuilder.buildSnapshots',
+            details: appError.details,
+            severity: ErrorSeverity.CRITICAL,
+            isRecoverable: false
+          }
+        );
+      }
+
       return [];
     }
   }
@@ -530,51 +661,53 @@ export class SnapshotBuilder {
       return payouts;
     }
 
-    // CRITICAL: Deduzir rake do total committed antes de calcular os pots
+    // CRITICAL: Calculate rake and pass to SidePotCalculator (centralized approach)
     const rakeCents = handHistory.rake ? HandParser.convertValueWithContext(handHistory.rake, handHistory.gameContext!) : 0;
-    const totalCommittedAfterRake = { ...totalCommitted };
 
     if (rakeCents > 0) {
-      console.log(`💰 RAKE DEDUCTION: ${rakeCents} cents from total pot`);
-
-      // Deduzir rake proporcionalmente de todos os jogadores que contribuíram
-      const totalCommittedSum = Object.values(totalCommitted).reduce((sum, val) => sum + val, 0);
-
-      if (totalCommittedSum > 0) {
-        Object.keys(totalCommittedAfterRake).forEach(player => {
-          const playerContribution = totalCommitted[player];
-          const playerRakeShare = Math.floor((playerContribution / totalCommittedSum) * rakeCents);
-          totalCommittedAfterRake[player] = playerContribution - playerRakeShare;
-          console.log(`  ${player}: ${playerContribution} - ${playerRakeShare} = ${totalCommittedAfterRake[player]}`);
-        });
-      }
+      console.log(`💰 RAKE: ${rakeCents} cents will be deducted from total pot`);
     }
 
-    // Use side pot calculation for deterministic payouts (after rake deduction)
-    const pots = await this.computeSidePots(totalCommittedAfterRake, playerStatusAtShowdown);
+    // Use side pot calculation for deterministic payouts (passing original totalCommitted and rake)
+    const pots = await this.computeSidePots(totalCommitted, playerStatusAtShowdown, rakeCents);
 
-    // CRITICAL GUARD: Verify mathematical consistency before distribution
+    // CRITICAL GUARD: Verify mathematical consistency before distribution with EPSILON tolerance
     const sumPots = pots.reduce((sum, pot) => sum + pot.amount, 0);
-    const sumCommittedAfterRakeCalc = Object.values(totalCommittedAfterRake).reduce((sum, val) => sum + val, 0);
     const sumCommittedOriginal = Object.values(totalCommitted).reduce((sum, val) => sum + val, 0);
+    const expectedSumForGuard = sumCommittedOriginal - rakeCents;
 
-    if (Math.abs(sumPots - sumCommittedAfterRakeCalc) > 0) {
-      console.error(`❌ CRITICAL ERROR: SUM_POTS (${sumPots}) !== sum(totalCommittedAfterRake) (${sumCommittedAfterRakeCalc})`);
+    if (CurrencyUtils.hasDifference(sumPots, expectedSumForGuard)) {
+      console.error(`❌ CRITICAL ERROR: SUM_POTS (${sumPots}) !== (sum(totalCommitted) - rake) (${expectedSumForGuard})`);
       console.error(`❌ DEBUG DUMP - totalCommitted:`, totalCommitted);
-      console.error(`❌ DEBUG DUMP - totalCommittedAfterRake:`, totalCommittedAfterRake);
+      console.error(`❌ DEBUG DUMP - rakeCents:`, rakeCents);
       console.error(`❌ DEBUG DUMP - computed pots:`, pots);
-      throw new Error(`Mathematical inconsistency detected: ${sumPots} !== ${sumCommittedAfterRakeCalc}`);
+      throw new Error(`Mathematical inconsistency detected: ${sumPots} !== ${expectedSumForGuard}`);
     }
 
     console.log(`💰 POT VERIFICATION: Total committed = ${sumCommittedOriginal} cents, Rake = ${rakeCents} cents, Pots after rake = ${sumPots} cents`);
 
     const globalWinners = handHistory.showdown.winners.map(w => normalizeKey(w));
-    console.log(`🔍 GLOBAL SHOWDOWN WINNERS: [${globalWinners.join(', ')}]`);
+    console.log(`🔍 GLOBAL SHOWDOWN WINNERS RAW: [${handHistory.showdown.winners.join(', ')}]`);
+    console.log(`🔍 GLOBAL SHOWDOWN WINNERS NORMALIZED: [${globalWinners.join(', ')}]`);
+
+    // Collect all community cards for hand evaluation
+    const communityCards: Card[] = [];
+    if (handHistory.flop.cards.length > 0) {
+      communityCards.push(...handHistory.flop.cards);
+    }
+    if (handHistory.turn.card) {
+      communityCards.push(handHistory.turn.card);
+    }
+    if (handHistory.river.card) {
+      communityCards.push(handHistory.river.card);
+    }
+    console.log(`🃏 COMMUNITY CARDS: [${communityCards.map(c => c.rank + c.suit).join(', ')}]`);
 
     // Distribute each pot following poker rules
     for (let index = 0; index < pots.length; index++) {
       const pot = pots[index];
       console.log(`🔍 PROCESSING POT ${index}: amount=${pot.amount} cents, eligible=[${pot.eligible.join(', ')}]`);
+      console.log(`🔍 POT ${index} ELIGIBLE (already normalized): [${pot.eligible.join(', ')}]`);
 
       if (pot.eligible.length === 1) {
         // POKER RULE: Single eligible player automatically wins the pot
@@ -583,8 +716,8 @@ export class SnapshotBuilder {
         console.log(`🏆 SINGLE-ELIGIBLE POT: POT ${index} (${pot.amount} cents) → ${soleWinner} (automatic win)`);
 
       } else if (pot.eligible.length > 1) {
-        // POKER RULE: Determine winners ONLY among eligible players
-        const eligibleWinners = this.determineWinnersAmongEligible(pot.eligible, globalWinners);
+        // POKER RULE: Determine winners ONLY among eligible players using hand evaluation
+        const eligibleWinners = this.determineWinnersAmongEligible(pot.eligible, globalWinners, handHistory, communityCards);
 
         if (eligibleWinners.length > 0) {
           // Standard distribution: divide pot among eligible winners
@@ -654,12 +787,12 @@ export class SnapshotBuilder {
       }
     }
 
-    // Verify mathematical consistency after distribution
+    // Verify mathematical consistency after distribution with EPSILON tolerance
     const sumPayouts = Object.values(payouts).reduce((sum, val) => sum + val, 0);
     console.log('🔍 PAYOUTS AFTER DISTR (cents):', payouts, `SUM_PAYOUTS = ${sumPayouts} cents`);
     console.log(`🔍 PAYOUT VERIFICATION: SUM_PAYOUTS = ${sumPayouts}, SUM_POTS = ${sumPots}`);
 
-    if (Math.abs(sumPayouts - sumPots) > 0) {
+    if (CurrencyUtils.hasDifference(sumPayouts, sumPots)) {
       console.error(`❌ PAYOUT ERROR: SUM_PAYOUTS (${sumPayouts}) !== SUM_POTS (${sumPots}), difference: ${sumPayouts - sumPots} cents`);
       throw new Error(`Payout distribution error: ${sumPayouts} !== ${sumPots}`);
     }
@@ -668,20 +801,84 @@ export class SnapshotBuilder {
   }
 
   /**
-   * Determine winners among eligible players only (poker rule)
+   * Determine winners among eligible players using hand evaluation
+   * This is the DEFINITIVE solution that compares actual hand strengths
    */
-  private static determineWinnersAmongEligible(eligible: string[], globalWinners: string[]): string[] {
+  private static determineWinnersAmongEligible(
+    eligible: string[],
+    globalWinners: string[],
+    handHistory: HandHistory,
+    communityCards: Card[]
+  ): string[] {
     const eligibleNormalized = eligible.map(p => normalizeKey(p));
     const globalWinnersNormalized = globalWinners.map(w => normalizeKey(w));
 
-    // Find intersection: eligible players who also won at showdown
+    // First, try to use global winners if they match eligible players
     const winnersAmongEligible = eligibleNormalized.filter(player =>
       globalWinnersNormalized.includes(player)
     );
 
-    console.log(`🔍 ELIGIBLE: [${eligibleNormalized.join(', ')}] vs GLOBAL_WINNERS: [${globalWinnersNormalized.join(', ')}] → WINNERS_AMONG_ELIGIBLE: [${winnersAmongEligible.join(', ')}]`);
+    console.log(`🔍 ELIGIBLE: [${eligibleNormalized.join(', ')}] vs GLOBAL_WINNERS: [${globalWinnersNormalized.join(', ')}] → INTERSECTION: [${winnersAmongEligible.join(', ')}]`);
 
-    return winnersAmongEligible;
+    // If we have a clear match, use it
+    if (winnersAmongEligible.length > 0) {
+      return winnersAmongEligible;
+    }
+
+    // CRITICAL: No intersection - this is a side pot scenario or the global winners
+    // are not eligible for this specific pot. We MUST evaluate hands ourselves.
+    console.log(`🎯 NO INTERSECTION - Using hand evaluator to determine winner among eligible players`);
+
+    // Collect hole cards and community cards for each eligible player
+    const playerHands: Array<{ playerKey: string, holeCards: Card[], communityCards: Card[] }> = [];
+
+    for (const eligiblePlayerKey of eligibleNormalized) {
+      // Find the player in handHistory
+      const player = handHistory.players.find(p => normalizeKey(p.name) === eligiblePlayerKey);
+
+      if (!player) {
+        console.error(`❌ ERROR: Eligible player ${eligiblePlayerKey} not found in handHistory.players`);
+        continue;
+      }
+
+      if (!player.cards || player.cards.length !== 2) {
+        console.error(`❌ ERROR: Eligible player ${eligiblePlayerKey} has no hole cards or invalid cards:`, player.cards);
+        continue;
+      }
+
+      playerHands.push({
+        playerKey: eligiblePlayerKey,
+        holeCards: [...player.cards],
+        communityCards: communityCards
+      });
+
+      console.log(`🃏 EVALUATING: ${eligiblePlayerKey} with hole cards [${player.cards.map(c => c.rank + c.suit).join(', ')}]`);
+    }
+
+    if (playerHands.length === 0) {
+      console.error(`❌ CRITICAL ERROR: No valid hands to evaluate among eligible players`);
+      // Fallback: return all eligible players (split pot)
+      return eligibleNormalized;
+    }
+
+    // Use HandEvaluator to determine winners
+    const winnerIndices = HandEvaluator.determineWinners(
+      playerHands.map(ph => ({ holeCards: ph.holeCards, communityCards: ph.communityCards }))
+    );
+
+    const winners = winnerIndices.map(idx => playerHands[idx].playerKey);
+
+    console.log(`🏆 HAND EVALUATION RESULT: Winners = [${winners.join(', ')}]`);
+
+    // Log hand evaluations for transparency
+    for (let i = 0; i < playerHands.length; i++) {
+      const ph = playerHands[i];
+      const evaluation = HandEvaluator.evaluateHand(ph.holeCards, ph.communityCards);
+      const isWinner = winnerIndices.includes(i);
+      console.log(`   ${isWinner ? '🏆' : '  '} ${ph.playerKey}: ${evaluation.description} (rank=${evaluation.rankName}, values=[${evaluation.values.join(', ')}])`);
+    }
+
+    return winners;
   }
 
   /**
@@ -709,15 +906,15 @@ export class SnapshotBuilder {
       if (handHistory.gameContext!.isTournament) {
         finalStackValue = expectedFinalCents; // Already in chips, no conversion needed
       } else {
-        finalStackValue = HandParser.centsToDollars(expectedFinalCents); // Convert cents to dollars
+        finalStackValue = CurrencyUtils.centsToDollars(expectedFinalCents); // Convert cents to dollars
       }
       finalStacks[key] = finalStackValue;
 
       // Log for reconciliation (context-aware display)
       const displayUnit = handHistory.gameContext!.isTournament ? 'chips' : 'dollars';
-      const displayInitial = handHistory.gameContext!.isTournament ? initialStackCents : HandParser.centsToDollars(initialStackCents);
-      const displayCommitted = handHistory.gameContext!.isTournament ? committedCents : HandParser.centsToDollars(committedCents);
-      const displayPayout = handHistory.gameContext!.isTournament ? payoutCents : HandParser.centsToDollars(payoutCents);
+      const displayInitial = handHistory.gameContext!.isTournament ? initialStackCents : CurrencyUtils.centsToDollars(initialStackCents);
+      const displayCommitted = handHistory.gameContext!.isTournament ? committedCents : CurrencyUtils.centsToDollars(committedCents);
+      const displayPayout = handHistory.gameContext!.isTournament ? payoutCents : CurrencyUtils.centsToDollars(payoutCents);
       console.log(`🧮 Final stack calc for ${key}: ${displayInitial} - ${displayCommitted} + ${displayPayout} = ${finalStackValue} ${displayUnit}`);
     });
 

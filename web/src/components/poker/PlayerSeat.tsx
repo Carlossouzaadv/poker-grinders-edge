@@ -1,6 +1,7 @@
 import React from 'react';
 import { Player } from '@/types/poker';
 import Card from './Card';
+import { CurrencyUtils } from '@/utils/currency-utils';
 
 interface PlayerSeatProps {
   player: Player;
@@ -11,9 +12,10 @@ interface PlayerSeatProps {
   isWinner?: boolean;
   isShowdown?: boolean;
   lastAction?: string; // Add action display support
+  isTournament?: boolean; // Add tournament detection
 }
 
-const PlayerSeat: React.FC<PlayerSeatProps> = ({
+const PlayerSeat: React.FC<PlayerSeatProps> = React.memo(({
   player,
   isActive = false,
   showCards = false,
@@ -21,7 +23,8 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
   hasFolded = false,
   isWinner = false,
   isShowdown = false,
-  lastAction
+  lastAction,
+  isTournament = false
 }) => {
   return (
     <div className={`seat-pod relative flex flex-col items-center transition-all duration-500 ${
@@ -119,7 +122,7 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
             <div className="text-center mb-1">
               <div className="px-2 py-1 rounded-md bg-green-500/20 border border-green-400/30 backdrop-blur-sm">
                 <div className="text-xs text-green-300 font-medium">
-                  ${player.stack.toFixed(0)}
+                  {CurrencyUtils.formatValue(Math.round(player.stack), isTournament)}
                 </div>
               </div>
             </div>
@@ -129,7 +132,7 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
               <div className="text-center mb-1">
                 <div className="px-2 py-1 rounded-md bg-yellow-500/20 border border-yellow-400/30 backdrop-blur-sm">
                   <div className="text-xs text-yellow-300 font-medium">
-                    🎯 ${player.bounty.toFixed(2)}
+                    🎯 {CurrencyUtils.formatValue(Math.round(player.bounty), isTournament)}
                   </div>
                 </div>
               </div>
@@ -155,6 +158,6 @@ const PlayerSeat: React.FC<PlayerSeatProps> = ({
       */}
     </div>
   );
-};
+});
 
 export default PlayerSeat;

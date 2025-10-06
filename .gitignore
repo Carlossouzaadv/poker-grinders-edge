@@ -10,6 +10,12 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
+.env.migration
+backend/.env.production
+backend/.env.migration
+web/.env.production
+web/.env.migration
 
 # IDE
 .vscode/
@@ -64,3 +70,5 @@ web-build/
 # Temporary files
 tmp/
 temp/
+nul
+**/nul

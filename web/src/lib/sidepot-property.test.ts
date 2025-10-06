@@ -1,3 +1,4 @@
+import { CurrencyUtils } from '@/utils/currency-utils';
 import fc from 'fast-check';
 import { HandParser } from './hand-parser';
 import { SnapshotBuilder } from './snapshot-builder';
@@ -48,7 +49,7 @@ ${players.filter((_, i) => !foldTimes[i] || foldTimes[i] > 50).map(name =>
     ).join('\n')}
 ${players.filter((_, i) => (!foldTimes[i] || foldTimes[i] > 50) && commits[i] > 0)[0] || players[0]}: collected ${commits.reduce((sum, c) => sum + c, 0)} from pot
 *** SUMMARY ***
-Total pot ${HandParser.centsToDollars(commits.reduce((sum, c) => sum + c, 0))} | Rake 0
+Total pot ${CurrencyUtils.centsToDollars(commits.reduce((sum, c) => sum + c, 0))} | Rake 0
 Board [2h 3d 4c 5s 6h]
 ${players.map((name, i) => {
       const folded = foldTimes[i] <= 50 || commits[i] === 0;
@@ -61,7 +62,7 @@ ${players.map((name, i) => {
 
   describe('Invariant Properties', () => {
     it('should always satisfy mathematical consistency', async () => {
-      fc.assert(fc.property(
+      await fc.assert(fc.asyncProperty(
         fc.integer({ min: 2, max: 8 }),                           // playerCount
         fc.array(fc.integer({ min: 0, max: 10000 }), { minLength: 2, maxLength: 8 }), // commits (in cents)
         fc.array(fc.integer({ min: 0, max: 100 }), { minLength: 2, maxLength: 8 }),   // foldTimes (0-100, <=50 means fold)
@@ -78,7 +79,7 @@ ${players.map((name, i) => {
             const handHistory = createHandHistoryFromCommits(playerCount, commits, foldTimes);
             const parseResult = HandParser.parse(handHistory);
 
-            if (!parseResult.success) {
+            if (!parseResult.success || !parseResult.handHistory) {
               // Skip invalid hands in property tests
               return true;
             }
@@ -138,7 +139,7 @@ ${players.map((name, i) => {
     });
 
     it('should handle single-eligible-player scenarios correctly', async () => {
-      fc.assert(fc.property(
+      await fc.assert(fc.asyncProperty(
         fc.integer({ min: 2, max: 5 }),                     // playerCount
         fc.integer({ min: 50, max: 1000 }),                // baseCommit
         fc.integer({ min: 1, max: 500 }),                  // extraCommit
@@ -153,7 +154,7 @@ ${players.map((name, i) => {
             const handHistory = createHandHistoryFromCommits(playerCount, commits, foldTimes);
             const parseResult = HandParser.parse(handHistory);
 
-            if (!parseResult.success) return true;
+            if (!parseResult.success || !parseResult.handHistory) return true;
 
             const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
             const finalSnapshot = snapshots[snapshots.length - 1];
@@ -199,7 +200,7 @@ ${players.map((name, i) => {
         const handHistory = createHandHistoryFromCommits(3, commits, foldTimes);
         const parseResult = HandParser.parse(handHistory);
 
-        if (parseResult.success) {
+        if (parseResult.success && parseResult.handHistory) {
           const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
           const finalSnapshot = snapshots[snapshots.length - 1];
 
@@ -224,7 +225,7 @@ ${players.map((name, i) => {
         const handHistory = createHandHistoryFromCommits(3, commits, foldTimes);
         const parseResult = HandParser.parse(handHistory);
 
-        if (parseResult.success) {
+        if (parseResult.success && parseResult.handHistory) {
           const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
           const finalSnapshot = snapshots[snapshots.length - 1];
 

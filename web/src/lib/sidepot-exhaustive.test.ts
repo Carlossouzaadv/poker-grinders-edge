@@ -1,3 +1,4 @@
+import { CurrencyUtils } from '@/utils/currency-utils';
 import { HandParser } from './hand-parser';
 import { SnapshotBuilder } from './snapshot-builder';
 import { normalizeKey } from './normalize-key';
@@ -80,7 +81,7 @@ ${players.map((name, i) => {
 ${players[0]}: shows [As Ks] (high card Ace)
 ${players.filter((_, i) => commits[i] > 0)[0]}: collected ${commits.reduce((sum, c) => sum + c, 0)} from pot
 *** SUMMARY ***
-Total pot ${HandParser.centsToDollars(commits.reduce((sum, c) => sum + c, 0))} | Rake 0
+Total pot ${CurrencyUtils.centsToDollars(commits.reduce((sum, c) => sum + c, 0))} | Rake 0
 Board [2h 3d 4c 5s 6h]
 ${players.map((name, i) => {
   if (commits[i] === 0) return `Seat ${i + 1}: ${name} folded before Flop`;
@@ -108,7 +109,7 @@ ${players.map((name, i) => {
             const handHistory = createMockHandHistory(playerCount, commits);
             const parseResult = HandParser.parse(handHistory);
 
-            if (!parseResult.success) {
+            if (!parseResult.success || !parseResult.handHistory) {
               // Skip invalid hand histories for exhaustive test
               return;
             }
@@ -164,7 +165,7 @@ ${players.map((name, i) => {
       const handHistory = createMockHandHistory(3, commits);
       const parseResult = HandParser.parse(handHistory);
 
-      if (parseResult.success) {
+      if (parseResult.success && parseResult.handHistory) {
         const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];
 
@@ -182,7 +183,7 @@ ${players.map((name, i) => {
       const handHistory = createMockHandHistory(3, commits);
       const parseResult = HandParser.parse(handHistory);
 
-      if (parseResult.success) {
+      if (parseResult.success && parseResult.handHistory) {
         const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];
 
@@ -200,7 +201,7 @@ ${players.map((name, i) => {
       const handHistory = createMockHandHistory(3, commits);
       const parseResult = HandParser.parse(handHistory);
 
-      if (parseResult.success) {
+      if (parseResult.success && parseResult.handHistory) {
         const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];
 

@@ -21,6 +21,7 @@ export default function Home() {
             src="/assets/images/nova id visual/Hero.jpg"
             alt="Background"
             fill
+            sizes="100vw"
             className="object-cover"
             priority
           />
@@ -68,6 +69,7 @@ export default function Home() {
             src="/assets/images/nova id visual/background1.jpg"
             alt="Background Pattern"
             fill
+            sizes="100vw"
             className="object-cover"
           />
           <div className="absolute inset-0 bg-black/95" />
@@ -89,6 +91,7 @@ export default function Home() {
                   src="/assets/images/nova id visual/icon-copy.png"
                   alt="Ícone Copiar"
                   fill
+                  sizes="96px"
                   className="object-contain"
                 />
               </div>
@@ -110,6 +113,7 @@ export default function Home() {
                   src="/assets/images/nova id visual/icon-paste.png"
                   alt="Ícone Colar"
                   fill
+                  sizes="96px"
                   className="object-contain"
                 />
               </div>
@@ -131,6 +135,7 @@ export default function Home() {
                   src="/assets/images/nova id visual/icon-analyze.png"
                   alt="Ícone Analisar"
                   fill
+                  sizes="96px"
                   className="object-contain"
                 />
               </div>
@@ -173,6 +178,7 @@ export default function Home() {
                   src="/assets/images/nova id visual/bankroll.png"
                   alt="Gestor de Bankroll"
                   fill
+                  sizes="96px"
                   className="object-contain group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
@@ -196,6 +202,7 @@ export default function Home() {
                   src="/assets/images/nova id visual/GTO.png"
                   alt="Laboratório GTO"
                   fill
+                  sizes="96px"
                   className="object-contain group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
@@ -219,6 +226,7 @@ export default function Home() {
                   src="/assets/images/nova id visual/gestao-de-times.png"
                   alt="Gestão de Times"
                   fill
+                  sizes="96px"
                   className="object-contain group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
@@ -242,6 +250,7 @@ export default function Home() {
                   src="/assets/images/nova id visual/marketplace.png"
                   alt="Marketplace de Coaches"
                   fill
+                  sizes="96px"
                   className="object-contain group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
@@ -276,6 +285,7 @@ export default function Home() {
             src="/assets/images/nova id visual/background2.jpg"
             alt="Background Pattern"
             fill
+            sizes="100vw"
             className="object-cover"
           />
           <div className="absolute inset-0 bg-black/95" />
@@ -360,6 +370,7 @@ export default function Home() {
             src="/assets/images/nova id visual/background1.jpg"
             alt="Background Pattern"
             fill
+            sizes="100vw"
             className="object-cover"
           />
         </div>

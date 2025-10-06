@@ -1,14 +1,28 @@
 import { HandHistory, ParseResult, Card, Action, Player, Position, GameContext } from '@/types/poker';
+import { ErrorHandler } from './error-handling/error-handler';
+import { ErrorCode, ErrorSeverity, AppError } from '@/types/errors';
+import { DataValidator } from '@/utils/validation';
+import { CurrencyUtils } from '@/utils/currency-utils';
 
 export class HandParser {
   static parse(handText: string): ParseResult {
+    const errors: AppError[] = [];
+    const warnings: string[] = [];
+
     try {
-      // Validar se há múltiplas mãos no texto
-      const multipleHandsCheck = this.validateSingleHand(handText);
-      if (!multipleHandsCheck.isValid) {
+      // Validação de entrada vazia
+      if (!handText || handText.trim().length === 0) {
+        const error = ErrorHandler.createValidationError(
+          ErrorCode.VALIDATION_EMPTY_INPUT,
+          'Hand history text is empty',
+          { context: 'HandParser.parse' }
+        );
+        errors.push(error.toAppError());
         return {
           success: false,
-          error: multipleHandsCheck.error
+          error: ErrorHandler.getUserMessage(error.toAppError()),
+          errors: errors as readonly AppError[],
+          warnings: warnings as readonly string[]
         };
       }
 
@@ -22,46 +36,35 @@ export class HandParser {
           return this.parseGGPoker(handText);
         case 'PartyPoker':
           return this.parsePartyPoker(handText);
-        case 'Ignition':
-          return this.parseIgnition(handText);
         default:
+          const error = ErrorHandler.createParseError(
+            ErrorCode.PARSE_UNKNOWN_SITE,
+            `Poker site format not recognized: ${site}`,
+            {
+              context: 'HandParser.parse',
+              details: { detectedSite: site },
+              severity: ErrorSeverity.ERROR,
+              isRecoverable: false
+            }
+          );
+          errors.push(error.toAppError());
           return {
             success: false,
-            error: `Formato de hand history não reconhecido. Sites suportados: PokerStars, GGPoker, PartyPoker, Ignition/Bovada. Detectado: ${site}`
+            error: `Formato de hand history não reconhecido. Sites suportados: PokerStars, GGPoker, PartyPoker. Detectado: ${site}`,
+            errors: errors as readonly AppError[],
+            warnings: warnings as readonly string[]
           };
       }
     } catch (error) {
+      const appError = ErrorHandler.handle(error, 'HandParser.parse');
+      errors.push(appError);
       return {
         success: false,
-        error: `Erro ao processar hand history: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+        error: `Erro ao processar hand history: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+        errors: errors as readonly AppError[],
+        warnings: warnings as readonly string[]
       };
     }
-  }
-
-  private static validateSingleHand(handText: string): { isValid: boolean; error?: string } {
-    // Procurar por múltiplas ocorrências de headers de mãos de diferentes sites
-    const pokerStarsMatches = (handText.match(/PokerStars (?:Hand|Game) #\d+/g) || []).length;
-    const ggPokerMatches = (handText.match(/GGPoker Hand #/g) || []).length + (handText.match(/Game ID:/g) || []).length;
-    const partyPokerMatches = (handText.match(/PartyPoker Hand #/g) || []).length;
-    const ignitionMatches = (handText.match(/Ignition Hand #/g) || []).length + (handText.match(/Bovada Hand #/g) || []).length;
-
-    const totalHands = pokerStarsMatches + ggPokerMatches + partyPokerMatches + ignitionMatches;
-
-    if (totalHands === 0) {
-      return {
-        isValid: false,
-        error: 'Formato de hand history não reconhecido. Sites suportados: PokerStars, GGPoker, PartyPoker, Ignition/Bovada.'
-      };
-    }
-
-    if (totalHands > 1) {
-      return {
-        isValid: false,
-        error: `Opa! Parece que você colou ${totalHands} mãos. Por enquanto, nosso Replayer analisa uma mão por vez. 😉\n\nPor favor, cole apenas o histórico de uma única mão.`
-      };
-    }
-
-    return { isValid: true };
   }
 
   private static detectSite(handText: string): string {
@@ -71,7 +74,12 @@ export class HandParser {
     }
 
     // GGPoker detection (multiple formats)
+    // Format 1: "GGPoker Hand #123456" (generic)
+    // Format 2: "Poker Hand #TM123456: Tournament #..." (GGPoker tournament format)
+    // Format 3: "Poker Hand #CG123456: ..." (GGPoker cash game format)
+    // Format 4: "Game ID:" with Natural8
     if (handText.includes('GGPoker Hand #') ||
+        /Poker Hand #(?:TM|CG)\d+/.test(handText) ||
         (handText.includes('Game ID:') && handText.includes('Natural8'))) {
       return 'GGPoker';
     }
@@ -79,13 +87,6 @@ export class HandParser {
     // PartyPoker detection
     if (handText.includes('PartyPoker Hand #')) {
       return 'PartyPoker';
-    }
-
-    // Ignition/Bovada detection
-    if (handText.includes('Ignition Hand #') ||
-        handText.includes('Bovada Hand #') ||
-        (handText.includes("Hold'em No Limit") && handText.includes('$') && handText.includes('Table \'6-max\''))) {
-      return 'Ignition';
     }
 
     return 'Unknown';
@@ -134,8 +135,14 @@ export class HandParser {
       const [, , maxPlayers, buttonSeat] = tableMatch;
 
       // NOVA: Detectar contexto do jogo (Tournament vs Cash)
-      const gameContext = this.detectGameContext(lines[0]);
-      console.log('🎯 Game Context Detected:', gameContext);
+      const detectionResult = this.detectGameContext(lines[0], 'PokerStars');
+      const { confidence, warnings: contextWarnings, ...gameContext } = detectionResult;
+
+      // Add context warnings to main warnings array
+      if (contextWarnings && contextWarnings.length > 0) {
+        warnings.push(...contextWarnings);
+      }
+
 
       // Parse dos jogadores (seats)
       const players: Player[] = [];
@@ -220,10 +227,13 @@ export class HandParser {
         const heroMatch = lines[currentLine].match(/Dealt to (.+?) \[(.+?)\]/);
         if (heroMatch) {
           const [, heroName, cardsStr] = heroMatch;
-          const heroPlayer = players.find(p => p.name === heroName);
-          if (heroPlayer) {
-            heroPlayer.isHero = true;
-            heroPlayer.cards = this.parseCards(cardsStr);
+          const heroPlayerIndex = players.findIndex(p => p.name === heroName);
+          if (heroPlayerIndex !== -1) {
+            players[heroPlayerIndex] = {
+              ...players[heroPlayerIndex],
+              isHero: true,
+              cards: this.parseCards(cardsStr)
+            };
           }
         }
         currentLine++;
@@ -233,13 +243,19 @@ export class HandParser {
       while (currentLine < lines.length && !lines[currentLine].includes('***')) {
         const line = lines[currentLine];
 
+        // Skip empty lines
+        if (!line || line.trim() === '') {
+          currentLine++;
+          continue;
+        }
+
         // Check for player disconnect/reconnect status
         const disconnectMatch = line.match(/(.+?) is disconnected/);
         if (disconnectMatch) {
           const [, playerName] = disconnectMatch;
-          const player = players.find(p => p.name === playerName);
-          if (player) {
-            player.status = 'disconnected';
+          const playerIndex = players.findIndex(p => p.name === playerName);
+          if (playerIndex !== -1) {
+            players[playerIndex] = { ...players[playerIndex], status: 'disconnected' };
           }
           currentLine++;
           continue;
@@ -248,9 +264,9 @@ export class HandParser {
         const reconnectMatch = line.match(/(.+?) has returned/);
         if (reconnectMatch) {
           const [, playerName] = reconnectMatch;
-          const player = players.find(p => p.name === playerName);
-          if (player) {
-            player.status = 'active';
+          const playerIndex = players.findIndex(p => p.name === playerName);
+          if (playerIndex !== -1) {
+            players[playerIndex] = { ...players[playerIndex], status: 'active' };
           }
           currentLine++;
           continue;
@@ -269,10 +285,15 @@ export class HandParser {
               action: 'uncalled_return',
               amount: parseFloat(amount)
             });
+          } else {
           }
         }
         currentLine++;
       }
+
+
+      preflop.forEach((action, idx) => {
+      });
 
       // Parse das outras streets (flop, turn, river) e showdown
       let flopData: { cards: Card[]; actions: Action[]; } | null = null;
@@ -328,6 +349,7 @@ export class HandParser {
               card,
               actions: []
             };
+          } else {
           }
           currentLine++;
           // Parse ações do turn
@@ -354,7 +376,9 @@ export class HandParser {
 
         // RIVER
         if (line.includes('*** RIVER ***')) {
-          const riverMatch = line.match(/\*\*\* RIVER \*\*\* \[.+?\] \[([^\]]+)\]/);
+          // CRITICAL FIX: Get the LAST bracketed card, not the first one after board
+          // Format: *** RIVER *** [Jc 8s 2h] [5d] [9s] - we want [9s]
+          const riverMatch = line.match(/\*\*\* RIVER \*\*\* .+\[([^\]]+)\]$/);
           if (riverMatch) {
             const card = this.parseCards(riverMatch[1])[0];
             riverData = {
@@ -392,8 +416,8 @@ export class HandParser {
           let winners: string[] = [];
           let potWon = 0;
 
-          // Parse das linhas de showdown
-          while (currentLine < lines.length && !lines[currentLine].includes('***') && !lines[currentLine].includes('SUMMARY')) {
+          // Parse das linhas de showdown (continua até encontrar ***)
+          while (currentLine < lines.length && !lines[currentLine].includes('***')) {
             const showLine = lines[currentLine];
 
             // Jogador mostra cartas: "draper24492: shows [As 4s] (high card Ace)"
@@ -408,10 +432,9 @@ export class HandParser {
                 const cards = this.parseCards(cardsText);
 
                 // Encontrar o jogador e atribuir as cartas
-                const player = players.find(p => p.name === playerName);
-                if (player && cards.length === 2) {
-                  player.cards = cards;
-                  console.log(`🎯 Cartas do showdown atribuídas: ${playerName} = [${cardsText}]`);
+                const playerIndex = players.findIndex(p => p.name === playerName);
+                if (playerIndex !== -1 && cards.length === 2) {
+                  players[playerIndex] = { ...players[playerIndex], cards: cards };
                 }
               }
             }
@@ -421,11 +444,25 @@ export class HandParser {
               showdownInfo += showLine + '\n';
             }
 
-            // Winner: "Hero collected 6200 from pot"
-            const winMatch = showLine.match(/(.+?) collected (\d+(?:\.\d+)?) from pot/);
-            if (winMatch) {
-              winners.push(winMatch[1]);
-              potWon = parseFloat(winMatch[2]);
+            // Support "Hero wins pot" format
+            const winsMatch = showLine.match(/(.+?) wins (?:side pot \d+|main pot) \((\d+(?:\.\d+)?)\)/);
+            if (winsMatch) {
+              const winnerName = winsMatch[1];
+              if (!winners.includes(winnerName)) {
+                winners.push(winnerName);
+              }
+              potWon += parseFloat(winsMatch[2]);
+              showdownInfo += showLine + '\n';
+            }
+
+            // Winner: "Hero collected 6200 from pot" (old format)
+            const collectedMatch = showLine.match(/(.+?) collected (\d+(?:\.\d+)?) from pot/);
+            if (collectedMatch) {
+              const winnerName = collectedMatch[1];
+              if (!winners.includes(winnerName)) {
+                winners.push(winnerName);
+              }
+              potWon += parseFloat(collectedMatch[2]);
               showdownInfo += showLine + '\n';
             }
 
@@ -433,8 +470,7 @@ export class HandParser {
           }
 
           // Se temos informações de showdown, vamos salvá-las
-          if (showdownInfo) {
-            console.log('🎯 SHOWDOWN parseado:', { showdownInfo, winners, potWon });
+          if (showdownInfo || winners.length > 0) {
             showdownData = {
               info: showdownInfo,
               winners,
@@ -458,7 +494,6 @@ export class HandParser {
               const [, potAmount, rake] = potRakeMatch;
               totalPotAmount = parseFloat(potAmount);
               rakeAmount = rake ? parseFloat(rake) : 0;
-              console.log(`💰 Total pot: ${totalPotAmount}, Rake: ${rakeAmount}`);
             }
 
             // Procurar por cartas muckadas: "Seat 5: Player 5 mucked [Ks Qs]"
@@ -468,10 +503,9 @@ export class HandParser {
               const muckedCards = this.parseCards(cardsStr);
 
               // Encontrar o jogador e adicionar suas cartas
-              const player = players.find(p => p.name === playerName);
-              if (player) {
-                player.cards = muckedCards;
-                console.log(`🃏 Cartas muckadas encontradas para ${playerName}:`, muckedCards);
+              const playerIndex = players.findIndex(p => p.name === playerName);
+              if (playerIndex !== -1) {
+                players[playerIndex] = { ...players[playerIndex], cards: muckedCards };
               }
             }
 
@@ -482,10 +516,9 @@ export class HandParser {
               const shownCards = this.parseCards(cardsStr);
 
               // Encontrar o jogador e garantir que suas cartas estejam definidas
-              const player = players.find(p => p.name === playerName);
-              if (player && !player.cards) {
-                player.cards = shownCards;
-                console.log(`🃏 Cartas mostradas encontradas para ${playerName}:`, shownCards);
+              const playerIndex = players.findIndex(p => p.name === playerName);
+              if (playerIndex !== -1 && !players[playerIndex].cards) {
+                players[playerIndex] = { ...players[playerIndex], cards: shownCards };
               }
             }
 
@@ -503,7 +536,6 @@ export class HandParser {
         currentLine++;
       }
 
-      console.log('🔧 HandParser: Streets parseadas:', { flopData, turnData, riverData });
 
       const handHistory: HandHistory = {
         handId,
@@ -522,14 +554,39 @@ export class HandParser {
         players,
         antes: anteActions.length > 0 ? anteActions : undefined, // Include ante actions
         preflop,
-        flop: flopData || undefined,
-        turn: turnData || undefined,
-        river: riverData || undefined,
+        flop: flopData || { cards: [], actions: [] }, // Always defined
+        turn: turnData || { card: null, actions: [] }, // Always defined
+        river: riverData || { card: null, actions: [] }, // Always defined
         showdown: showdownData || undefined,
         totalPot: totalPotAmount || 0, // Use parsed total pot
         rake: rakeAmount, // Include rake (can be 0)
         currency: 'USD'
       };
+
+      // Validate HandHistory after parsing
+      const validationErrors = DataValidator.validateHandHistory(handHistory);
+      if (validationErrors.length > 0) {
+        // Separate critical from non-critical errors
+        const criticalErrors = validationErrors.filter(e => e.severity === ErrorSeverity.CRITICAL);
+        const nonCriticalErrors = validationErrors.filter(e => e.severity !== ErrorSeverity.CRITICAL);
+
+        // Log all validation errors
+        validationErrors.forEach(err => {
+        });
+
+        // If there are critical errors, fail the parse
+        if (criticalErrors.length > 0) {
+          return {
+            success: false,
+            error: `Critical validation errors: ${criticalErrors.map(e => e.message).join('; ')}`,
+            errors: criticalErrors as readonly AppError[],
+            warnings: warnings as readonly string[]
+          };
+        }
+
+        // Add non-critical errors as warnings
+        warnings.push(...nonCriticalErrors.map(e => e.message));
+      }
 
       return {
         success: true,
@@ -550,52 +607,107 @@ export class HandParser {
     const warnings: string[] = [];
 
     try {
-      // GGPoker Header format: "Poker Hand #HD12345678: Tournament #123456, $10+$1 USD Hold'em No Limit - Level V (100/200/20)"
-      let headerMatch = lines[0].match(/(?:Poker Hand|Game ID:) #([A-Z0-9]+):\s*Tournament #(\d+), (.+?) USD (Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit) - Level ([IVXLC]+) \(([0-9]+)\/([0-9]+)(?:\/([0-9]+))?\)/);
+      // GGPoker Header formats:
+      // Tournament: "Poker Hand #TM5030367055: Tournament #232064631, Bounty Hunters Special $2.50 Hold'em No Limit - Level12(400/800)"
+      // Cash Game: "GGPoker Hand #123456789: Hold'em No Limit ($0.25/$0.50)"
 
-      if (!headerMatch) {
-        return { success: false, error: 'Formato de header GGPoker inválido' };
+      // Try Tournament format first
+      // Pattern: "Poker Hand #TM123: Tournament #456, Tournament Name $X.XX Hold'em No Limit - LevelXX(SB/BB)"
+      // The tournament name can include the buy-in at the end (e.g., "Bounty Hunters Special $2.50")
+      // We need to capture everything between ", " and " Hold'em" (or Omaha/Stud)
+      let headerMatch = lines[0].match(/(?:GGPoker Hand|Poker Hand|Game ID:) #([A-Z0-9]+):\s*Tournament #(\d+),\s*(.+?)\s+(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit|Limit)\s*-\s*Level(\d+)\(([0-9.]+)\/([0-9.]+)\)/);
+
+      let handId: string, tourneyId: string | null = null, tournamentName: string | null = null;
+      let gameType: string, limit: string, level: string | null = null;
+      let smallBlind: number, bigBlind: number, anteAmount = 0;
+      let buyIn: number | null = null;
+
+      if (headerMatch) {
+        // Tournament format matched
+        [, handId, tourneyId, tournamentName, gameType, limit, level] = headerMatch;
+        smallBlind = parseFloat(headerMatch[7]);
+        bigBlind = parseFloat(headerMatch[8]);
+
+        // Extract buy-in from tournament name if present (e.g., "Bounty Hunters Special $2.50")
+        const buyInMatch = tournamentName.match(/\$([0-9.]+)$/);
+        if (buyInMatch) {
+          buyIn = parseFloat(buyInMatch[1]);
+        }
+      } else {
+        // Try Cash Game format: "GGPoker Hand #CG123: Hold'em No Limit ($0.25/$0.50)"
+        headerMatch = lines[0].match(/(?:GGPoker Hand|Poker Hand|Game ID:) #([A-Z0-9]+):\s*(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit|Limit)\s*\(\$?([0-9.]+)\/\$?([0-9.]+)\)/);
+
+        if (!headerMatch) {
+          return { success: false, error: 'Formato de header GGPoker inválido. Formatos suportados: Tournament e Cash Game' };
+        }
+
+        // Cash game format matched
+        [, handId, gameType, limit] = headerMatch;
+        smallBlind = parseFloat(headerMatch[4]);
+        bigBlind = parseFloat(headerMatch[5]);
       }
-
-      const [, handId, tourneyId, tournamentName, gameType, limit, level, sbStr, bbStr, anteStr] = headerMatch;
-      const smallBlind = parseInt(sbStr);
-      const bigBlind = parseInt(bbStr);
-      const anteAmount = anteStr ? parseInt(anteStr) : 0;
 
       // Parse timestamp (GGPoker format: "2023/12/25 14:30:00 ET")
       const timestampMatch = lines[0].match(/(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2})/);
       const parsedDate = timestampMatch ? new Date(timestampMatch[1]) : new Date();
 
-      // Game context for GGPoker (tournament)
-      const gameContext: GameContext = {
-        isTournament: true,
-        isHighStakes: false,
-        currencyUnit: 'chips',
-        conversionNeeded: false,
-        buyIn: tournamentName,
-        level: `Level ${level}`
-      };
+      // Game context for GGPoker using multi-layer detection
+      const detectionResult = this.detectGameContext(lines[0], 'GGPoker');
+      const { confidence, warnings: contextWarnings, ...gameContext } = detectionResult;
 
-      // Parse table info - GGPoker format: "Table '123456 1' 6-max Seat #3 is the button"
-      let tableMatch = lines[1].match(/Table '(.+?)' (\d+)-max Seat #(\d+) is the button/);
+      // Add context warnings to main warnings array
+      if (contextWarnings && contextWarnings.length > 0) {
+        warnings.push(...contextWarnings);
+      }
+
+      // CRITICAL FIX: Add buyIn to gameContext if extracted from tournament name
+      if (buyIn !== null && gameContext.isTournament) {
+        gameContext.buyIn = `$${buyIn.toFixed(2)}`;
+      }
+
+      // Parse table info - GGPoker format:
+      // - "Table 'RushAndCash123', 6-max"
+      // - "Table '200' 8-max Seat #7 is the button"
+      let tableMatch = lines[1].match(/Table '(.+?)'[\s,]+(\d+)-max/);
       if (!tableMatch) {
         return { success: false, error: 'Informações da mesa inválidas' };
       }
 
-      const [, , maxPlayers, buttonSeat] = tableMatch;
+      const [, tableName, maxPlayers] = tableMatch;
 
-      // Parse players (seats)
+      // Extract button seat from table line if present
+      let buttonSeat = '1'; // Default
+      const buttonMatch = lines[1].match(/Seat #(\d+) is the button/);
+      if (buttonMatch) {
+        buttonSeat = buttonMatch[1];
+      } else {
+      }
+
+      // Parse players (seats) - GGPoker format: "Seat 4: Hero ($55.30) [BTN]"
       const players: Player[] = [];
       let currentLine = 2;
+      // buttonSeat was already declared above when parsing table line
 
       while (currentLine < lines.length && lines[currentLine].startsWith('Seat ')) {
-        const seatMatch = lines[currentLine].match(/Seat (\d+): (.+?) \((\d+) in chips\)/);
+        // Match both formats: with and without position tags, with or without $ and with/without commas
+        // Examples:
+        // - Seat 6: 683c325e (22,651 in chips)
+        // - Seat 4: Hero ($55.30) [BTN]
+        const seatMatch = lines[currentLine].match(/Seat (\d+): (.+?) \((?:\$|£|€)?([0-9,.]+)(?: in chips)?\)(?: \[(\w+)\])?/);
         if (seatMatch) {
-          const [, seat, playerName, stack] = seatMatch;
+          const [, seat, playerName, stackStr, positionTag] = seatMatch;
+          // Remove commas from stack amount
+          const stack = stackStr.replace(/,/g, '');
+
+          // If this player has [BTN] tag, save the button seat
+          if (positionTag === 'BTN') {
+            buttonSeat = seat;
+          }
+
           players.push({
             name: playerName,
-            position: this.getPosition(parseInt(seat), parseInt(buttonSeat), parseInt(maxPlayers)),
-            stack: parseInt(stack),
+            position: 'MP', // Will be updated after we know button position
+            stack: parseFloat(stack),
             isHero: false,
             seat: parseInt(seat),
             status: 'active'
@@ -604,41 +716,68 @@ export class HandParser {
         currentLine++;
       }
 
+
+      // Now update positions based on button seat
+      for (let i = 0; i < players.length; i++) {
+        players[i] = {
+          ...players[i],
+          position: this.getPosition(players[i].seat!, parseInt(buttonSeat), parseInt(maxPlayers))
+        };
+      }
+
       // Parse antes and blinds
       const anteActions: Action[] = [];
 
       while (currentLine < lines.length &&
-             (lines[currentLine]?.includes('posts ante') ||
+             (lines[currentLine]?.includes('posts the ante') ||
+              lines[currentLine]?.includes('posts ante') ||
               lines[currentLine]?.includes('posts small blind') ||
               lines[currentLine]?.includes('posts big blind'))) {
 
         const line = lines[currentLine];
 
-        // Parse ante - GGPoker format: "PlayerD: posts ante 20"
-        const anteMatch = line.match(/(.+?): posts ante (\d+)/);
+        // Parse ante - GGPoker formats:
+        // - "PlayerD: posts the ante 120"
+        // - "PlayerD: posts ante 20"
+        const anteMatch = line.match(/(.+?): posts (?:the )?ante ([0-9,.]+)/);
         if (anteMatch) {
-          const [, playerName, amount] = anteMatch;
+          const [, playerName, amountStr] = anteMatch;
+          // Remove commas from amount
+          const amount = amountStr.replace(/,/g, '');
+          const { amount: parsedAmount, warnings: parseWarnings } = this.parseAmountWithContext(amount, gameContext);
+          warnings.push(...parseWarnings);
+
+          // CRITICAL FIX: Update anteAmount variable (used in HandHistory.ante field)
+          if (anteAmount === 0) {
+            anteAmount = parsedAmount;
+          }
+
           anteActions.push({
             player: playerName,
             action: 'ante',
-            amount: parseInt(amount)
+            amount: parsedAmount
           });
         }
 
-        // Parse blinds
-        const blindMatch = line.match(/(.+?): posts (?:small blind|big blind) (\d+)/);
+        // Parse blinds - FIXED to support decimals like $0.25 and commas
+        const blindMatch = line.match(/(.+?): posts (?:small blind|big blind) ([0-9,.]+)/);
         if (blindMatch) {
-          const [, playerName, amount] = blindMatch;
+          const [, playerName, amountStr] = blindMatch;
+          // Remove commas from amount
+          const amount = amountStr.replace(/,/g, '');
           const blindType = line.includes('small blind') ? 'small_blind' : 'big_blind';
+          const { amount: parsedAmount, warnings: parseWarnings } = this.parseAmountWithContext(amount, gameContext);
+          warnings.push(...parseWarnings);
           anteActions.push({
             player: playerName,
             action: blindType,
-            amount: parseInt(amount)
+            amount: parsedAmount
           });
         }
 
         currentLine++;
       }
+
 
       // Parse preflop
       const preflop: Action[] = [];
@@ -651,15 +790,19 @@ export class HandParser {
         currentLine++;
       }
 
-      // Detect hero cards
-      if (lines[currentLine]?.startsWith('Dealt to ')) {
-        const heroMatch = lines[currentLine].match(/Dealt to (.+?) \[(.+?)\]/);
+      // Detect hero cards - GGPoker shows cards for all players
+      // Keep parsing until we hit a non-"Dealt to" line
+      while (currentLine < lines.length && lines[currentLine]?.startsWith('Dealt to ')) {
+        const heroMatch = lines[currentLine].match(/Dealt to (.+?)(?:\s+\[(.+?)\])?$/);
         if (heroMatch) {
-          const [, heroName, cardsStr] = heroMatch;
-          const heroPlayer = players.find(p => p.name === heroName);
-          if (heroPlayer) {
-            heroPlayer.isHero = true;
-            heroPlayer.cards = this.parseCards(cardsStr);
+          const [, playerName, cardsStr] = heroMatch;
+          const playerIndex = players.findIndex(p => p.name === playerName);
+          if (playerIndex !== -1) {
+            players[playerIndex] = {
+              ...players[playerIndex],
+              isHero: players[playerIndex].name === 'Hero',
+              cards: cardsStr ? this.parseCards(cardsStr) : undefined
+            };
           }
         }
         currentLine++;
@@ -667,9 +810,31 @@ export class HandParser {
 
       // Parse preflop actions
       while (currentLine < lines.length && !lines[currentLine].includes('***')) {
-        const action = this.parseAction(lines[currentLine], gameContext);
+        const line = lines[currentLine];
+
+        // Skip empty lines
+        if (!line || line.trim() === '') {
+          currentLine++;
+          continue;
+        }
+
+        // Parse "shows [cards]" format (GGPoker all-in reveals)
+        const showsMatch = line.match(/^(.+?): shows \[([^\]]+)\]$/);
+        if (showsMatch) {
+          const [, playerName, cardsStr] = showsMatch;
+          const cards = this.parseCards(cardsStr);
+          const playerIndex = players.findIndex(p => p.name === playerName);
+          if (playerIndex !== -1 && cards.length === 2) {
+            players[playerIndex] = { ...players[playerIndex], cards: cards };
+          }
+          currentLine++;
+          continue;
+        }
+
+        const action = this.parseAction(line, gameContext);
         if (action) {
           preflop.push(action);
+        } else {
         }
         currentLine++;
       }
@@ -719,10 +884,13 @@ export class HandParser {
 
         // RIVER
         if (line.includes('*** RIVER ***')) {
-          const riverMatch = line.match(/\*\*\* RIVER \*\*\* \[.+?\] \[([^\]]+)\]/);
+          // CRITICAL FIX: Get the LAST bracketed card, not the first one after board
+          // Format: *** RIVER *** [Jc 8s 2h] [5d] [9s] - we want [9s]
+          const riverMatch = line.match(/\*\*\* RIVER \*\*\* .+\[([^\]]+)\]$/);
           if (riverMatch) {
             const card = this.parseCards(riverMatch[1])[0];
             riverData = { card, actions: [] };
+          } else {
           }
           currentLine++;
           while (currentLine < lines.length && !lines[currentLine].includes('***')) {
@@ -734,7 +902,7 @@ export class HandParser {
         }
 
         // SHOWDOWN
-        if (line.includes('*** SHOW DOWN ***')) {
+        if (line.includes('*** SHOWDOWN ***') || line.includes('*** SHOW DOWN ***')) {
           currentLine++;
           let showdownInfo = '';
           let winners: string[] = [];
@@ -750,24 +918,30 @@ export class HandParser {
                 const playerName = showMatch[1];
                 const cardsText = showMatch[2];
                 const cards = this.parseCards(cardsText);
-                const player = players.find(p => p.name === playerName);
-                if (player && cards.length === 2) {
-                  player.cards = cards;
+                const playerIndex = players.findIndex(p => p.name === playerName);
+                if (playerIndex !== -1 && cards.length === 2) {
+                  players[playerIndex] = { ...players[playerIndex], cards: cards };
                 }
               }
             }
 
-            const winMatch = showLine.match(/(.+?) collected (\d+) from pot/);
+            // CRITICAL FIX: Support comma-separated amounts (e.g., "20,920")
+            const winMatch = showLine.match(/(.+?) collected ([0-9,]+) from pot/);
             if (winMatch) {
-              winners.push(winMatch[1]);
-              potWon = parseInt(winMatch[2]);
+              const winnerName = winMatch[1];
+              // Remove commas from amount
+              const amountStr = winMatch[2].replace(/,/g, '');
+              if (!winners.includes(winnerName)) {
+                winners.push(winnerName);
+              }
+              potWon += parseInt(amountStr, 10);
               showdownInfo += showLine + '\n';
             }
 
             currentLine++;
           }
 
-          if (showdownInfo) {
+          if (showdownInfo || winners.length > 0) {
             showdownData = { info: showdownInfo, winners, potWon };
           }
           continue;
@@ -781,11 +955,20 @@ export class HandParser {
             const summaryLine = lines[currentLine];
 
             // Parse total pot, main pot, side pots and rake
-            // GGPoker format: "Total pot 4500 Main pot 3000. Side pot 1500. | Rake 0"
-            const potRakeMatch = summaryLine.match(/Total pot (\d+)(?:.+?)?\s*\|\s*Rake\s+(\d+)/);
+            // GGPoker format: "Total pot 60,482 | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0"
+            // Also support: "Total pot 4500 Main pot 3000. Side pot 1500. | Rake 0"
+            const potRakeMatch = summaryLine.match(/Total pot ([0-9,]+)(?:.+?)?\s*\|\s*Rake\s+([0-9,]+)/);
             if (potRakeMatch) {
-              totalPotAmount = parseInt(potRakeMatch[1]);
-              rakeAmount = parseInt(potRakeMatch[2]);
+              // Remove commas from amounts
+              const potStr = potRakeMatch[1].replace(/,/g, '');
+              const rakeStr = potRakeMatch[2].replace(/,/g, '');
+              totalPotAmount = parseInt(potStr, 10);
+              rakeAmount = parseInt(rakeStr, 10);
+            }
+
+            // Parse board cards (GGPoker format: "Board [Jh 6c Tc 5c 9c]")
+            const boardMatch = summaryLine.match(/Board \[([^\]]+)\]/);
+            if (boardMatch) {
             }
 
             // Parse mucked cards
@@ -793,10 +976,45 @@ export class HandParser {
             if (muckedMatch) {
               const [, seat, playerName, cardsStr] = muckedMatch;
               const muckedCards = this.parseCards(cardsStr);
-              const player = players.find(p => p.name === playerName);
-              if (player) {
-                player.cards = muckedCards;
+              const playerIndex = players.findIndex(p => p.name === playerName);
+              if (playerIndex !== -1) {
+                players[playerIndex] = { ...players[playerIndex], cards: muckedCards };
               }
+            }
+
+            // Parse shown cards in summary (GGPoker format: "Seat 1: c0969eff (big blind) showed [7s 7c] and won (34,540)")
+            const shownMatch = summaryLine.match(/Seat (\d+): (.+?) (?:\([^)]+\) )?showed \[([^\]]+)\]/);
+            if (shownMatch) {
+              const [, seat, playerName, cardsStr] = shownMatch;
+              const shownCards = this.parseCards(cardsStr);
+              const playerIndex = players.findIndex(p => p.name === playerName);
+              if (playerIndex !== -1 && !players[playerIndex].cards) {
+                players[playerIndex] = { ...players[playerIndex], cards: shownCards };
+              }
+            }
+
+            // CRITICAL FIX: Parse winnings from SUMMARY section (GGPoker format: "and won (34,540)")
+            const wonMatch = summaryLine.match(/Seat \d+: (.+?) (?:\([^)]+\) )?(?:showed|folded|mucked)[^)]*and won \(([0-9,]+)\)/);
+            if (wonMatch) {
+              const [, playerName, amountStr] = wonMatch;
+              const wonAmount = parseInt(amountStr.replace(/,/g, ''), 10);
+
+              // Update showdown data with individual player winnings
+              if (!showdownData) {
+                showdownData = { info: '', winners: [], potWon: 0 };
+              }
+
+              // Add to winners list if not already present
+              if (!showdownData.winners.includes(playerName)) {
+                showdownData.winners.push(playerName);
+              }
+
+              // Store player-specific winning amount
+              if (!(showdownData as any).playerWinnings) {
+                (showdownData as any).playerWinnings = {};
+              }
+              (showdownData as any).playerWinnings[playerName] = wonAmount;
+
             }
 
             currentLine++;
@@ -829,14 +1047,34 @@ export class HandParser {
         players,
         antes: anteActions.length > 0 ? anteActions : undefined,
         preflop,
-        flop: flopData || undefined,
-        turn: turnData || undefined,
-        river: riverData || undefined,
+        flop: flopData || { cards: [], actions: [] }, // Always defined
+        turn: turnData || { card: null, actions: [] }, // Always defined
+        river: riverData || { card: null, actions: [] }, // Always defined
         showdown: showdownData || undefined,
         totalPot: totalPotAmount || 0,
         rake: rakeAmount,
         currency: 'USD'
       };
+
+      // Validate HandHistory after parsing
+      const validationErrors = DataValidator.validateHandHistory(handHistory);
+      if (validationErrors.length > 0) {
+        const criticalErrors = validationErrors.filter(e => e.severity === ErrorSeverity.CRITICAL);
+        const nonCriticalErrors = validationErrors.filter(e => e.severity !== ErrorSeverity.CRITICAL);
+
+        validationErrors.forEach(err => {
+        });
+
+        if (criticalErrors.length > 0) {
+          return {
+            success: false,
+            error: `Critical validation errors: ${criticalErrors.map(e => e.message).join('; ')}`,
+            warnings
+          };
+        }
+
+        warnings.push(...nonCriticalErrors.map(e => e.message));
+      }
 
       return {
         success: true,
@@ -847,7 +1085,8 @@ export class HandParser {
     } catch (error) {
       return {
         success: false,
-        error: `Erro no parsing GGPoker: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+        error: `Erro no parsing GGPoker: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+        warnings
       };
     }
   }
@@ -857,11 +1096,16 @@ export class HandParser {
     const warnings: string[] = [];
 
     try {
-      // PartyPoker Header format: "PartyPoker Hand #123456789: Tournament #12345, $50+$5 Hold'em No Limit - Level III (25/50)"
-      let headerMatch = lines[0].match(/PartyPoker Hand #(\d+):\s*Tournament #(\d+), (\$[\d.]+\+\$[\d.]+) (Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit) - Level ([IVXLC]+) \((\d+)\/(\d+)\)/);
+      // PartyPoker Header formats:
+      // Tournament: "PartyPoker Hand #123456789: Tournament #12345, $50+$5 Hold'em No Limit - Level III (25/50)"
+      // Cash Game: "PartyPoker Hand #5555: No Limit Hold'em Cash Game ($1/$2)"
+
+      // FLEXIBILIZED REGEX: Now accepts both Tournament and Cash Game formats
+      // Tournament pattern has "Tournament #" while cash game has "Cash Game" descriptor
+      let headerMatch = lines[0].match(/PartyPoker Hand #(\d+):\s*(?:Tournament #(\d+), (\$[\d.]+\+\$[\d.]+) )?(No Limit|Pot Limit|Fixed Limit|) ?(Hold'em|Omaha|Stud)\s*(?:Cash Game)?(?: - Level ([IVXLC]+))?\s*\([\$]?(\d+(?:\.\d+)?)\/[\$]?(\d+(?:\.\d+)?)\)/);
 
       if (!headerMatch) {
-        return { success: false, error: 'Formato de header PartyPoker inválido' };
+        return { success: false, error: 'Formato de header PartyPoker inválido. Formatos suportados: Tournament e Cash Game' };
       }
 
       const [, handId, tourneyId, buyIn, gameType, limit, level, sbStr, bbStr] = headerMatch;
@@ -872,15 +1116,15 @@ export class HandParser {
       const timestampMatch = lines[0].match(/(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2})/);
       const parsedDate = timestampMatch ? new Date(timestampMatch[1]) : new Date();
 
-      // Game context for PartyPoker (tournament)
-      const gameContext: GameContext = {
-        isTournament: true,
-        isHighStakes: false,
-        currencyUnit: 'chips',
-        conversionNeeded: false,
-        buyIn: buyIn,
-        level: `Level ${level}`
-      };
+      // Game context for PartyPoker using multi-layer detection
+      const detectionResult = this.detectGameContext(lines[0], 'PartyPoker');
+      const { confidence, warnings: contextWarnings, ...gameContext } = detectionResult;
+
+      // Add context warnings to main warnings array
+      if (contextWarnings && contextWarnings.length > 0) {
+        warnings.push(...contextWarnings);
+      }
+
 
       // Parse table info
       let tableMatch = lines[1].match(/Table '(.+?)' (\d+)-max Seat #(\d+) is the button/);
@@ -948,10 +1192,13 @@ export class HandParser {
         const heroMatch = lines[currentLine].match(/Dealt to (.+?) \[(.+?)\]/);
         if (heroMatch) {
           const [, heroName, cardsStr] = heroMatch;
-          const heroPlayer = players.find(p => p.name === heroName);
-          if (heroPlayer) {
-            heroPlayer.isHero = true;
-            heroPlayer.cards = this.parseCards(cardsStr);
+          const heroPlayerIndex = players.findIndex(p => p.name === heroName);
+          if (heroPlayerIndex !== -1) {
+            players[heroPlayerIndex] = {
+              ...players[heroPlayerIndex],
+              isHero: true,
+              cards: this.parseCards(cardsStr)
+            };
           }
         }
         currentLine++;
@@ -1011,10 +1258,13 @@ export class HandParser {
 
         // RIVER
         if (line.includes('*** RIVER ***')) {
-          const riverMatch = line.match(/\*\*\* RIVER \*\*\* \[.+?\] \[([^\]]+)\]/);
+          // CRITICAL FIX: Get the LAST bracketed card, not the first one after board
+          // Format: *** RIVER *** [Jc 8s 2h] [5d] [9s] - we want [9s]
+          const riverMatch = line.match(/\*\*\* RIVER \*\*\* .+\[([^\]]+)\]$/);
           if (riverMatch) {
             const card = this.parseCards(riverMatch[1])[0];
             riverData = { card, actions: [] };
+          } else {
           }
           currentLine++;
           while (currentLine < lines.length && !lines[currentLine].includes('***')) {
@@ -1042,9 +1292,9 @@ export class HandParser {
                 const playerName = showMatch[1];
                 const cardsText = showMatch[2];
                 const cards = this.parseCards(cardsText);
-                const player = players.find(p => p.name === playerName);
-                if (player && cards.length === 2) {
-                  player.cards = cards;
+                const playerIndex = players.findIndex(p => p.name === playerName);
+                if (playerIndex !== -1 && cards.length === 2) {
+                  players[playerIndex] = { ...players[playerIndex], cards: cards };
                 }
               }
             }
@@ -1090,10 +1340,9 @@ export class HandParser {
             if (muckedMatch) {
               const [, seat, playerName, cardsStr] = muckedMatch;
               const muckedCards = this.parseCards(cardsStr);
-              const player = players.find(p => p.name === playerName);
-              if (player) {
-                player.cards = muckedCards;
-                console.log(`🃏 PartyPoker: Cartas muckadas reveladas para ${playerName}:`, muckedCards);
+              const playerIndex = players.findIndex(p => p.name === playerName);
+              if (playerIndex !== -1) {
+                players[playerIndex] = { ...players[playerIndex], cards: muckedCards };
               }
             }
 
@@ -1127,14 +1376,34 @@ export class HandParser {
         players,
         antes: anteActions.length > 0 ? anteActions : undefined,
         preflop,
-        flop: flopData || undefined,
-        turn: turnData || undefined,
-        river: riverData || undefined,
+        flop: flopData || { cards: [], actions: [] }, // Always defined
+        turn: turnData || { card: null, actions: [] }, // Always defined
+        river: riverData || { card: null, actions: [] }, // Always defined
         showdown: showdownData || undefined,
         totalPot: totalPotAmount || 0,
         rake: rakeAmount,
         currency: 'USD'
       };
+
+      // Validate HandHistory after parsing
+      const validationErrors = DataValidator.validateHandHistory(handHistory);
+      if (validationErrors.length > 0) {
+        const criticalErrors = validationErrors.filter(e => e.severity === ErrorSeverity.CRITICAL);
+        const nonCriticalErrors = validationErrors.filter(e => e.severity !== ErrorSeverity.CRITICAL);
+
+        validationErrors.forEach(err => {
+        });
+
+        if (criticalErrors.length > 0) {
+          return {
+            success: false,
+            error: `Critical validation errors: ${criticalErrors.map(e => e.message).join('; ')}`,
+            warnings
+          };
+        }
+
+        warnings.push(...nonCriticalErrors.map(e => e.message));
+      }
 
       return {
         success: true,
@@ -1146,294 +1415,6 @@ export class HandParser {
       return {
         success: false,
         error: `Erro no parsing PartyPoker: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
-      };
-    }
-  }
-
-  private static parseIgnition(handText: string): ParseResult {
-    const lines = handText.trim().split('\n').map(line => line.trim());
-    const warnings: string[] = [];
-
-    try {
-      // Ignition Header format: "Ignition Hand #1234567890 - Hold'em No Limit ($0.05/$0.10) - 2023/12/25 14:30:00"
-      let headerMatch = lines[0].match(/(?:Ignition|Bovada) Hand #(\d+)\s*-\s*(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit)\s+\(\$([0-9.]+)\/\$([0-9.]+)\)/);
-
-      if (!headerMatch) {
-        return { success: false, error: 'Formato de header Ignition inválido' };
-      }
-
-      const [, handId, gameType, limit, sbStr, bbStr] = headerMatch;
-      const smallBlind = parseFloat(sbStr);
-      const bigBlind = parseFloat(bbStr);
-
-      // Parse timestamp
-      const timestampMatch = lines[0].match(/(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2})/);
-      const parsedDate = timestampMatch ? new Date(timestampMatch[1]) : new Date();
-
-      // Game context for Ignition (cash game - needs dollar-to-cents conversion)
-      const gameContext: GameContext = {
-        isTournament: false,
-        isHighStakes: bigBlind >= 1.0,
-        currencyUnit: 'dollars',
-        conversionNeeded: true
-      };
-
-      // Parse table info - Ignition format: "Table '6-max' Seat #3 is the button"
-      let tableMatch = lines[1].match(/Table '(.+?)' (?:(\d+)-max )?Seat #(\d+) is the button/);
-      if (!tableMatch) {
-        return { success: false, error: 'Informações da mesa inválidas' };
-      }
-
-      const [, tableName, maxPlayersStr, buttonSeat] = tableMatch;
-      const maxPlayers = maxPlayersStr ? parseInt(maxPlayersStr) : 6; // Default 6-max if not specified
-
-      // Parse players
-      const players: Player[] = [];
-      let currentLine = 2;
-
-      while (currentLine < lines.length && lines[currentLine].startsWith('Seat ')) {
-        // Ignition format: "Seat 1: PlayerA ($10.50 in chips)"
-        const seatMatch = lines[currentLine].match(/Seat (\d+): (.+?) \(\$([0-9.]+) in chips\)/);
-        if (seatMatch) {
-          const [, seat, playerName, stack] = seatMatch;
-          players.push({
-            name: playerName,
-            position: this.getPosition(parseInt(seat), parseInt(buttonSeat), maxPlayers),
-            stack: parseFloat(stack), // Keep as dollars for now, will convert in snapshot-builder
-            isHero: false,
-            seat: parseInt(seat),
-            status: 'active'
-          });
-        }
-        currentLine++;
-      }
-
-      // Parse blinds
-      const anteActions: Action[] = [];
-
-      while (currentLine < lines.length &&
-             (lines[currentLine]?.includes('posts small blind') ||
-              lines[currentLine]?.includes('posts big blind'))) {
-
-        const line = lines[currentLine];
-        // Ignition format: "PlayerA: posts small blind $0.05"
-        const blindMatch = line.match(/(.+?): posts (?:small blind|big blind) \$([0-9.]+)/);
-        if (blindMatch) {
-          const [, playerName, amount] = blindMatch;
-          const blindType = line.includes('small blind') ? 'small_blind' : 'big_blind';
-          anteActions.push({
-            player: playerName,
-            action: blindType,
-            amount: parseFloat(amount) // Keep as dollars, will convert later
-          });
-        }
-
-        currentLine++;
-      }
-
-      // Parse preflop
-      const preflop: Action[] = [];
-
-      // Find "*** HOLE CARDS ***"
-      while (currentLine < lines.length && !lines[currentLine]?.includes('*** HOLE CARDS ***')) {
-        currentLine++;
-      }
-      if (lines[currentLine]?.includes('*** HOLE CARDS ***')) {
-        currentLine++;
-      }
-
-      // Detect hero cards
-      if (lines[currentLine]?.startsWith('Dealt to ')) {
-        const heroMatch = lines[currentLine].match(/Dealt to (.+?) \[(.+?)\]/);
-        if (heroMatch) {
-          const [, heroName, cardsStr] = heroMatch;
-          const heroPlayer = players.find(p => p.name === heroName);
-          if (heroPlayer) {
-            heroPlayer.isHero = true;
-            heroPlayer.cards = this.parseCards(cardsStr);
-          }
-        }
-        currentLine++;
-      }
-
-      // Parse preflop actions
-      while (currentLine < lines.length && !lines[currentLine].includes('***')) {
-        const action = this.parseAction(lines[currentLine], gameContext);
-        if (action) {
-          preflop.push(action);
-        }
-        currentLine++;
-      }
-
-      // Parse other streets
-      let flopData: { cards: Card[]; actions: Action[]; } | null = null;
-      let turnData: { card: Card; actions: Action[]; } | null = null;
-      let riverData: { card: Card; actions: Action[]; } | null = null;
-      let showdownData: { info: string; winners: string[]; potWon: number; rake?: number; } | null = null;
-      let rakeAmount = 0;
-      let totalPotAmount = 0;
-
-      while (currentLine < lines.length) {
-        const line = lines[currentLine];
-
-        // FLOP
-        if (line.includes('*** FLOP ***')) {
-          const flopMatch = line.match(/\*\*\* FLOP \*\*\* \[([^\]]+)\]/);
-          if (flopMatch) {
-            const cards = this.parseCards(flopMatch[1]);
-            flopData = { cards, actions: [] };
-          }
-          currentLine++;
-          while (currentLine < lines.length && !lines[currentLine].includes('***')) {
-            const action = this.parseAction(lines[currentLine], gameContext);
-            if (action) flopData?.actions.push(action);
-            currentLine++;
-          }
-          continue;
-        }
-
-        // TURN
-        if (line.includes('*** TURN ***')) {
-          const turnMatch = line.match(/\*\*\* TURN \*\*\* \[.+?\] \[([^\]]+)\]/);
-          if (turnMatch) {
-            const card = this.parseCards(turnMatch[1])[0];
-            turnData = { card, actions: [] };
-          }
-          currentLine++;
-          while (currentLine < lines.length && !lines[currentLine].includes('***')) {
-            const action = this.parseAction(lines[currentLine], gameContext);
-            if (action) turnData?.actions.push(action);
-            currentLine++;
-          }
-          continue;
-        }
-
-        // RIVER
-        if (line.includes('*** RIVER ***')) {
-          const riverMatch = line.match(/\*\*\* RIVER \*\*\* \[.+?\] \[([^\]]+)\]/);
-          if (riverMatch) {
-            const card = this.parseCards(riverMatch[1])[0];
-            riverData = { card, actions: [] };
-          }
-          currentLine++;
-          while (currentLine < lines.length && !lines[currentLine].includes('***')) {
-            const action = this.parseAction(lines[currentLine], gameContext);
-            if (action) riverData?.actions.push(action);
-            currentLine++;
-          }
-          continue;
-        }
-
-        // SHOWDOWN
-        if (line.includes('*** SHOW DOWN ***')) {
-          currentLine++;
-          let showdownInfo = '';
-          let winners: string[] = [];
-          let potWon = 0;
-
-          while (currentLine < lines.length && !lines[currentLine].includes('***') && !lines[currentLine].includes('SUMMARY')) {
-            const showLine = lines[currentLine];
-
-            if (showLine.includes(': shows [') && showLine.includes(']')) {
-              showdownInfo += showLine + '\n';
-              const showMatch = showLine.match(/(.+?): shows \[([^\]]+)\]/);
-              if (showMatch) {
-                const playerName = showMatch[1];
-                const cardsText = showMatch[2];
-                const cards = this.parseCards(cardsText);
-                const player = players.find(p => p.name === playerName);
-                if (player && cards.length === 2) {
-                  player.cards = cards;
-                }
-              }
-            }
-
-            // Ignition format: "PlayerA collected $15.50 from pot"
-            const winMatch = showLine.match(/(.+?) collected \$([0-9.]+) from (?:main pot|side pot|pot)/);
-            if (winMatch) {
-              winners.push(winMatch[1]);
-              potWon = parseFloat(winMatch[2]); // Keep as dollars
-              showdownInfo += showLine + '\n';
-            }
-
-            currentLine++;
-          }
-
-          if (showdownInfo) {
-            showdownData = { info: showdownInfo, winners, potWon };
-          }
-          continue;
-        }
-
-        // SUMMARY
-        if (line.includes('*** SUMMARY ***')) {
-          currentLine++;
-
-          while (currentLine < lines.length) {
-            const summaryLine = lines[currentLine];
-
-            // Parse total pot and rake - Ignition format: "Total pot $15.50 | Rake $0.75"
-            const potRakeMatch = summaryLine.match(/Total pot \$([0-9.]+)\s*\|\s*Rake\s+\$([0-9.]+)/);
-            if (potRakeMatch) {
-              totalPotAmount = parseFloat(potRakeMatch[1]);
-              rakeAmount = parseFloat(potRakeMatch[2]);
-            }
-
-            // Parse main pot and side pots - Ignition format: "Total pot $30.00 Main pot $15.00. Side pot $15.00. | Rake $0"
-            const mainSideMatch = summaryLine.match(/Total pot \$([0-9.]+) Main pot \$([0-9.]+)\. Side pot \$([0-9.]+)/);
-            if (mainSideMatch) {
-              totalPotAmount = parseFloat(mainSideMatch[1]);
-            }
-
-            currentLine++;
-          }
-
-          if (showdownData && rakeAmount > 0) {
-            showdownData.rake = rakeAmount;
-          }
-
-          break;
-        }
-
-        currentLine++;
-      }
-
-      const handHistory: HandHistory = {
-        handId,
-        site: 'Other', // Ignition is classified as 'Other' for now
-        gameType: gameType as 'Hold\'em' | 'Omaha' | 'Stud',
-        limit: limit as 'No Limit' | 'Pot Limit' | 'Fixed Limit',
-        stakes: `$${smallBlind}/$${bigBlind}`,
-        maxPlayers: maxPlayers,
-        buttonSeat: parseInt(buttonSeat),
-        dealerSeat: parseInt(buttonSeat),
-        smallBlind,
-        bigBlind,
-        gameContext,
-        ante: undefined,
-        timestamp: parsedDate,
-        players,
-        antes: anteActions.length > 0 ? anteActions : undefined,
-        preflop,
-        flop: flopData || undefined,
-        turn: turnData || undefined,
-        river: riverData || undefined,
-        showdown: showdownData || undefined,
-        totalPot: totalPotAmount || 0,
-        rake: rakeAmount,
-        currency: 'USD'
-      };
-
-      return {
-        success: true,
-        handHistory,
-        warnings: warnings.length > 0 ? warnings : undefined
-      };
-
-    } catch (error) {
-      return {
-        success: false,
-        error: `Erro no parsing Ignition: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
       };
     }
   }
@@ -1481,36 +1462,132 @@ export class HandParser {
   }
 
   /**
-   * Context-aware amount parsing with thousand separators
+   * Context-aware amount parsing with rigorous validation
    * For tournaments: returns chips as integer values
    * For cash games: returns cents as integer values
+   * Returns { amount: number, warnings: string[] } for debugging
    */
-  private static parseAmountWithContext(rawValue: string, gameContext: GameContext): number {
-    if (!rawValue) {
-      console.error('ERROR parseAmountWithContext rawValue:', rawValue);
-      return 0;
+  private static parseAmountWithContext(
+    rawValue: string,
+    gameContext: GameContext
+  ): { amount: number; warnings: string[] } {
+    const warnings: string[] = [];
+
+    // VALIDATION 1: Check for null/undefined/empty
+    if (!rawValue || typeof rawValue !== 'string') {
+      warnings.push(`Invalid input: "${rawValue}" is not a valid string`);
+      return { amount: 0, warnings };
+    }
+
+    const trimmedValue = rawValue.trim();
+    if (trimmedValue === '') {
+      warnings.push('Empty string provided for amount');
+      return { amount: 0, warnings };
     }
 
     try {
-      // Remove thousand separators (commas) and parse
-      const cleanValue = rawValue.replace(/,/g, '');
+      // VALIDATION 2: Remove currency symbols and whitespace
+      let cleanValue = trimmedValue
+        .replace(/\$/g, '')      // Remove $ signs
+        .replace(/€/g, '')       // Remove € signs
+        .replace(/£/g, '')       // Remove £ signs
+        .replace(/\s+/g, '')     // Remove all whitespace
+        .replace(/,/g, '');      // Remove thousand separators
+
+      // VALIDATION 3: Check for special strings
+      const lowerValue = cleanValue.toLowerCase();
+      if (lowerValue === 'all-in' || lowerValue === 'allin') {
+        warnings.push('Detected "all-in" string - cannot parse as numeric amount');
+        return { amount: 0, warnings };
+      }
+
+      // VALIDATION 4: Validate numeric format
+      const decimalPoints = (cleanValue.match(/\./g) || []).length;
+      if (decimalPoints > 1) {
+        warnings.push(`Invalid format: multiple decimal points in "${rawValue}"`);
+        return { amount: 0, warnings };
+      }
+
+      // VALIDATION 5: Parse to float
       const parsed = parseFloat(cleanValue);
 
       if (isNaN(parsed)) {
-        console.error('ERROR parseAmountWithContext rawValue:', rawValue);
-        return 0;
+        warnings.push(`Cannot parse "${rawValue}" to number`);
+        return { amount: 0, warnings };
       }
+
+      // VALIDATION 6: Check for negative values
+      if (parsed < 0) {
+        warnings.push(`Negative value detected: ${parsed} from "${rawValue}"`);
+        return { amount: 0, warnings };
+      }
+
+      // VALIDATION 7: Check for unreasonably large values (overflow prevention)
+      const MAX_SAFE_CHIPS = 1_000_000_000; // 1 billion chips
+      const MAX_SAFE_CENTS = 100_000_000;   // $1 million dollars (100M cents)
+
+      if (gameContext.isTournament) {
+        if (parsed > MAX_SAFE_CHIPS) {
+          warnings.push(`Value ${parsed} exceeds maximum safe chip count (${MAX_SAFE_CHIPS})`);
+          return { amount: MAX_SAFE_CHIPS, warnings };
+        }
+      } else {
+        if (parsed > MAX_SAFE_CENTS / 100) {
+          warnings.push(`Value ${parsed} exceeds maximum safe dollar amount ($${MAX_SAFE_CENTS / 100})`);
+          return { amount: MAX_SAFE_CENTS, warnings };
+        }
+      }
+
+      // CONVERSION: Use integer arithmetic to avoid floating point errors
+      let finalAmount: number;
 
       if (gameContext.isTournament) {
         // Tournament: values are already in chips, keep as integer
-        return Math.round(parsed);
+        finalAmount = Math.round(parsed);
+
+        // Warn if fractional chips detected
+        if (parsed !== finalAmount) {
+          warnings.push(`Fractional chips detected: ${parsed} rounded to ${finalAmount}`);
+        }
       } else {
-        // Cash game: convert dollars to cents to prevent floating point errors
-        return Math.round(parsed * 100);
+        // Cash game: convert dollars to cents using integer arithmetic
+        // Multiply by 100 using string manipulation to avoid float errors
+        const [integerPart, decimalPart = ''] = cleanValue.split('.');
+
+        // Pad or truncate decimal to exactly 2 digits
+        const paddedDecimal = (decimalPart + '00').substring(0, 2);
+
+        // Construct integer cents value
+        const centsString = integerPart + paddedDecimal;
+        finalAmount = parseInt(centsString, 10);
+
+        // Validate the conversion
+        if (isNaN(finalAmount) || finalAmount < 0) {
+          warnings.push(`Conversion error: "${rawValue}" -> ${finalAmount} cents`);
+          return { amount: 0, warnings };
+        }
+
+        // Warn if more than 2 decimal places (precision loss)
+        if (decimalPart.length > 2) {
+          warnings.push(`Precision loss: "${rawValue}" has ${decimalPart.length} decimal places, truncated to 2`);
+        }
       }
+
+      // VALIDATION 8: Final sanity check
+      if (!Number.isFinite(finalAmount)) {
+        warnings.push(`Final amount is not finite: ${finalAmount} from "${rawValue}"`);
+        return { amount: 0, warnings };
+      }
+
+      // Log suspicious conversions for debugging
+      if (warnings.length > 0) {
+      }
+
+      return { amount: finalAmount, warnings };
+
     } catch (error) {
-      console.error('ERROR parseAmountWithContext rawValue:', rawValue, error);
-      return 0;
+      warnings.push(`Exception during parsing: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return { amount: 0, warnings };
     }
   }
 
@@ -1520,7 +1597,6 @@ export class HandParser {
    */
   private static parseAmount(rawValue: string): number {
     if (!rawValue) {
-      console.error('ERROR parseAmount rawValue:', rawValue);
       return 0;
     }
 
@@ -1530,32 +1606,17 @@ export class HandParser {
       const parsed = parseFloat(cleanValue);
 
       if (isNaN(parsed)) {
-        console.error('ERROR parseAmount rawValue:', rawValue);
         return 0;
       }
 
       // Convert to integer cents to prevent floating point errors
       // Store all monetary values as integer cents internally
-      return Math.round(parsed * 100);
+      return CurrencyUtils.dollarsToCents(parsed);
     } catch (error) {
-      console.error('ERROR parseAmount rawValue:', rawValue, error);
       return 0;
     }
   }
 
-  /**
-   * Convert cents to dollars for display
-   */
-  public static centsToDollars(cents: number): number {
-    return cents / 100;
-  }
-
-  /**
-   * Convert dollars to cents for internal calculations
-   */
-  public static dollarsToCents(dollars: number): number {
-    return Math.round(dollars * 100);
-  }
 
   /**
    * Peek ahead to check for shows in next lines (for immediate card reveal)
@@ -1586,14 +1647,22 @@ export class HandParser {
       // Check if it's an all-in call
       const isAllIn = this.isAllInAction(callMatch[3]);
 
-      let amount = this.parseAmountWithContext(callMatch[2], gameContext);
+      const { amount, warnings: parseWarnings } = this.parseAmountWithContext(callMatch[2], gameContext);
       let revealedCards: Card[] | undefined;
 
       // If all-in, try to extract explicit amount and check for shows
       if (isAllIn) {
         const extractedAmount = this.extractAllInAmount(callMatch[3]);
         if (extractedAmount !== undefined) {
-          amount = extractedAmount;
+          // For all-in extracted amounts, assume they need conversion too
+          const { amount: convertedAmount } = this.parseAmountWithContext(extractedAmount.toString(), gameContext);
+          return {
+            player: callMatch[1],
+            action: 'all-in',
+            amount: convertedAmount,
+            reveals: revealedCards !== undefined,
+            revealedCards
+          };
         }
       }
 
@@ -1611,14 +1680,21 @@ export class HandParser {
       // Check if it's an all-in
       const isAllIn = this.isAllInAction(betMatch[3]);
 
-      let amount = this.parseAmountWithContext(betMatch[2], gameContext);
+      const { amount, warnings: parseWarnings } = this.parseAmountWithContext(betMatch[2], gameContext);
       let revealedCards: Card[] | undefined;
 
       // If all-in, try to extract explicit amount
       if (isAllIn) {
         const extractedAmount = this.extractAllInAmount(betMatch[3]);
         if (extractedAmount !== undefined) {
-          amount = extractedAmount;
+          const { amount: convertedAmount } = this.parseAmountWithContext(extractedAmount.toString(), gameContext);
+          return {
+            player: betMatch[1],
+            action: 'all-in',
+            amount: convertedAmount,
+            reveals: revealedCards !== undefined,
+            revealedCards
+          };
         }
       }
 
@@ -1631,19 +1707,41 @@ export class HandParser {
       };
     }
 
+    // CRITICAL: Match "raises all-in X" format FIRST (before normal raises)
+    const raiseAllInMatch = line.match(/^(.+?): raises all-?in \$?([0-9,\.]+)$/i);
+    if (raiseAllInMatch) {
+      const { amount, warnings: parseWarnings } = this.parseAmountWithContext(raiseAllInMatch[2], gameContext);
+      return {
+        player: raiseAllInMatch[1],
+        action: 'all-in',
+        amount: amount,
+        reveals: false
+      };
+    }
+
+    // Match normal raises "raises X to Y"
     const raiseMatch = line.match(/^(.+?): raises \$?([0-9,\.]+) to \$?([0-9,\.]+)(.*)$/);
     if (raiseMatch) {
       // Check if it's an all-in
       const isAllIn = this.isAllInAction(raiseMatch[4]);
-      let totalBet = this.parseAmountWithContext(raiseMatch[3], gameContext); // Total amount player bets
-      const raiseBy = this.parseAmountWithContext(raiseMatch[2], gameContext); // How much they raised by
+      const { amount: totalBet, warnings: totalWarnings } = this.parseAmountWithContext(raiseMatch[3], gameContext); // Total amount player bets
+      const { amount: raiseBy, warnings: raiseWarnings } = this.parseAmountWithContext(raiseMatch[2], gameContext); // How much they raised by
       let revealedCards: Card[] | undefined;
 
       // If all-in, try to extract explicit amount
       if (isAllIn) {
         const extractedAmount = this.extractAllInAmount(raiseMatch[4]);
         if (extractedAmount !== undefined) {
-          totalBet = extractedAmount;
+          const { amount: convertedTotal } = this.parseAmountWithContext(extractedAmount.toString(), gameContext);
+          return {
+            player: raiseMatch[1],
+            action: 'all-in',
+            amount: convertedTotal, // Total amount added to pot
+            raiseBy: raiseBy, // How much they raised by (for display)
+            totalBet: convertedTotal, // Store total bet for reference
+            reveals: revealedCards !== undefined,
+            revealedCards
+          };
         }
       }
 
@@ -1720,49 +1818,201 @@ export class HandParser {
   }
 
   /**
-   * NEW: Detect game context (Tournament vs Cash Game)
-   * Critical for proper value interpretation
+   * MULTI-LAYER GAME CONTEXT DETECTION
+   * Critical for 100% accurate value conversion (chips vs dollars)
+   *
+   * Detection Strategy:
+   * Layer 1: Primary indicators (Tournament # keyword)
+   * Layer 2: Currency symbols and patterns
+   * Layer 3: Structural analysis (blinds format)
+   * Layer 4: Cross-validation and contradiction detection
+   * Layer 5: Intelligent fallback with confidence scoring
    */
-  private static detectGameContext(headerLine: string): GameContext {
-    // Tournament detection patterns - capture full tournament name
-    const tournamentMatch = headerLine.match(/Tournament #(\d+), (.+?) USD.+Level ([IVXLC]+) \(([0-9]+)\/([0-9]+)\)/);
+  private static detectGameContext(
+    headerLine: string,
+    site: 'PokerStars' | 'GGPoker' | 'PartyPoker' | 'Unknown' = 'Unknown'
+  ): GameContext & { confidence: 'high' | 'medium' | 'low'; warnings: string[] } {
+    const warnings: string[] = [];
+    let confidence: 'high' | 'medium' | 'low' = 'low';
 
-    if (tournamentMatch) {
-      const [, tourneyId, fullTournamentName, level, sb, bb] = tournamentMatch;
-      return {
-        isTournament: true,
-        isHighStakes: false, // Tournaments use chips, not high stakes concept
-        currencyUnit: 'chips',
-        conversionNeeded: false, // NO conversion needed for tournaments
-        buyIn: fullTournamentName, // Use full tournament name like "$10+$1"
-        level: `Level ${level}`
-      };
-    }
-
-    // Cash game detection patterns
-    const cashMatch = headerLine.match(/\(\$([0-9.]+)\/\$([0-9.]+).+?\)/);
-
-    if (cashMatch) {
-      const [, sb, bb] = cashMatch;
-      const smallBlind = parseFloat(sb);
-      const bigBlind = parseFloat(bb);
-
-      return {
-        isTournament: false,
-        isHighStakes: bigBlind >= 100, // $100+ BB is considered high stakes
-        currencyUnit: 'dollars',
-        conversionNeeded: true // Cash games need dollar-to-cents conversion
-      };
-    }
-
-    // Default fallback (assume cash game if uncertain)
-    console.warn('🚨 Could not detect game context, defaulting to cash game');
-    return {
-      isTournament: false,
-      isHighStakes: false,
-      currencyUnit: 'dollars',
-      conversionNeeded: true
+    // LAYER 1: Primary Tournament Indicators
+    const tournamentIndicators = {
+      hasTournamentKeyword: /Tournament #\d+/i.test(headerLine),
+      hasLevel: /Level [IVXLC]+/i.test(headerLine),
+      hasBuyIn: /\$[\d.]+\+\$[\d.]+/i.test(headerLine),
+      hasSitAndGo: /Sit & Go/i.test(headerLine),
+      hasMTT: /MTT|Multi/i.test(headerLine),
+      hasFreeroll: /Freeroll/i.test(headerLine)
     };
+
+    // LAYER 2: Cash Game Indicators
+    const cashGameIndicators = {
+      hasCashKeyword: /Cash Game/i.test(headerLine),
+      hasDirectStakes: /\(\$[\d.]+\/\$[\d.]+\s*(?:USD|EUR|GBP)?\)/i.test(headerLine),
+      hasNoLevel: !/Level [IVXLC]+/i.test(headerLine),
+      hasNoTournamentId: !/Tournament #\d+/i.test(headerLine)
+    };
+
+    // LAYER 3: Site-Specific Patterns
+    let siteSpecificDetection: { isTournament: boolean; certainty: number } | null = null;
+
+    switch (site) {
+      case 'PokerStars':
+        // PokerStars tournament: "Tournament #456, $10+$1 USD ... Level V"
+        // PokerStars cash: "Hold'em No Limit ($0.25/$0.50 USD)"
+        const psTournament = /Tournament #\d+,.+?Level [IVXLC]+/i.test(headerLine);
+        const psCash = /Hold'em.+?\(\$[\d.]+\/\$[\d.]+\s*USD\)/i.test(headerLine) &&
+                       !/Tournament #/i.test(headerLine);
+
+        if (psTournament) {
+          siteSpecificDetection = { isTournament: true, certainty: 0.95 };
+        } else if (psCash) {
+          siteSpecificDetection = { isTournament: false, certainty: 0.95 };
+        }
+        break;
+
+      case 'GGPoker':
+        // GGPoker tournament: "Tournament #123456, $10+$1 USD ... Level V"
+        // GGPoker cash: "Hold'em No Limit ($0.25/$0.50)" (no Tournament keyword)
+        const ggTournament = /Tournament #\d+/i.test(headerLine);
+        const ggCash = /Hold'em.+?\(\$?[\d.]+\/\$?[\d.]+\)/i.test(headerLine) &&
+                       !/Tournament #/i.test(headerLine);
+
+        if (ggTournament) {
+          siteSpecificDetection = { isTournament: true, certainty: 0.95 };
+        } else if (ggCash) {
+          siteSpecificDetection = { isTournament: false, certainty: 0.90 };
+        }
+        break;
+
+      case 'PartyPoker':
+        // PartyPoker tournament: "Tournament #12345, $50+$5"
+        // PartyPoker cash: "Cash Game ($1/$2)"
+        const ppTournament = /Tournament #\d+/i.test(headerLine);
+        const ppCash = /Cash Game/i.test(headerLine);
+
+        if (ppTournament) {
+          siteSpecificDetection = { isTournament: true, certainty: 0.95 };
+        } else if (ppCash) {
+          siteSpecificDetection = { isTournament: false, certainty: 0.95 };
+        }
+        break;
+    }
+
+    // LAYER 4: Cross-Validation and Contradiction Detection
+    const tournamentScore =
+      (tournamentIndicators.hasTournamentKeyword ? 3 : 0) +
+      (tournamentIndicators.hasLevel ? 2 : 0) +
+      (tournamentIndicators.hasBuyIn ? 2 : 0) +
+      (tournamentIndicators.hasSitAndGo ? 2 : 0) +
+      (tournamentIndicators.hasMTT ? 2 : 0) +
+      (tournamentIndicators.hasFreeroll ? 2 : 0);
+
+    const cashGameScore =
+      (cashGameIndicators.hasCashKeyword ? 3 : 0) +
+      (cashGameIndicators.hasDirectStakes ? 2 : 0) +
+      (cashGameIndicators.hasNoLevel ? 1 : 0) +
+      (cashGameIndicators.hasNoTournamentId ? 1 : 0);
+
+    // Detect contradictions
+    if (tournamentIndicators.hasTournamentKeyword && cashGameIndicators.hasCashKeyword) {
+      warnings.push('⚠️ CONTRADICTION: Both "Tournament" and "Cash Game" keywords detected');
+    }
+
+    if (tournamentIndicators.hasLevel && cashGameIndicators.hasDirectStakes && !tournamentIndicators.hasTournamentKeyword) {
+      warnings.push('⚠️ AMBIGUOUS: Has Level indicator but no Tournament keyword');
+    }
+
+    // LAYER 5: Final Decision with Confidence Scoring
+    let isTournament: boolean;
+    let detectionMethod: string;
+
+    // Priority 1: Site-specific detection with high certainty
+    if (siteSpecificDetection && siteSpecificDetection.certainty >= 0.9) {
+      isTournament = siteSpecificDetection.isTournament;
+      detectionMethod = `Site-specific (${site})`;
+      confidence = 'high';
+    }
+    // Priority 2: Strong tournament indicators
+    else if (tournamentScore >= 3) {
+      isTournament = true;
+      detectionMethod = `Tournament indicators (score: ${tournamentScore})`;
+      confidence = tournamentScore >= 5 ? 'high' : 'medium';
+    }
+    // Priority 3: Strong cash game indicators
+    else if (cashGameScore >= 3) {
+      isTournament = false;
+      detectionMethod = `Cash game indicators (score: ${cashGameScore})`;
+      confidence = cashGameScore >= 5 ? 'high' : 'medium';
+    }
+    // Priority 4: Score comparison
+    else if (tournamentScore > cashGameScore) {
+      isTournament = true;
+      detectionMethod = `Score comparison (T:${tournamentScore} > C:${cashGameScore})`;
+      confidence = 'medium';
+    }
+    // Priority 5: Default fallback (cash game)
+    else {
+      isTournament = false;
+      detectionMethod = 'Fallback default';
+      confidence = 'low';
+      warnings.push('⚠️ LOW CONFIDENCE: Using default fallback (cash game)');
+    }
+
+    // LAYER 6: Extract specific details based on detection
+    let gameContext: GameContext;
+
+    if (isTournament) {
+      // Extract tournament details
+      const tourneyMatch = headerLine.match(/Tournament #(\d+),?\s*([^-]+?)\s*(?:USD|EUR|GBP)?.*?Level ([IVXLC]+)/i);
+      const buyInMatch = headerLine.match(/(\$[\d.]+\+\$[\d.]+)/);
+      const blindsMatch = headerLine.match(/\((\d+)\/(\d+)(?:\/(\d+))?\)/);
+
+      const tournamentName = buyInMatch ? buyInMatch[1] : (tourneyMatch ? tourneyMatch[2].trim() : 'Unknown');
+      const level = tourneyMatch ? `Level ${tourneyMatch[3]}` : 'Unknown';
+
+      gameContext = {
+        isTournament: true,
+        isHighStakes: false, // Tournaments use chips, not "high stakes"
+        currencyUnit: 'chips',
+        conversionNeeded: false, // NO conversion for tournaments
+        buyIn: tournamentName,
+        level: level
+      };
+
+    } else {
+      // Extract cash game details
+      const stakesMatch = headerLine.match(/\([\$]?([\d.]+)\/[\$]?([\d.]+)\s*(?:USD|EUR|GBP)?\)/i);
+
+      if (stakesMatch) {
+        const smallBlind = parseFloat(stakesMatch[1]);
+        const bigBlind = parseFloat(stakesMatch[2]);
+        const isHighStakes = bigBlind >= 100; // $100+ BB
+
+        gameContext = {
+          isTournament: false,
+          isHighStakes: isHighStakes,
+          currencyUnit: 'dollars',
+          conversionNeeded: true // Cash games need dollar-to-cents conversion
+        };
+
+      } else {
+        // Fallback cash game with default stakes
+        warnings.push('⚠️ Could not parse stakes, using default values');
+        gameContext = {
+          isTournament: false,
+          isHighStakes: false,
+          currencyUnit: 'dollars',
+          conversionNeeded: true
+        };
+      }
+    }
+
+    // Log warnings if any
+    if (warnings.length > 0) {
+    }
+
+    return { ...gameContext, confidence, warnings };
   }
 
   /**
@@ -1775,7 +2025,7 @@ export class HandParser {
       return amount;
     } else {
       // Cash games: convert dollars to cents
-      return this.dollarsToCents(amount);
+      return CurrencyUtils.dollarsToCents(amount);
     }
   }
 

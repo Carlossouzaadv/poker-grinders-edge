@@ -70,7 +70,9 @@ describe('All-in Integration Tests', () => {
       const parseResult = HandParser.parse(CASH_UR_CHECKS_HAND);
       expect(parseResult.success).toBe(true);
 
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const handHistory = parseResult.handHistory;
       const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
@@ -109,7 +111,9 @@ describe('All-in Integration Tests', () => {
       const parseResult = HandParser.parse(HEADS_UP_ALL_IN_HAND);
       expect(parseResult.success).toBe(true);
 
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const handHistory = parseResult.handHistory;
       const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
@@ -146,7 +150,9 @@ describe('All-in Integration Tests', () => {
       const parseResult = HandParser.parse(CASH_UR_CHECKS_HAND);
       expect(parseResult.success).toBe(true);
 
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const handHistory = parseResult.handHistory;
       const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
@@ -183,7 +189,9 @@ describe('All-in Integration Tests', () => {
       const parseResult = HandParser.parse(CASH_UR_CHECKS_HAND);
       expect(parseResult.success).toBe(true);
 
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const handHistory = parseResult.handHistory;
       const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);
@@ -221,7 +229,7 @@ describe('All-in Integration Tests', () => {
 
       try {
         const parseResult = HandParser.parse(CASH_UR_CHECKS_HAND);
-        if (parseResult.success) {
+        if (parseResult.success && parseResult.handHistory) {
           await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         }
 
@@ -251,7 +259,9 @@ describe('All-in Integration Tests', () => {
       const parseResult = HandParser.parse(CASH_UR_CHECKS_HAND);
       expect(parseResult.success).toBe(true);
 
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const handHistory = parseResult.handHistory;
       const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);

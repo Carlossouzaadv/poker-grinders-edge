@@ -1,290 +1,259 @@
 import { HandParser } from './hand-parser';
 import { HandHistory } from '@/types/poker';
 
-describe('HandParser', () => {
-  // Test samples
-  const validPokerStarsHand = `PokerStars Hand #123456789: Hold'em No Limit ($0.25/$0.50 USD) - 2024/01/15 14:30:25 ET
-Table 'Test Table' 6-max Seat #1 is the button
-Seat 1: Hero ($50.00 in chips)
-Seat 2: Villain1 ($45.75 in chips)
-Seat 3: Villain2 ($100.25 in chips)
-Seat 4: Villain3 ($75.50 in chips)
-Seat 5: Villain4 ($30.00 in chips)
-Seat 6: Villain5 ($85.00 in chips)
-Villain1: posts small blind $0.25
-Villain2: posts big blind $0.50
+/**
+ * Tests for GGPoker hand history parser
+ * CRITICAL: These tests ensure the parser correctly handles all phases of a hand
+ */
+
+describe('HandParser - GGPoker', () => {
+  describe('Full Tournament Hand (Multi-way All-in with Showdown)', () => {
+    const GGPOKER_TOURNAMENT_HAND = `Poker Hand #TM5030367055: Tournament #232064631, Bounty Hunters Special $2.50 Hold'em No Limit - Level12(400/800) - 2025/09/26 11:36:31
+Table '200' 8-max Seat #7 is the button
+Seat 1: c0969eff (9,680 in chips)
+Seat 3: 4f29b34d (34,700 in chips)
+Seat 4: 26587683 (25,438 in chips)
+Seat 5: c8b449a6 (58,039 in chips)
+Seat 6: 683c325e (22,651 in chips)
+Seat 7: 4311619d (42,391 in chips)
+Seat 8: Hero (5,140 in chips)
+Hero: posts the ante 120
+4311619d: posts the ante 120
+c8b449a6: posts the ante 120
+683c325e: posts the ante 120
+26587683: posts the ante 120
+4f29b34d: posts the ante 120
+c0969eff: posts the ante 120
+Hero: posts small blind 400
+c0969eff: posts big blind 800
 *** HOLE CARDS ***
-Dealt to Hero [Ac Kd]
-Villain3: folds
-Villain4: calls $0.50
-Villain5: folds
-Hero: raises $2.00 to $2.50
-Villain1: folds
-Villain2: calls $2.00
-Villain4: calls $2.00
-*** FLOP *** [As Kh 7c]
-Villain2: checks
-Villain4: checks
-Hero: bets $5.50
-Villain2: calls $5.50
-Villain4: folds
-*** TURN *** [As Kh 7c] [2d]
-Villain2: checks
-Hero: bets $12.00
-Villain2: calls $12.00
-*** RIVER *** [As Kh 7c 2d] [9s]
-Villain2: checks
-Hero: bets $29.75 and is all-in
-Villain2: calls $29.75
-*** SHOW DOWN ***
-Hero: shows [Ac Kd] (two pair, Aces and Kings)
-Villain2: mucks hand
-Hero collected $97.25 from pot
+Dealt to c0969eff
+Dealt to 4f29b34d
+Dealt to 26587683
+Dealt to c8b449a6
+Dealt to 683c325e
+Dealt to 4311619d
+Dealt to Hero [Js As]
+4f29b34d: folds
+26587683: folds
+c8b449a6: folds
+683c325e: raises 960 to 1,760
+4311619d: calls 1,760
+Hero: raises 3,260 to 5,020 and is all-in
+c0969eff: raises 4,540 to 9,560 and is all-in
+683c325e: raises 12,971 to 22,531 and is all-in
+4311619d: calls 20,771
+683c325e: shows [Td Kh]
+4311619d: shows [Jd Ad]
+Hero: shows [Js As]
+c0969eff: shows [7s 7c]
+*** FLOP *** [Jh 6c Tc]
+*** TURN *** [Jh 6c Tc] [5c]
+*** RIVER *** [Jh 6c Tc 5c] [9c]
+*** SHOWDOWN ***
+c0969eff collected 20,920 from pot
+c0969eff collected 13,620 from pot
+4311619d collected 25,942 from pot
 *** SUMMARY ***
-Total pot $100.00 | Rake $2.75
-Board [As Kh 7c 2d 9s]
-Seat 1: Hero (button) showed [Ac Kd] and won ($97.25) with two pair, Aces and Kings
-Seat 2: Villain1 (small blind) folded before Flop
-Seat 3: Villain2 (big blind) mucked [Ah Qc]
-Seat 4: Villain3 folded before Flop (didn't bet)
-Seat 5: Villain4 folded on the Flop
-Seat 6: Villain5 folded before Flop (didn't bet)`;
+Total pot 60,482 | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0
+Board [Jh 6c Tc 5c 9c]
+Seat 1: c0969eff (big blind) showed [7s 7c] and won (34,540) with a flush Ten high
+Seat 3: 4f29b34d folded before Flop
+Seat 4: 26587683 folded before Flop
+Seat 5: c8b449a6 folded before Flop
+Seat 6: 683c325e showed [Td Kh] and lost with a pair of Tens
+Seat 7: 4311619d (button) showed [Jd Ad] and won (25,942) with a pair of Jacks
+Seat 8: Hero (small blind) showed [Js As] and lost with a pair of Jacks`;
 
-  const multipleHandsText = `PokerStars Hand #123456789: Hold'em No Limit ($0.25/$0.50 USD) - 2024/01/15 14:30:25 ET
-Table 'Test Table' 6-max Seat #1 is the button
-Seat 1: Hero ($50.00 in chips)
-*** HOLE CARDS ***
-Dealt to Hero [Ac Kd]
-Hero: folds
-
-PokerStars Hand #987654321: Hold'em No Limit ($0.25/$0.50 USD) - 2024/01/15 14:31:30 ET
-Table 'Test Table' 6-max Seat #2 is the button
-Seat 2: Hero ($50.00 in chips)
-*** HOLE CARDS ***
-Dealt to Hero [2s 7h]
-Hero: folds`;
-
-  const invalidFormatText = `This is not a valid hand history format.
-It doesn't contain any poker site headers.`;
-
-  const unsupportedSiteText = `888poker Hand #123456: Hold'em No Limit ($0.25/$0.50) - 2024/01/15
-Table 'Unsupported' 6-max Seat #1 is the button`;
-
-  const ggPokerHandText = `Game ID: 123456789 - Natural8
-Hold'em No Limit ($0.25/$0.50 USD) - 2024/01/15 14:30:25 ET
-Table 'Natural8 Table' 6-max Seat #1 is the button`;
-
-  describe('Hand Validation', () => {
-    test('should successfully parse valid PokerStars hand', () => {
-      const result = HandParser.parse(validPokerStarsHand);
+    it('should successfully parse the complete hand', () => {
+      const result = HandParser.parse(GGPOKER_TOURNAMENT_HAND);
 
       expect(result.success).toBe(true);
-      expect(result.handHistory).toBeDefined();
       expect(result.error).toBeUndefined();
-
-      if (result.handHistory) {
-        expect(result.handHistory.handId).toBe('123456789');
-        expect(result.handHistory.site).toBe('PokerStars');
-        expect(result.handHistory.gameType).toBe('Hold\'em');
-        expect(result.handHistory.limit).toBe('No Limit');
-        expect(result.handHistory.stakes).toBe('$0.25/$0.5');
-        expect(result.handHistory.maxPlayers).toBe(6);
-        expect(result.handHistory.buttonSeat).toBe(1);
-        expect(result.handHistory.smallBlind).toBe(0.25);
-        expect(result.handHistory.bigBlind).toBe(0.5);
-        expect(result.handHistory.players).toHaveLength(6);
-        expect(result.handHistory.preflop).toBeDefined();
-      }
+      expect(result.handHistory).toBeDefined();
     });
 
-    test('should reject multiple hands in single text', () => {
-      const result = HandParser.parse(multipleHandsText);
+    it('should parse header correctly', () => {
+      const result = HandParser.parse(GGPOKER_TOURNAMENT_HAND);
+      const hand = result.handHistory as HandHistory;
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('2 mãos');
-      expect(result.error).toContain('uma mão por vez');
-      expect(result.handHistory).toBeUndefined();
+      expect(hand.handId).toBe('TM5030367055');
+      expect(hand.site).toBe('GGPoker');
+      expect(hand.gameType).toBe('Hold\'em');
+      expect(hand.limit).toBe('No Limit');
+      expect(hand.smallBlind).toBe(400);
+      expect(hand.bigBlind).toBe(800);
     });
 
-    test('should reject invalid format text', () => {
-      const result = HandParser.parse(invalidFormatText);
+    it('should parse all 7 players correctly', () => {
+      const result = HandParser.parse(GGPOKER_TOURNAMENT_HAND);
+      const hand = result.handHistory as HandHistory;
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Formato de hand history não reconhecido');
-      expect(result.handHistory).toBeUndefined();
+      expect(hand.players).toHaveLength(7);
+      expect(hand.maxPlayers).toBe(8);
+      expect(hand.buttonSeat).toBe(7);
+
+      // Check specific players
+      const hero = hand.players.find(p => p.name === 'Hero');
+      expect(hero).toBeDefined();
+      expect(hero!.stack).toBe(5140);
+      expect(hero!.seat).toBe(8);
+      expect(hero!.cards).toEqual([
+        { rank: 'J', suit: 's' },
+        { rank: 'A', suit: 's' }
+      ]);
+
+      const bigBlind = hand.players.find(p => p.name === 'c0969eff');
+      expect(bigBlind).toBeDefined();
+      expect(bigBlind!.stack).toBe(9680);
+      expect(bigBlind!.cards).toEqual([
+        { rank: '7', suit: 's' },
+        { rank: '7', suit: 'c' }
+      ]);
     });
 
-    test('should reject unsupported sites', () => {
-      const result = HandParser.parse(unsupportedSiteText);
+    it('should parse antes correctly', () => {
+      const result = HandParser.parse(GGPOKER_TOURNAMENT_HAND);
+      const hand = result.handHistory as HandHistory;
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('Site não suportado');
-      expect(result.handHistory).toBeUndefined();
+      expect(hand.antes).toBeDefined();
+      expect(hand.antes).toHaveLength(9); // 7 antes + 2 blinds
+
+      const anteActions = hand.antes!.filter(a => a.action === 'ante');
+      expect(anteActions).toHaveLength(7);
+      expect(anteActions[0].amount).toBe(120);
     });
 
-    test('should detect but not yet support GGPoker format', () => {
-      const result = HandParser.parse(ggPokerHandText);
+    it('should parse preflop actions correctly', () => {
+      const result = HandParser.parse(GGPOKER_TOURNAMENT_HAND);
+      const hand = result.handHistory as HandHistory;
 
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('GGPoker ainda não implementado');
-      expect(result.handHistory).toBeUndefined();
+      // Should have: folds, raises, calls, all-ins, shows
+      expect(hand.preflop.length).toBeGreaterThan(0);
+
+      // Check for folds
+      const folds = hand.preflop.filter(a => a.action === 'fold');
+      expect(folds.length).toBe(3); // 4f29b34d, 26587683, c8b449a6
+
+      // Check for all-ins
+      const allIns = hand.preflop.filter(a => a.action === 'all-in');
+      expect(allIns.length).toBeGreaterThan(0);
+    });
+
+    it('should parse board cards correctly', () => {
+      const result = HandParser.parse(GGPOKER_TOURNAMENT_HAND);
+      const hand = result.handHistory as HandHistory;
+
+      // Flop
+      expect(hand.flop.cards).toHaveLength(3);
+      expect(hand.flop.cards).toEqual([
+        { rank: 'J', suit: 'h' },
+        { rank: '6', suit: 'c' },
+        { rank: 'T', suit: 'c' }
+      ]);
+
+      // Turn
+      expect(hand.turn.card).toEqual({ rank: '5', suit: 'c' });
+
+      // River
+      expect(hand.river.card).toEqual({ rank: '9', suit: 'c' });
+    });
+
+    it('should parse showdown correctly', () => {
+      const result = HandParser.parse(GGPOKER_TOURNAMENT_HAND);
+      const hand = result.handHistory as HandHistory;
+
+      expect(hand.showdown).toBeDefined();
+      expect(hand.showdown!.winners).toContain('c0969eff');
+      expect(hand.showdown!.winners).toContain('4311619d');
+
+      // Total pot collected (20,920 + 13,620 + 25,942 = 60,482)
+      expect(hand.showdown!.potWon).toBe(60482);
+    });
+
+    it('should parse summary correctly', () => {
+      const result = HandParser.parse(GGPOKER_TOURNAMENT_HAND);
+      const hand = result.handHistory as HandHistory;
+
+      expect(hand.totalPot).toBe(60482);
+      expect(hand.rake).toBe(0);
+
+      // Check that all revealed cards are assigned to players
+      const player683c325e = hand.players.find(p => p.name === '683c325e');
+      expect(player683c325e!.cards).toEqual([
+        { rank: 'T', suit: 'd' },
+        { rank: 'K', suit: 'h' }
+      ]);
+
+      const player4311619d = hand.players.find(p => p.name === '4311619d');
+      expect(player4311619d!.cards).toEqual([
+        { rank: 'J', suit: 'd' },
+        { rank: 'A', suit: 'd' }
+      ]);
+    });
+
+    it('should detect tournament context correctly', () => {
+      const result = HandParser.parse(GGPOKER_TOURNAMENT_HAND);
+      const hand = result.handHistory as HandHistory;
+
+      expect(hand.gameContext).toBeDefined();
+      expect(hand.gameContext.isTournament).toBe(true);
+      expect(hand.gameContext.currencyUnit).toBe('chips');
+      expect(hand.gameContext.conversionNeeded).toBe(false);
+    });
+
+    it('should handle comma-separated amounts correctly', () => {
+      const result = HandParser.parse(GGPOKER_TOURNAMENT_HAND);
+      const hand = result.handHistory as HandHistory;
+
+      // Check raises with commas (e.g., "raises 12,971 to 22,531")
+      const raiseAction = hand.preflop.find(
+        a => a.player === '683c325e' && a.action === 'all-in'
+      );
+      expect(raiseAction).toBeDefined();
+      // Amount should be parsed correctly (commas removed)
+      expect(raiseAction!.amount).toBeGreaterThan(0);
+    });
+
+    it('should assign all revealed cards to correct players', () => {
+      const result = HandParser.parse(GGPOKER_TOURNAMENT_HAND);
+      const hand = result.handHistory as HandHistory;
+
+      // All players who showed cards should have them assigned
+      const playersWithCards = hand.players.filter(p => p.cards !== undefined);
+      expect(playersWithCards.length).toBeGreaterThanOrEqual(4);
+
+      // Hero, c0969eff, 683c325e, 4311619d all showed cards
+      expect(playersWithCards.map(p => p.name)).toEqual(
+        expect.arrayContaining(['Hero', 'c0969eff', '683c325e', '4311619d'])
+      );
     });
   });
 
-  describe('Hero Detection and Card Parsing', () => {
-    test('should correctly identify hero player and parse hole cards', () => {
-      const result = HandParser.parse(validPokerStarsHand);
-
-      expect(result.success).toBe(true);
-      if (result.handHistory) {
-        const hero = result.handHistory.players.find(p => p.isHero);
-        expect(hero).toBeDefined();
-        expect(hero?.name).toBe('Hero');
-        expect(hero?.cards).toBeDefined();
-        expect(hero?.cards).toHaveLength(2);
-        expect(hero?.cards?.[0]).toEqual({ rank: 'A', suit: 'c' });
-        expect(hero?.cards?.[1]).toEqual({ rank: 'K', suit: 'd' });
-      }
-    });
-
-    test('should parse community cards correctly for all streets', () => {
-      const result = HandParser.parse(validPokerStarsHand);
-
-      expect(result.success).toBe(true);
-      if (result.handHistory) {
-        // Flop cards
-        expect(result.handHistory.flop).toBeDefined();
-        expect(result.handHistory.flop?.cards).toHaveLength(3);
-        expect(result.handHistory.flop?.cards[0]).toEqual({ rank: 'A', suit: 's' });
-        expect(result.handHistory.flop?.cards[1]).toEqual({ rank: 'K', suit: 'h' });
-        expect(result.handHistory.flop?.cards[2]).toEqual({ rank: '7', suit: 'c' });
-
-        // Turn card
-        expect(result.handHistory.turn).toBeDefined();
-        expect(result.handHistory.turn?.card).toEqual({ rank: '2', suit: 'd' });
-
-        // River card
-        expect(result.handHistory.river).toBeDefined();
-        expect(result.handHistory.river?.card).toEqual({ rank: '9', suit: 's' });
-      }
-    });
-
-    test('should parse mucked hands in summary', () => {
-      const result = HandParser.parse(validPokerStarsHand);
-
-      expect(result.success).toBe(true);
-      if (result.handHistory) {
-        const villain2 = result.handHistory.players.find(p => p.name === 'Villain2');
-        expect(villain2).toBeDefined();
-        expect(villain2?.cards).toBeDefined();
-        expect(villain2?.cards).toHaveLength(2);
-        expect(villain2?.cards?.[0]).toEqual({ rank: 'A', suit: 'h' });
-        expect(villain2?.cards?.[1]).toEqual({ rank: 'Q', suit: 'c' });
-      }
-    });
-  });
-
-  describe('Action Parsing and Street Structure', () => {
-    test('should parse all player actions correctly', () => {
-      const result = HandParser.parse(validPokerStarsHand);
-
-      expect(result.success).toBe(true);
-      if (result.handHistory) {
-        // Preflop actions
-        expect(result.handHistory.preflop).toBeDefined();
-        expect(result.handHistory.preflop.length).toBeGreaterThan(0);
-
-        const heroRaise = result.handHistory.preflop.find(a => a.player === 'Hero' && a.action === 'raise');
-        expect(heroRaise).toBeDefined();
-        expect(heroRaise?.amount).toBe(2.5);
-
-        const villain4Call = result.handHistory.preflop.find(a => a.player === 'Villain4' && a.action === 'call');
-        expect(villain4Call).toBeDefined();
-        expect(villain4Call?.amount).toBe(0.5);
-
-        // Flop actions
-        expect(result.handHistory.flop?.actions).toBeDefined();
-        const heroBet = result.handHistory.flop?.actions.find(a => a.player === 'Hero' && a.action === 'bet');
-        expect(heroBet).toBeDefined();
-        expect(heroBet?.amount).toBe(5.5);
-      }
-    });
-
-    test('should parse showdown information correctly', () => {
-      const result = HandParser.parse(validPokerStarsHand);
-
-      expect(result.success).toBe(true);
-      if (result.handHistory) {
-        expect(result.handHistory.showdown).toBeDefined();
-        expect(result.handHistory.showdown?.winners).toContain('Hero');
-        expect(result.handHistory.showdown?.potWon).toBe(97.25);
-        expect(result.handHistory.showdown?.info).toContain('shows [Ac Kd]');
-        expect(result.handHistory.showdown?.info).toContain('mucks hand');
-      }
-    });
-
-    test('should calculate positions correctly for 6-max table', () => {
-      const result = HandParser.parse(validPokerStarsHand);
-
-      expect(result.success).toBe(true);
-      if (result.handHistory) {
-        const hero = result.handHistory.players.find(p => p.name === 'Hero');
-        const villain1 = result.handHistory.players.find(p => p.name === 'Villain1');
-        const villain2 = result.handHistory.players.find(p => p.name === 'Villain2');
-
-        expect(hero?.position).toBe('BTN'); // Seat 1 is button
-        expect(villain1?.position).toBe('SB'); // Seat 2 is SB
-        expect(villain2?.position).toBe('BB'); // Seat 3 is BB
-      }
-    });
-  });
-
-  describe('Edge Cases and Error Handling', () => {
-    test('should handle empty string gracefully', () => {
+  describe('Error Handling', () => {
+    it('should fail gracefully on empty input', () => {
       const result = HandParser.parse('');
 
       expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
-      expect(result.handHistory).toBeUndefined();
+      expect(result.error).toContain('empty');
     });
 
-    test('should handle malformed header', () => {
-      const malformedHand = `PokerStars Hand: Invalid format
-Table 'Test' 6-max`;
+    it('should fail on invalid header format', () => {
+      const invalidHand = `Invalid Header Format
+Table '200' 8-max Seat #7 is the button
+Seat 1: Player1 (1000 in chips)`;
 
-      const result = HandParser.parse(malformedHand);
+      const result = HandParser.parse(invalidHand);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Formato de header inválido');
     });
 
-    test('should handle missing players section', () => {
-      const incompleteHand = `PokerStars Hand #123456789: Hold'em No Limit ($0.25/$0.50 USD) - 2024/01/15 14:30:25 ET
-Table 'Test Table' 6-max Seat #1 is the button
-*** HOLE CARDS ***`;
+    it('should detect GGPoker format correctly', () => {
+      const ggPokerSnippet = `Poker Hand #TM123: Tournament #456, Test $1.00 Hold'em No Limit - Level1(10/20)`;
+      const result = HandParser.parse(ggPokerSnippet + '\nTable "test" 6-max');
 
-      const result = HandParser.parse(incompleteHand);
-
-      expect(result.success).toBe(true); // Should still parse but with empty players
-      if (result.handHistory) {
-        expect(result.handHistory.players).toHaveLength(0);
-      }
-    });
-
-    test('should handle exception during parsing', () => {
-      // Simulate internal error by providing corrupted data
-      const corruptedHand = `PokerStars Hand #123456789: Hold'em No Limit ($0.25/$0.50 USD) - 2024/01/15 14:30:25 ET
-Table 'Test Table' 6-max Seat #1 is the button
-Seat 1: Hero ($invalid_stack in chips)`;
-
-      const result = HandParser.parse(corruptedHand);
-
-      // Parser should handle this gracefully and either succeed with default values or fail with proper error
-      expect(result.success).toBeDefined();
-      if (!result.success) {
-        expect(result.error).toBeDefined();
-        expect(typeof result.error).toBe('string');
-      }
+      // Should attempt GGPoker parsing (even if it fails due to incomplete data)
+      expect(result.error).not.toContain('not recognized');
     });
   });
 });

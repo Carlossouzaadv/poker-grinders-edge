@@ -27,7 +27,7 @@ export class MultiHandParser {
         return [
           {
             success: false,
-            error: 'No valid hands found in the provided text. Please ensure the text contains hand history data from PokerStars, GGPoker, PartyPoker, or Ignition.',
+            error: 'No valid hands found in the provided text. Please ensure the text contains hand history data from PokerStars, GGPoker, or PartyPoker.',
           },
         ];
       }
@@ -39,11 +39,11 @@ export class MultiHandParser {
       for (let i = 0; i < handTexts.length; i++) {
         try {
           // Use the existing HandParser.parse() method for each hand
-          const result = HandParser.parse(handTexts[i]);
+          let result = HandParser.parse(handTexts[i]);
 
           // Add original text to successful parses for storage/debugging
           if (result.success && result.data) {
-            result.data.originalText = handTexts[i];
+            result = { ...result, data: { ...result.data, originalText: handTexts[i] } };
           }
 
           parsedHands.push(result);
@@ -106,9 +106,6 @@ export class MultiHandParser {
 
       // PartyPoker: "PartyPoker Hand #123456:" or "***** Hand History for Game 123456"
       /(?:PartyPoker Hand #\d+|\*\*\*\*\* Hand History for Game \d+)/g,
-
-      // Ignition/Bovada: "Ignition Hand #123456" or "Bovada Hand #123456"
-      /(?:Ignition|Bovada) Hand #\d+/g,
     ];
 
     // Find all hand start positions across all patterns

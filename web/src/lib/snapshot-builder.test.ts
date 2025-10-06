@@ -45,8 +45,18 @@ describe('SnapshotBuilder', () => {
         { player: 'Villain2', action: 'call', amount: 12.00 },
       ]
     },
+    river: {
+      card: null,
+      actions: []
+    },
     totalPot: 40.00,
-    currency: 'USD'
+    currency: 'USD',
+    gameContext: {
+      isTournament: false,
+      isHighStakes: false,
+      currencyUnit: 'dollars',
+      conversionNeeded: false
+    }
   });
 
   // Helper function to create an all-in scenario hand history
@@ -63,10 +73,10 @@ describe('SnapshotBuilder', () => {
     bigBlind: 0.50,
     timestamp: new Date('2024-01-15T15:00:00Z'),
     players: [
-      { name: 'Hero', position: 'BTN', stack: 25, isHero: true, seat: 1, cards: [{ rank: 'A', suit: 'a' }, { rank: 'A', suit: 's' }] },
-      { name: 'ShortStack', position: 'SB', stack: 8, isHero: false, seat: 2, cards: [{ rank: 'K', suit: 'k' }, { rank: 'K', suit: 's' }] },
-      { name: 'MidStack', position: 'BB', stack: 15, isHero: false, seat: 3, cards: [{ rank: 'Q', suit: 'q' }, { rank: 'Q', suit: 's' }] },
-      { name: 'BigStack', position: 'CO', stack: 100, isHero: false, seat: 4, cards: [{ rank: 'J', suit: 'j' }, { rank: 'J', suit: 's' }] },
+      { name: 'Hero', position: 'BTN', stack: 25, isHero: true, seat: 1, cards: [{ rank: 'A', suit: 'h' }, { rank: 'A', suit: 's' }] },
+      { name: 'ShortStack', position: 'SB', stack: 8, isHero: false, seat: 2, cards: [{ rank: 'K', suit: 'd' }, { rank: 'K', suit: 's' }] },
+      { name: 'MidStack', position: 'BB', stack: 15, isHero: false, seat: 3, cards: [{ rank: 'Q', suit: 'c' }, { rank: 'Q', suit: 's' }] },
+      { name: 'BigStack', position: 'CO', stack: 100, isHero: false, seat: 4, cards: [{ rank: 'J', suit: 'h' }, { rank: 'J', suit: 's' }] },
     ],
     preflop: [
       { player: 'Hero', action: 'raise', amount: 5.00 },          // Hero contributes 5
@@ -75,8 +85,26 @@ describe('SnapshotBuilder', () => {
       { player: 'BigStack', action: 'call', amount: 15.00 },      // BigStack calls 15
       { player: 'Hero', action: 'call', amount: 10.00 },          // Hero calls additional 10 (total 15)
     ],
+    flop: {
+      cards: [],
+      actions: []
+    },
+    turn: {
+      card: null,
+      actions: []
+    },
+    river: {
+      card: null,
+      actions: []
+    },
     totalPot: 58.00, // 8 + 15 + 15 + 15 = 53, plus blinds
     currency: 'USD',
+    gameContext: {
+      isTournament: false,
+      isHighStakes: false,
+      currencyUnit: 'dollars',
+      conversionNeeded: false
+    },
     showdown: {
       info: 'Hero shows [Aa As], ShortStack shows [Kk Ks], MidStack shows [Qq Qs], BigStack shows [Jj Js]',
       winners: ['Hero'],
@@ -194,14 +222,15 @@ describe('SnapshotBuilder', () => {
     });
 
     test('should handle edge case of all players folding except one', async () => {
-      const singlePlayerHand = createBasicHandHistory();
-      // Modify to have all but one player fold
-      singlePlayerHand.preflop = [
-        { player: 'Hero', action: 'raise', amount: 2.50 },
-        { player: 'Villain1', action: 'fold' },
-        { player: 'Villain2', action: 'fold' },
-        { player: 'Villain3', action: 'fold' },
-      ];
+      const singlePlayerHand = {
+        ...createBasicHandHistory(),
+        preflop: [
+          { player: 'Hero', action: 'raise' as const, amount: 2.50 },
+          { player: 'Villain1', action: 'fold' as const },
+          { player: 'Villain2', action: 'fold' as const },
+          { player: 'Villain3', action: 'fold' as const },
+        ]
+      };
 
       const snapshots = await SnapshotBuilder.buildSnapshots(singlePlayerHand);
       const finalSnapshot = snapshots[snapshots.length - 1];
@@ -357,7 +386,7 @@ describe('SnapshotBuilder', () => {
 
   describe('Performance and Memory', () => {
     test('should handle large number of actions efficiently', async () => {
-      const handHistory = createBasicHandHistory();
+      let handHistory = createBasicHandHistory();
 
       // Add many preflop actions to simulate a complex hand
       const manyActions = [];
@@ -365,7 +394,7 @@ describe('SnapshotBuilder', () => {
         manyActions.push({ player: 'Hero', action: 'bet' as const, amount: 1 });
         manyActions.push({ player: 'Villain1', action: 'call' as const, amount: 1 });
       }
-      handHistory.preflop = manyActions;
+      handHistory = { ...handHistory, preflop: manyActions };
 
       const startTime = Date.now();
       const snapshots = await SnapshotBuilder.buildSnapshots(handHistory);

@@ -74,7 +74,11 @@ export class ReplayBuilder {
     let currentPot = handHistory.smallBlind + handHistory.bigBlind + totalAntes;
 
     // Processar ações do preflop
-    for (const action of handHistory.preflop) {
+    console.log(`🔍 REPLAY BUILDER: Processing ${handHistory.preflop.length} preflop actions`);
+    for (let i = 0; i < handHistory.preflop.length; i++) {
+      const action = handHistory.preflop[i];
+      console.log(`🔍 PREFLOP ACTION ${i}: ${action.player} ${action.action} ${action.amount || 0}`);
+
       let potAfter = currentPot;
       let stacksAfter = { ...currentStacks };
       let description = '';
@@ -133,7 +137,7 @@ export class ReplayBuilder {
         type: 'STREET',
         timestamp: Date.now() + stepId * 1000,
         street: 'flop',
-        cards: handHistory.flop.cards,
+        cards: [...handHistory.flop.cards],
         description: `Flop: ${handHistory.flop.cards.map(c => `${c.rank}${c.suit}`).join(' ')}`,
         potBefore: currentPot
       };
@@ -149,7 +153,7 @@ export class ReplayBuilder {
     }
 
     // Processar turn (se existir)
-    if (handHistory.turn) {
+    if (handHistory.turn && handHistory.turn.card) {
       const streetStep: StreetStep = {
         id: stepId++,
         type: 'STREET',
@@ -171,7 +175,7 @@ export class ReplayBuilder {
     }
 
     // Processar river (se existir)
-    if (handHistory.river) {
+    if (handHistory.river && handHistory.river.card) {
       const streetStep: StreetStep = {
         id: stepId++,
         type: 'STREET',
@@ -200,7 +204,7 @@ export class ReplayBuilder {
         timestamp: Date.now() + stepId * 1000,
         description: 'Showdown - Revealing hands',
         showdownInfo: handHistory.showdown.info,
-        winners: handHistory.showdown.winners,
+        winners: [...handHistory.showdown.winners],
         potWon: handHistory.showdown.potWon
       };
       steps.push(showdownStep);

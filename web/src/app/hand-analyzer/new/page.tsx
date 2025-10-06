@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import { HandParser } from '@/lib/hand-parser';
+import { splitHandHistories } from '@/lib/poker/hand-splitter';
 import { HandHistory } from '@/types/poker';
 import PokerReplayer from '@/components/PokerReplayer';
 
@@ -12,8 +13,11 @@ export default function HandAnalyzerInputPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const [handHistoryText, setHandHistoryText] = useState('');
-  const [parsedHandHistory, setParsedHandHistory] = useState<HandHistory | null>(null);
+  const [allHands, setAllHands] = useState<HandHistory[]>([]);
+  const [currentHandIndex, setCurrentHandIndex] = useState<number>(0);
   const [error, setError] = useState('');
+
+  const parsedHandHistory = allHands[currentHandIndex] || null;
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -33,27 +37,52 @@ export default function HandAnalyzerInputPage() {
 
     try {
       console.log('🔍 Parsing hand history...');
-      const result = HandParser.parse(handHistoryText);
-      console.log('✅ Parse result:', result);
 
-      // Check if parse was successful
-      if (!result.success || !result.handHistory) {
-        throw new Error(result.error || 'Erro ao processar o histórico da mão');
+      // Separar múltiplas mãos
+      const splitResult = splitHandHistories(handHistoryText);
+      console.log(`✅ Hands split: ${splitResult.totalHands} mãos encontradas`);
+
+      if (splitResult.errors.length > 0) {
+        console.warn('⚠️ Avisos ao separar mãos:', splitResult.errors);
       }
 
-      const handHistory = result.handHistory;
-
-      // Validate the parsed hand history
-      if (!handHistory.players || !Array.isArray(handHistory.players)) {
-        throw new Error('Resultado do parser inválido: players não encontrado');
+      if (splitResult.totalHands === 0) {
+        throw new Error('Nenhuma hand history válida encontrada no texto fornecido');
       }
 
-      if (!handHistory.preflop || !Array.isArray(handHistory.preflop)) {
-        throw new Error('Resultado do parser inválido: preflop não encontrado');
+      // Parse cada mão individualmente
+      const parsedHands: HandHistory[] = [];
+      const parseErrors: string[] = [];
+
+      for (let i = 0; i < splitResult.hands.length; i++) {
+        const singleHandText = splitResult.hands[i];
+        try {
+          const result = HandParser.parse(singleHandText);
+
+          if (result.success && result.handHistory) {
+            parsedHands.push(result.handHistory);
+            console.log(`✅ Mão ${i + 1} parseada com sucesso (ID: ${result.handHistory.handId})`);
+          } else {
+            parseErrors.push(`Mão ${i + 1}: ${result.error}`);
+          }
+        } catch (err: any) {
+          parseErrors.push(`Mão ${i + 1}: ${err?.message}`);
+        }
       }
 
-      setParsedHandHistory(handHistory);
+      if (parsedHands.length === 0) {
+        throw new Error(`Erro ao parsear mãos:\n${parseErrors.join('\n')}`);
+      }
+
+      console.log(`✅ ${parsedHands.length} de ${splitResult.totalHands} mãos parseadas com sucesso`);
+      setAllHands(parsedHands);
+      setCurrentHandIndex(0);
       setError('');
+
+      // Avisar sobre mãos que falharam
+      if (parseErrors.length > 0) {
+        console.warn(`⚠️ ${parseErrors.length} mão(s) falharam no parse:`, parseErrors);
+      }
 
       // Scroll suave para a mesa
       setTimeout(() => {
@@ -66,17 +95,31 @@ export default function HandAnalyzerInputPage() {
     } catch (err: any) {
       console.error('❌ Error parsing hand:', err);
       setError(err?.message || 'Erro ao processar o histórico da mão');
-      setParsedHandHistory(null);
+      setAllHands([]);
+      setCurrentHandIndex(0);
     }
   };
 
   const handleNewHand = () => {
-    setParsedHandHistory(null);
+    setAllHands([]);
+    setCurrentHandIndex(0);
     setHandHistoryText('');
     setError('');
 
     // Scroll suave de volta ao topo
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePreviousHand = () => {
+    if (currentHandIndex > 0) {
+      setCurrentHandIndex(currentHandIndex - 1);
+    }
+  };
+
+  const handleNextHand = () => {
+    if (currentHandIndex < allHands.length - 1) {
+      setCurrentHandIndex(currentHandIndex + 1);
+    }
   };
 
   const exampleHand = `PokerStars Hand #2310810117: Tournament #10210210, $10+$1 USD Hold'em No Limit - Level V (100/200) - 2025/09/24 17:30:00 ET
@@ -168,7 +211,7 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
             <textarea
               value={handHistoryText}
               onChange={(e) => setHandHistoryText(e.target.value)}
-              placeholder="Cole aqui o histórico do PokerStars, GGPoker, Winamax, etc..."
+              placeholder="Cole aqui o histórico do PokerStars, GGPoker ou PartyPoker..."
               className="w-full h-96 px-4 py-3 bg-[#0a0a0a] border border-[rgba(76,95,213,0.3)] rounded-lg text-white placeholder-[#9E9E9E] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all resize-none font-mono text-sm"
             />
             {error && (
@@ -252,8 +295,6 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
                 <ul className="font-open-sans text-sm text-[#E0E0E0] space-y-1">
                   <li>• PokerStars</li>
                   <li>• GGPoker</li>
-                  <li>• Winamax</li>
-                  <li>• 888poker</li>
                   <li>• PartyPoker</li>
                 </ul>
               </div>
@@ -267,6 +308,10 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
             <PokerReplayer
               handHistory={parsedHandHistory}
               onNewHand={handleNewHand}
+              allHandsCount={allHands.length}
+              currentHandIndex={currentHandIndex}
+              onPreviousHand={handlePreviousHand}
+              onNextHand={handleNextHand}
             />
           </div>
         )}

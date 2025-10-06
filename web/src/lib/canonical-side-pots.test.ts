@@ -1,6 +1,7 @@
 import { HandParser } from './hand-parser';
 import { SnapshotBuilder } from './snapshot-builder';
 import { normalizeKey } from './normalize-key';
+import { CurrencyUtils } from '@/utils/currency-utils';
 import fs from 'fs';
 import path from 'path';
 
@@ -30,9 +31,9 @@ describe('Canonical Side Pot Tests', () => {
     const sumPayouts = Object.values(payouts).reduce((sum, val) => sum + val, 0);
 
     console.log(`💰 ${testName} - Pot Math Validation:`);
-    console.log(`  totalCommitted: ${HandParser.centsToDollars(sumCommitted)}`);
-    console.log(`  totalPayouts: ${HandParser.centsToDollars(sumPayouts)}`);
-    console.log(`  difference: ${HandParser.centsToDollars(sumCommitted - sumPayouts)}`);
+    console.log(`  totalCommitted: ${CurrencyUtils.centsToDollars(sumCommitted)}`);
+    console.log(`  totalPayouts: ${CurrencyUtils.centsToDollars(sumPayouts)}`);
+    console.log(`  difference: ${CurrencyUtils.centsToDollars(sumCommitted - sumPayouts)}`);
 
     expect(sumPayouts).toBe(sumCommitted);
   };
@@ -43,7 +44,9 @@ describe('Canonical Side Pot Tests', () => {
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
@@ -77,7 +80,9 @@ describe('Canonical Side Pot Tests', () => {
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
@@ -102,7 +107,9 @@ describe('Canonical Side Pot Tests', () => {
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
@@ -137,7 +144,9 @@ describe('Canonical Side Pot Tests', () => {
       }
 
       expect(parseResult.success).toBe(true);
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
@@ -166,7 +175,9 @@ describe('Canonical Side Pot Tests', () => {
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
@@ -187,7 +198,9 @@ describe('Canonical Side Pot Tests', () => {
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
@@ -215,7 +228,9 @@ describe('Canonical Side Pot Tests', () => {
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
@@ -239,7 +254,9 @@ describe('Canonical Side Pot Tests', () => {
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
@@ -260,7 +277,9 @@ describe('Canonical Side Pot Tests', () => {
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
@@ -284,7 +303,9 @@ describe('Canonical Side Pot Tests', () => {
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
       const finalSnapshot = snapshots[snapshots.length - 1];
@@ -305,7 +326,9 @@ describe('Canonical Side Pot Tests', () => {
       const parseResult = HandParser.parse(handHistory);
 
       expect(parseResult.success).toBe(true);
-      if (!parseResult.success) return;
+      if (!parseResult.success || !parseResult.handHistory) {
+        throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+      }
 
       const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
 
@@ -339,7 +362,7 @@ describe('Canonical Side Pot Tests', () => {
         const parseResult = HandParser.parse(handHistory);
 
         expect(parseResult.success).toBe(true);
-        if (!parseResult.success) return;
+        if (!parseResult.success || !parseResult.handHistory) return;
 
         const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];

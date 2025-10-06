@@ -1,0 +1,46 @@
+Poker Hand #TM5030367055: Tournament #232064631, Bounty Hunters Special $2.50 Hold'em No Limit - Level12(400/800) - 2025/09/26 11:36:31
+Table '200' 8-max Seat #7 is the button
+Seat 1: c0969eff (9,680 in chips)
+Seat 3: 4f29b34d (34,700 in chips)
+Seat 4: 26587683 (25,438 in chips)
+Seat 5: c8b449a6 (58,039 in chips)
+Seat 6: 683c325e (22,651 in chips)
+Seat 7: 4311619d (42,391 in chips)
+Seat 8: Hero (5,140 in chips)
+Hero: posts the ante 120
+4311619d: posts the ante 120
+c8b449a6: posts the ante 120
+683c325e: posts the ante 120
+26587683: posts the ante 120
+4f29b34d: posts the ante 120
+c0969eff: posts the ante 120
+Hero: posts small blind 400
+c0969eff: posts big blind 800
+*** HOLE CARDS ***
+Dealt to Hero [Js As]
+4f29b34d: folds
+26587683: folds
+c8b449a6: raises 800 to 1600
+683c325e: folds
+4311619d: folds
+Hero: raises 3420 to 5020 and is all-in
+c0969eff: folds
+c8b449a6: calls 3420
+*** FLOP *** [9h 6s 4h]
+*** TURN *** [9h 6s 4h] [Kd]
+*** RIVER *** [9h 6s 4h Kd] [2c]
+*** SHOW DOWN ***
+Hero: shows [Js As] (high card Ace)
+c8b449a6: shows [Qs Qh] (a pair of Queens)
+c8b449a6 collected 11840 from pot
+Hero finished the tournament
+*** SUMMARY ***
+Total pot 11840 | Rake 0
+Board [9h 6s 4h Kd 2c]
+Seat 1: c0969eff (big blind) folded before Flop
+Seat 3: 4f29b34d folded before Flop (didn't bet)
+Seat 4: 26587683 folded before Flop (didn't bet)
+Seat 5: c8b449a6 showed [Qs Qh] and won (11840) with a pair of Queens
+Seat 6: 683c325e folded before Flop (didn't bet)
+Seat 7: 4311619d (button) folded before Flop (didn't bet)
+Seat 8: Hero (small blind) showed [Js As] and lost with high card Ace

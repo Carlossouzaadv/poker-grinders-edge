@@ -88,10 +88,12 @@ export interface AnomalyLogEntry {
   eligibleAtCreation: string[];
   totalCommittedMap: Record<string, number>;
   playerStatusTimeline: Record<string, 'folded' | 'all-in' | 'active'>;
-  anomalyType: 'NO_ELIGIBLE_WINNERS' | 'EMPTY_ELIGIBLE_ARRAY' | 'MATHEMATICAL_INCONSISTENCY';
+  anomalyType: 'NO_ELIGIBLE_WINNERS' | 'EMPTY_ELIGIBLE_ARRAY' | 'MATHEMATICAL_INCONSISTENCY' | 'GUARD_FAILURE';
   description: string;
   fallbackAction?: string;
   fallbackWinner?: string;
+  guardContext?: Record<string, any>;
+  guardSeverity?: string;
 }
 
 export class AnomalyLogger {
@@ -282,5 +284,29 @@ export class AnomalyLogger {
     } catch (error) {
       console.warn(`⚠️ Failed to clear anomaly log:`, error);
     }
+  }
+
+  /**
+   * Log a guard failure
+   */
+  public static async logGuardFailure(guard: {
+    passed: boolean;
+    severity: string;
+    message: string;
+    context: Record<string, any>;
+    recoverable: boolean;
+  }): Promise<string> {
+    return this.logAnomaly({
+      potIndex: -1,
+      potAmountInCents: 0,
+      eligibleAtCreation: [],
+      totalCommittedMap: {},
+      playerStatusTimeline: {},
+      anomalyType: 'GUARD_FAILURE',
+      description: guard.message,
+      guardContext: guard.context,
+      guardSeverity: guard.severity,
+      fallbackAction: guard.recoverable ? 'Recovery attempted' : 'Exception thrown'
+    });
   }
 }

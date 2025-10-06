@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card as CardType } from '@/types/poker';
+import { CardUtils } from '@/lib/poker/card-utils';
 
 interface CardProps {
   card: CardType;
@@ -8,18 +9,6 @@ interface CardProps {
 }
 
 const Card: React.FC<CardProps> = ({ card, size = 'medium', faceDown = false }) => {
-  const getSuitSymbol = (suit: string) => {
-    const symbols = { c: '♣', d: '♦', h: '♥', s: '♠' };
-    return symbols[suit as keyof typeof symbols] || '♠';
-  };
-
-  const getSuitColor = (suit: string) => {
-    return (suit === 'd' || suit === 'h') ? 'text-red-600' : 'text-gray-900';
-  };
-
-  const getRankDisplay = (rank: string) => {
-    return rank === 'T' ? '10' : rank;
-  };
 
   const sizeClasses = {
     small: { width: 35, height: 49, fontSize: 'text-xs', cornerSize: 'text-xs' },
@@ -59,9 +48,9 @@ const Card: React.FC<CardProps> = ({ card, size = 'medium', faceDown = false }) 
     );
   }
 
-  const suitSymbol = getSuitSymbol(card.suit);
-  const suitColor = getSuitColor(card.suit);
-  const rankDisplay = getRankDisplay(card.rank);
+  const suitSymbol = CardUtils.getSuitSymbol(card.suit);
+  const suitColor = CardUtils.getSuitColorClass(card.suit);
+  const rankDisplay = CardUtils.getRankDisplay(card.rank);
 
   return (
     <div

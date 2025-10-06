@@ -144,7 +144,7 @@ Seat 2: Player2 (big blind) collected (2100)`;
     const parseResult = HandParser.parse(handText);
     console.log(`📝 PARSING: ${parseResult.success ? '✅ SUCESSO' : '❌ FALHOU'}`);
 
-    if (!parseResult.success) {
+    if (!parseResult.success || !parseResult.handHistory) {
       console.log(`❌ ERRO NO PARSING: ${parseResult.error}`);
       return {
         testName,
@@ -152,7 +152,7 @@ Seat 2: Player2 (big blind) collected (2100)`;
         parsing: false,
         snapshots: 0,
         visualization: 'N/A',
-        problems: [`Parsing falhou: ${parseResult.error}`]
+        problems: [`Parsing falhou: ${parseResult.error || 'HandHistory not available'}`]
       };
     }
 
@@ -194,7 +194,7 @@ Seat 2: Player2 (big blind) collected (2100)`;
       if (showdownSnapshots.length > 0) {
         const finalSnapshot = showdownSnapshots[showdownSnapshots.length - 1];
         const temPayouts = finalSnapshot.payouts && Object.keys(finalSnapshot.payouts).length > 0;
-        payoutsNoShowdown = temPayouts;
+        payoutsNoShowdown = !!temPayouts;
         console.log(`   💰 Payouts no showdown:`, finalSnapshot.payouts);
       }
 

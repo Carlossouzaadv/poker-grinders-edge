@@ -52,7 +52,9 @@ Seat 3: Player3 (button) showed [Kh Qh] and lost with King high`;
       try {
         const parseResult = HandParser.parse(handHistory);
         expect(parseResult.success).toBe(true);
-        if (!parseResult.success) return;
+        if (!parseResult.success || !parseResult.handHistory) {
+          throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+        }
 
         const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];
@@ -131,7 +133,7 @@ Seat 3: Player3 (button) folded after Flop`;
       const parseResult = HandParser.parse(handHistory);
 
       // This should parse successfully but potentially trigger anomaly during side pot calculation
-      if (parseResult.success) {
+      if (parseResult.success && parseResult.handHistory) {
         try {
           const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
           const finalSnapshot = snapshots[snapshots.length - 1];
@@ -196,7 +198,7 @@ Seat 1: CashUrChecks showed [Ac Ad] and won (321380) with a pair of Aces
 Seat 2: Player3 showed [Kh Qh] and lost with King high`;
 
       const parseResult = HandParser.parse(mockHand);
-      if (parseResult.success) {
+      if (parseResult.success && parseResult.handHistory) {
         const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
         const finalSnapshot = snapshots[snapshots.length - 1];
 
@@ -270,7 +272,9 @@ Seat 3: Player3 (button) showed [Kh Qh] and lost with King high`;
       try {
         const parseResult = HandParser.parse(handHistory);
         expect(parseResult.success).toBe(true);
-        if (!parseResult.success) return;
+        if (!parseResult.success || !parseResult.handHistory) {
+          throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+        }
 
         const snapshots = await SnapshotBuilder.buildSnapshots(parseResult.handHistory);
 

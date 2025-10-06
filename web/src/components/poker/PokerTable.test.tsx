@@ -81,14 +81,23 @@ describe('PokerTable', () => {
     bigBlind: 0.50,
     timestamp: new Date(),
     players: [
-      { name: 'Hero', position: 'BTN', stack: 50, isHero: true, seat: 1 },
-      { name: 'Villain1', position: 'SB', stack: 45, isHero: false, seat: 2 },
-      { name: 'Villain2', position: 'BB', stack: 100, isHero: false, seat: 3 },
-      ...players
+      { name: 'Hero', position: 'BTN' as const, stack: 50, isHero: true, seat: 1 },
+      { name: 'Villain1', position: 'SB' as const, stack: 45, isHero: false, seat: 2 },
+      { name: 'Villain2', position: 'BB' as const, stack: 100, isHero: false, seat: 3 },
+      ...players as Player[]
     ].slice(0, 6), // Max 6 players
     preflop: [],
     totalPot: 0,
-    currency: 'USD'
+    currency: 'USD',
+    gameContext: {
+      isTournament: false,
+      isHighStakes: false,
+      currencyUnit: 'dollars',
+      conversionNeeded: false,
+    },
+    flop: { cards: [], actions: [] },
+    turn: { card: null, actions: [] },
+    river: { card: null, actions: [] },
   });
 
   // Helper to create basic snapshot
@@ -144,8 +153,7 @@ describe('PokerTable', () => {
     });
 
     test('should display ante when present', () => {
-      const handHistory = createHandHistory();
-      handHistory.ante = 0.05;
+      const handHistory = { ...createHandHistory(), ante: 0.05 };
       const snapshot = createSnapshot();
 
       render(<PokerTable handHistory={handHistory} snapshot={snapshot} />);
@@ -190,8 +198,7 @@ describe('PokerTable', () => {
         { name: 'Player4', position: 'CO' as const, stack: 50, isHero: false, seat: 4 },
       ];
 
-      const handHistory4max = createHandHistory(players4max);
-      handHistory4max.maxPlayers = 4;
+      const handHistory4max = { ...createHandHistory(players4max), maxPlayers: 4 };
 
       const snapshot4max = createSnapshot({
         playerStacks: { Hero: 50, Player2: 50, Player3: 50, Player4: 50 },
@@ -326,8 +333,7 @@ describe('PokerTable', () => {
     });
 
     test('should show dealer button on correct player', () => {
-      const handHistory = createHandHistory();
-      handHistory.buttonSeat = 2; // Villain1 has button
+      const handHistory = { ...createHandHistory(), buttonSeat: 2 }; // Villain1 has button
 
       const snapshot = createSnapshot();
 
@@ -407,11 +413,13 @@ describe('PokerTable', () => {
 
   describe('Showdown Rendering', () => {
     test('should show winner announcement', () => {
-      const handHistory = createHandHistory();
-      handHistory.showdown = {
-        info: 'Hero shows [Ac Kd]',
-        winners: ['Hero'],
-        potWon: 45.50
+      const handHistory = {
+        ...createHandHistory(),
+        showdown: {
+          info: 'Hero shows [Ac Kd]',
+          winners: ['Hero'],
+          potWon: 45.50
+        }
       };
 
       const snapshot = createSnapshot({
@@ -426,11 +434,13 @@ describe('PokerTable', () => {
     });
 
     test('should calculate showdown winnings correctly with multiple pots', () => {
-      const handHistory = createHandHistory();
-      handHistory.showdown = {
-        info: 'Hero wins',
-        winners: ['Hero'],
-        potWon: 50
+      const handHistory = {
+        ...createHandHistory(),
+        showdown: {
+          info: 'Hero wins',
+          winners: ['Hero'],
+          potWon: 50
+        }
       };
 
       const pots: Pot[] = [
@@ -496,7 +506,16 @@ describe('PokerTable', () => {
         players: [{ name: 'Hero', position: 'BTN', stack: 100, isHero: true, seat: 1 }],
         preflop: [],
         totalPot: 0,
-        currency: 'USD'
+        currency: 'USD',
+        gameContext: {
+          isTournament: false,
+          isHighStakes: false,
+          currencyUnit: 'dollars',
+          conversionNeeded: false,
+        },
+        flop: { cards: [], actions: [] },
+        turn: { card: null, actions: [] },
+        river: { card: null, actions: [] },
       };
 
       const minimalSnapshot = createSnapshot({

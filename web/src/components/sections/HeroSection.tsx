@@ -5,9 +5,12 @@ import { ReplayState } from '@/types/replay';
 import { HandParser } from '@/lib/hand-parser';
 import { ReplayBuilder } from '@/lib/replay-builder';
 import { SnapshotBuilder } from '@/lib/snapshot-builder';
+import { splitHandHistories } from '@/lib/poker/hand-splitter';
 import PokerTable from '../poker/PokerTable';
+import TableFooter from '../hand-analyzer/TableFooter';
 import LanguageSwitcher from '../LanguageSwitcher';
 import '@/styles/replayer.css';
+
 
 interface HeroSectionProps {
   onShowLeadCapture: () => void;
@@ -17,7 +20,12 @@ interface HeroSectionProps {
 const HeroSection: React.FC<HeroSectionProps> = ({ onShowLeadCapture, initialHandHistory }) => {
   const { t } = useTranslation();
   const [handText, setHandText] = useState(initialHandHistory || '');
-  const [handHistory, setHandHistory] = useState<HandHistory | null>(null);
+
+  // Múltiplas mãos
+  const [allHands, setAllHands] = useState<HandHistory[]>([]);
+  const [currentHandIndex, setCurrentHandIndex] = useState<number>(0);
+  const handHistory = allHands[currentHandIndex] || null;
+
   const [error, setError] = useState<string>('');
   const [currentSnapshotIndex, setCurrentSnapshotIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -25,25 +33,60 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onShowLeadCapture, initialHan
 
   // Auto-parse if initialHandHistory is provided
   useEffect(() => {
-    if (initialHandHistory && !handHistory) {
+    if (initialHandHistory && allHands.length === 0) {
       try {
         console.log('🔍 Parsing initial hand history...');
-        const result = HandParser.parse(initialHandHistory);
-        console.log('✅ Parsed result:', result);
 
-        // Validate the parsed result
-        if (!result || !result.actions || !Array.isArray(result.actions)) {
-          throw new Error('Resultado do parser inválido: ações não encontradas');
+        // Tentar separar múltiplas mãos
+        const splitResult = splitHandHistories(initialHandHistory);
+        console.log(`✅ Hands split: ${splitResult.totalHands} mãos encontradas`);
+
+        if (splitResult.errors.length > 0) {
+          console.warn('⚠️ Avisos ao separar mãos:', splitResult.errors);
         }
 
-        setHandHistory(result);
+        if (splitResult.totalHands === 0) {
+          throw new Error('Nenhuma hand history válida encontrada no texto fornecido');
+        }
+
+        // Parse cada mão individualmente
+        const parsedHands: HandHistory[] = [];
+        const parseErrors: string[] = [];
+
+        for (let i = 0; i < splitResult.hands.length; i++) {
+          const handText = splitResult.hands[i];
+          try {
+            const result = HandParser.parse(handText);
+
+            if (result.success && result.handHistory) {
+              parsedHands.push(result.handHistory);
+            } else {
+              parseErrors.push(`Mão ${i + 1}: ${result.error}`);
+            }
+          } catch (err: any) {
+            parseErrors.push(`Mão ${i + 1}: ${err?.message}`);
+          }
+        }
+
+        if (parsedHands.length === 0) {
+          throw new Error(`Erro ao parsear mãos:\n${parseErrors.join('\n')}`);
+        }
+
+        console.log(`✅ ${parsedHands.length} mãos parseadas com sucesso`);
+        setAllHands(parsedHands);
+        setCurrentHandIndex(0);
         setError('');
+
+        // Avisar sobre mãos que falharam
+        if (parseErrors.length > 0) {
+          console.warn(`⚠️ ${parseErrors.length} mão(s) falharam no parse:`, parseErrors);
+        }
       } catch (err: any) {
         console.error('❌ Error auto-parsing initial hand:', err);
         setError(err?.message || 'Erro ao processar o histórico da mão');
       }
     }
-  }, [initialHandHistory, handHistory]);
+  }, [initialHandHistory, allHands.length]);
 
   // Generate snapshots when handHistory changes
   useEffect(() => {
@@ -120,33 +163,62 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
     }
 
     try {
-      console.log('🔍 DEPURAÇÃO PASSO 1: Iniciando parse da mão');
-      console.log('📝 Texto da mão:', handText.substring(0, 100) + '...');
+      console.log('🔍 DEPURAÇÃO PASSO 1: Iniciando parse das mãos');
+      console.log('📝 Texto:', handText.substring(0, 100) + '...');
 
-      const result = HandParser.parse(handText);
-      console.log('🔍 DEPURAÇÃO PASSO 2: Resultado do parse:', result);
+      // Separar múltiplas mãos
+      const splitResult = splitHandHistories(handText);
+      console.log(`✅ Hands split: ${splitResult.totalHands} mãos encontradas`);
 
-      if (result.success && result.handHistory) {
-        const history = result.handHistory;
-        console.log('✅ PASSO 3: Hand history parseada com sucesso:', history);
-        console.log('📋 Players:', history.players.length);
-        console.log('📋 Flop:', history.flop);
-        console.log('📋 Turn:', history.turn);
-        console.log('📋 River:', history.river);
+      if (splitResult.errors.length > 0) {
+        console.warn('⚠️ Avisos ao separar mãos:', splitResult.errors);
+      }
 
-        setHandHistory(history);
-        setCurrentSnapshotIndex(0);
-        setError('');
-      } else {
-        console.error('❌ ERRO no parse:', result.error);
-        setError(result.error || t('errors.unknownError'));
-        setHandHistory(null);
-        setCurrentSnapshotIndex(0);
+      if (splitResult.totalHands === 0) {
+        throw new Error('Nenhuma hand history válida encontrada no texto fornecido');
+      }
+
+      // Parse cada mão individualmente
+      const parsedHands: HandHistory[] = [];
+      const parseErrors: string[] = [];
+
+      for (let i = 0; i < splitResult.hands.length; i++) {
+        const singleHandText = splitResult.hands[i];
+        try {
+          const result = HandParser.parse(singleHandText);
+
+          if (result.success && result.handHistory) {
+            parsedHands.push(result.handHistory);
+            console.log(`✅ Mão ${i + 1} parseada com sucesso (ID: ${result.handHistory.handId})`);
+          } else {
+            parseErrors.push(`Mão ${i + 1}: ${result.error}`);
+          }
+        } catch (err: any) {
+          parseErrors.push(`Mão ${i + 1}: ${err?.message}`);
+        }
+      }
+
+      if (parsedHands.length === 0) {
+        throw new Error(`Erro ao parsear mãos:\n${parseErrors.join('\n')}`);
+      }
+
+      console.log(`✅ ${parsedHands.length} de ${splitResult.totalHands} mãos parseadas com sucesso`);
+      setAllHands(parsedHands);
+      setCurrentHandIndex(0);
+      setCurrentSnapshotIndex(0);
+      setError('');
+
+      // Avisar sobre mãos que falharam
+      if (parseErrors.length > 0) {
+        console.warn(`⚠️ ${parseErrors.length} mão(s) falharam no parse:`, parseErrors);
+        const warningMsg = `${parsedHands.length} mãos carregadas com sucesso. ${parseErrors.length} mão(s) ignoradas por erros.`;
+        setError(warningMsg);
       }
     } catch (error) {
       console.error('❌ ERRO CRÍTICO no parse:', error);
-      setError(t('errors.criticalError', { error: String(error) }));
-      setHandHistory(null);
+      setError(String(error));
+      setAllHands([]);
+      setCurrentHandIndex(0);
       setCurrentSnapshotIndex(0);
     }
   };
@@ -317,45 +389,62 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
             </div>
           </div>
         ) : (
-          /* Replayer Interface */
-          <div className="max-w-7xl mx-auto">
-            {/* Layout com mesa e controles lado a lado */}
-            <div className="flex gap-8 items-start">
+          /* Replayer Interface - REDESIGNED: Mesa dominante, controles compactos */}
+          <div className="w-full">
+            {/* Ação Atual - Banner superior */}
+            {currentDescription && (
+              <div className="max-w-5xl mx-auto mb-6 bg-gradient-to-r from-blue-900/60 to-purple-900/60 border border-blue-400/30 rounded-2xl p-4 backdrop-blur-sm shadow-xl">
+                <div className="flex items-center justify-center space-x-3">
+                  <span className="text-2xl">🎬</span>
+                  <p className="text-xl font-bold text-blue-100">
+                    {currentDescription}
+                  </p>
+                </div>
+              </div>
+            )}
 
-              {/* Mesa de poker - ocupa mais espaço */}
-              <div className="flex-grow">
+            {/* Layout RESPONSIVO: Mesa centralizada + Controles compactos */}
+            <div className="flex flex-col lg:flex-row gap-6 items-start justify-center">
+
+              {/* Mesa de poker - ELEMENTO DOMINANTE (prioridade visual) */}
+              <div className="w-full lg:flex-[3] order-2 lg:order-1">
                 {currentSnapshot && (
-                  <PokerTable
-                    handHistory={handHistory!}
-                    snapshot={currentSnapshot}
-                    showAllCards={false}
-                  />
+                  <>
+                    <PokerTable
+                      handHistory={handHistory!}
+                      snapshot={currentSnapshot}
+                      showAllCards={false}
+                    />
+
+                    {/* Table Footer - Equity Calculator & Notes */}
+                    <TableFooter handHistory={handHistory} />
+                  </>
                 )}
               </div>
 
-              {/* Painel lateral de controles - ordem trocada */}
-              <div className="w-56 flex flex-col space-y-3 sticky top-4">
+              {/* Painel COMPACTO - controles essenciais (fixo no desktop, topo no mobile) */}
+              <div className="w-full lg:flex-1 lg:max-w-xs flex flex-col space-y-3 lg:sticky lg:top-4 order-1 lg:order-2">
 
-                {/* Controles de Reprodução - movido para cima */}
-                <div className="bg-black/70 backdrop-blur-md rounded-xl p-3 border border-gray-600/50 shadow-xl">
+                {/* Controles de Reprodução - COMPACTO */}
+                <div className="bg-black/80 backdrop-blur-md rounded-xl p-3 border border-gray-600/50 shadow-xl">
                   <h3 className="text-white font-bold mb-2 text-center text-sm">{t('replayer.controls')}</h3>
 
-                  {/* Botões de controle */}
-                  <div className="flex items-center justify-center space-x-2 mb-4">
+                  {/* Botões de controle - tamanhos otimizados */}
+                  <div className="flex items-center justify-center space-x-2 mb-3">
                     <button
                       onClick={handlePrevious}
                       disabled={!canGoPrevious()}
-                      className="w-12 h-12 rounded-full bg-gray-700/80 hover:bg-gray-600 text-white disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                      className="w-10 h-10 rounded-full bg-gray-700/80 hover:bg-gray-600 text-white disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
                       title={t('replayer.previousSnapshot')}
                     >
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </button>
 
                     <button
                       onClick={handlePlay}
-                      className={`w-14 h-14 rounded-full text-white font-bold transition-all shadow-lg flex items-center justify-center ${
+                      className={`w-12 h-12 rounded-full text-white font-bold transition-all shadow-lg flex items-center justify-center ${
                         isPlaying
                           ? 'bg-red-600 hover:bg-red-700 shadow-red-600/30'
                           : 'bg-green-600 hover:bg-green-700 shadow-green-600/30'
@@ -363,11 +452,11 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
                       title={isPlaying ? t('replayer.pause') : t('replayer.play')}
                     >
                       {isPlaying ? (
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
                       ) : (
-                        <svg className="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                         </svg>
                       )}
@@ -376,10 +465,10 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
                     <button
                       onClick={handleNext}
                       disabled={!canGoNext()}
-                      className="w-12 h-12 rounded-full bg-gray-700/80 hover:bg-gray-600 text-white disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                      className="w-10 h-10 rounded-full bg-gray-700/80 hover:bg-gray-600 text-white disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
                       title={t('replayer.nextSnapshot')}
                     >
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                       </svg>
                     </button>
@@ -387,22 +476,22 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
 
                   {/* Informações do progresso */}
                   <div className="text-center">
-                    <div className="text-white font-semibold text-sm mb-1">
+                    <div className="text-white font-semibold text-xs mb-0.5">
                       {t('replayer.snapshotProgress', {
                         current: currentSnapshotIndex + 1,
                         total: Array.isArray(snapshots) ? snapshots.length : 0
                       })}
                     </div>
-                    <div className="text-gray-400 text-xs">
+                    <div className="text-gray-400 text-[10px]">
                       {t('replayer.street', { street: t(`streets.${currentSnapshot?.street || 'preflop'}`) })}
                     </div>
                   </div>
                 </div>
 
-                {/* Street Navigation */}
-                <div className="bg-black/60 backdrop-blur-md rounded-xl p-3 border border-gray-600/50 shadow-xl">
+                {/* Street Navigation - COMPACTO */}
+                <div className="bg-black/80 backdrop-blur-md rounded-xl p-3 border border-gray-600/50 shadow-xl">
                   <h3 className="text-white font-bold mb-2 text-center text-sm">{t('replayer.streetNavigation')}</h3>
-                  <div className="flex flex-col space-y-2">
+                  <div className="flex flex-col space-y-1.5">
                     {(['preflop', 'flop', 'turn', 'river', 'showdown'] as const).map((street) => {
                       const isAvailable = street === 'preflop' ||
                                        street === 'showdown' && handHistory?.showdown ||
@@ -419,7 +508,7 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
                             }
                           }}
                           disabled={!isAvailable}
-                          className={`px-3 py-2 rounded-lg font-medium transition-all w-full text-sm ${
+                          className={`px-2 py-1.5 rounded-lg font-medium transition-all w-full text-xs ${
                             isCurrentStreet
                               ? 'bg-green-600 text-white shadow-lg'
                               : isAvailable
@@ -437,22 +526,61 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
                   </div>
                 </div>
 
-                {/* Chat de Ações - movido para baixo */}
-                {currentDescription && (
-                  <div className="bg-gradient-to-r from-blue-900/40 to-purple-900/40 border-l-4 border-blue-400 p-4 rounded-r-xl backdrop-blur-sm">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-xl">🎬</span>
-                      <p className="text-lg font-bold text-blue-200">
-                        {currentDescription}
-                      </p>
+                {/* Navegação entre Mãos - COMPACTO (aparece apenas se há múltiplas mãos) */}
+                {allHands.length > 1 && (
+                  <div className="bg-black/80 backdrop-blur-md rounded-xl p-3 border border-gray-600/50 shadow-xl">
+                    <h3 className="text-white font-bold mb-2 text-center text-sm">Navegação de Mãos</h3>
+
+                    <div className="flex items-center justify-center space-x-2 mb-2">
+                      <button
+                        onClick={() => {
+                          if (currentHandIndex > 0) {
+                            setCurrentHandIndex(currentHandIndex - 1);
+                            setCurrentSnapshotIndex(0);
+                          }
+                        }}
+                        disabled={currentHandIndex === 0}
+                        className="w-9 h-9 rounded-full bg-gray-700/80 hover:bg-gray-600 text-white disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                        title="Mão Anterior"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" />
+                        </svg>
+                      </button>
+
+                      <div className="text-center flex-1">
+                        <div className="text-white font-semibold text-xs">
+                          Mão {currentHandIndex + 1}/{allHands.length}
+                        </div>
+                        <div className="text-gray-400 text-[10px] truncate">
+                          {handHistory?.handId}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          if (currentHandIndex < allHands.length - 1) {
+                            setCurrentHandIndex(currentHandIndex + 1);
+                            setCurrentSnapshotIndex(0);
+                          }
+                        }}
+                        disabled={currentHandIndex === allHands.length - 1}
+                        className="w-9 h-9 rounded-full bg-gray-700/80 hover:bg-gray-600 text-white disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                        title="Próxima Mão"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 )}
 
-                {/* Botão Nova Mão */}
+                {/* Botão Nova Mão - COMPACTO */}
                 <button
                   onClick={() => {
-                    setHandHistory(null);
+                    setAllHands([]);
+                    setCurrentHandIndex(0);
                     setCurrentSnapshotIndex(0);
                     setHandText('');
                     setError('');
@@ -462,12 +590,12 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
                       playIntervalRef.current = null;
                     }
                   }}
-                  className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-xl flex items-center justify-center space-x-2"
+                  className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-2.5 px-3 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-2"
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                   </svg>
-                  <span>{t('hero.newHandButton')}</span>
+                  <span className="text-xs">{t('hero.newHandButton')}</span>
                 </button>
               </div>
 

@@ -13,6 +13,7 @@ import Image from 'next/image';
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(1, 'Senha é obrigatória'),
+  rememberMe: z.boolean().optional(),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -196,6 +197,19 @@ export default function LoginPage() {
                     {errors.password.message}
                   </p>
                 )}
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  {...register('rememberMe')}
+                  id="remember-me"
+                  type="checkbox"
+                  defaultChecked={true}
+                  className="h-4 w-4 rounded border-[#4C5FD5]/30 bg-[#1a1a1a] text-[#00FF8C] focus:ring-[#00FF8C] focus:ring-offset-[#121212] cursor-pointer"
+                />
+                <label htmlFor="remember-me" className="ml-2 block font-open-sans text-sm text-[#E0E0E0] cursor-pointer">
+                  Manter-me conectado
+                </label>
               </div>
             </div>
 

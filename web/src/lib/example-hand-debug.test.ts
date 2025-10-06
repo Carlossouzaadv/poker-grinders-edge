@@ -62,14 +62,20 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
     const parseResult = HandParser.parse(exampleHand);
     expect(parseResult.success).toBe(true);
 
-    const handHistory = parseResult.handHistory!;
+    if (!parseResult.success || !parseResult.handHistory) {
+      throw new Error(parseResult.error || 'Parse failed in test setup: HandHistory not available.');
+    }
+
+    const handHistory = parseResult.handHistory;
     console.log('📝 Parsed Hand History:');
     console.log('  Players:', handHistory.players.map(p => `${p.name}: $${p.stack}`));
     console.log('  Blinds:', `SB: $${handHistory.smallBlind}, BB: $${handHistory.bigBlind}`);
     console.log('  Flop:', handHistory.flop);
     console.log('  Turn:', handHistory.turn);
     console.log('  River:', handHistory.river);
-    console.log('  Hero Cards:', handHistory.holeCards);
+    // Hero cards are accessed via players array
+    const heroPlayer = handHistory.players.find(p => p.isHero);
+    console.log('  Hero Cards:', heroPlayer?.cards);
     console.log('  Showdown:', handHistory.showdown);
 
     // Verify basic parsing

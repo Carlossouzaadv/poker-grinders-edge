@@ -8,7 +8,7 @@ interface ChipStackProps {
   enableRealisticStacking?: boolean; // Nova prop para empilhamento realista
 }
 
-const ChipStack: React.FC<ChipStackProps> = ({
+const ChipStack: React.FC<ChipStackProps> = React.memo(({
   valor,
   size = 'medium',
   showLabel = true,
@@ -301,6 +301,6 @@ const ChipStack: React.FC<ChipStackProps> = ({
       )}
     </div>
   );
-};
+});
 
 export default ChipStack;

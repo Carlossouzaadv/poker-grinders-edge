@@ -3,35 +3,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { getAllBlogPosts } from '@/data/blogPosts';
 
 export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const posts = [
-    {
-      id: 1,
-      title: 'Os 5 Maiores Leaks de Jogadores de Torneio',
-      excerpt: 'Descubra os erros mais comuns que custam dinheiro aos jogadores de MTT e como o Hand Replayer ajuda a identificá-los.',
-      date: '2025-09-30',
-      category: 'Estratégia',
-      readTime: '5 min',
-    },
-    {
-      id: 2,
-      title: 'Como Fazer uma Gestão de Bankroll Profissional',
-      excerpt: 'Aprenda os princípios fundamentais de gerenciamento de banca e prepare-se para o nosso módulo de Gestor de Bankroll.',
-      date: '2025-09-25',
-      category: 'Bankroll',
-      readTime: '8 min',
-    },
-    {
-      id: 3,
-      title: 'GTO vs Exploitativo: Qual Estratégia Usar?',
-      excerpt: 'Entenda quando aplicar Game Theory Optimal e quando desviar para explorar seus oponentes de forma lucrativa.',
-      date: '2025-09-20',
-      category: 'GTO',
-      readTime: '6 min',
-    },
-  ];
+  const posts = getAllBlogPosts();
 
   return (
     <div className="min-h-screen bg-[#121212]">
@@ -76,12 +52,14 @@ export default function BlogPage() {
               </p>
 
               <div className="flex items-center gap-4">
-                <button className="text-[#00FF8C] hover:text-[#00DD7A] font-open-sans font-semibold transition-colors inline-flex items-center gap-2 group">
-                  Ler artigo
-                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
+                <Link href={`/blog/${post.slug}`}>
+                  <button className="text-[#00FF8C] hover:text-[#00DD7A] font-open-sans font-semibold transition-colors inline-flex items-center gap-2 group">
+                    Ler artigo
+                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </Link>
               </div>
             </article>
           ))}

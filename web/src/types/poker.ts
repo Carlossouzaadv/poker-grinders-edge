@@ -1,57 +1,61 @@
 export type Card = {
-  rank: '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'T' | 'J' | 'Q' | 'K' | 'A';
-  suit: 'h' | 'd' | 'c' | 's'; // hearts, diamonds, clubs, spades
+  readonly rank: '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'T' | 'J' | 'Q' | 'K' | 'A';
+  readonly suit: 'h' | 'd' | 'c' | 's'; // hearts, diamonds, clubs, spades
 };
 
 export interface GameContext {
-  isTournament: boolean;
-  isHighStakes: boolean;
-  currencyUnit: 'chips' | 'dollars';
-  conversionNeeded: boolean;
-  buyIn?: string; // For tournaments: "$10+$1"
-  level?: string;  // For tournaments: "Level V"
+  readonly isTournament: boolean;
+  readonly isHighStakes: boolean;
+  readonly currencyUnit: 'chips' | 'dollars';
+  readonly conversionNeeded: boolean;
+  readonly buyIn?: string; // For tournaments: "$10+$1"
+  readonly level?: string;  // For tournaments: "Level V"
 }
 
 export type Position =
   | 'SB' | 'BB' | 'UTG' | 'UTG+1' | 'UTG+2' | 'MP1' | 'MP2' | 'MP3'
   | 'LJ' | 'HJ' | 'CO' | 'BTN' | 'EP' | 'MP' | 'LP';
 
+export type ActionType = 'fold' | 'call' | 'bet' | 'raise' | 'check' | 'all-in' | 'ante' | 'small_blind' | 'big_blind' | 'uncalled_return';
+
 export type Action = {
-  player: string;
-  action: 'fold' | 'call' | 'bet' | 'raise' | 'check' | 'all-in' | 'ante' | 'small_blind' | 'big_blind' | 'uncalled_return';
-  amount?: number;
-  totalBet?: number; // For raises, this is the total bet amount
-  raiseBy?: number; // For raises, how much they raised by (for display)
-  timestamp?: number;
-  reveals?: boolean; // Para all-in: se deve revelar cartas imediatamente
-  revealedCards?: Card[]; // Cartas reveladas associadas à ação
+  readonly player: string;
+  readonly action: ActionType;
+  readonly amount?: number;
+  readonly totalBet?: number; // For raises, this is the total bet amount
+  readonly raiseBy?: number; // For raises, how much they raised by (for display)
+  readonly timestamp?: number;
+  readonly reveals?: boolean; // Para all-in: se deve revelar cartas imediatamente
+  readonly revealedCards?: readonly Card[]; // Cartas reveladas associadas à ação
 };
 
 // Normalized action type for snapshots
-export type ActionType = 'post'|'bet'|'raise'|'call'|'check'|'fold'|'muck'|'show'|'reveal'|'uncalled_return';
+export type NormalizedActionType = 'post'|'bet'|'raise'|'call'|'check'|'fold'|'muck'|'show'|'reveal'|'uncalled_return';
+
+export type Street = 'preflop' | 'flop' | 'turn' | 'river' | 'showdown';
 
 export interface NormalizedAction {
-  street: 'preflop'|'flop'|'turn'|'river'|'showdown';
-  player: string;
-  type: ActionType;
-  amount?: number; // QUANTO foi efetivamente movido nesta ação (incremental)
-  to?: number; // para raises, 'to' pode indicar total a que foi elevado
-  description?: string;
+  readonly street: Street;
+  readonly player: string;
+  readonly type: NormalizedActionType;
+  readonly amount?: number; // QUANTO foi efetivamente movido nesta ação (incremental)
+  readonly to?: number; // para raises, 'to' pode indicar total a que foi elevado
+  readonly description?: string;
 }
 
 // Pot object for side-pot logic
 export interface Pot {
-  value: number;
-  eligiblePlayers: string[];
-  isPotSide?: boolean; // true para side pots, false/undefined para main pot
+  readonly value: number;
+  readonly eligiblePlayers: readonly string[];
+  readonly isPotSide?: boolean; // true para side pots, false/undefined para main pot
 }
 
 // Snapshot que a UI consome
 export interface Snapshot {
-  id: number; // índice sequencial
-  street: 'preflop'|'flop'|'turn'|'river'|'showdown';
-  actionIndex: number; // índice da action original ou -1 para pseudo ações como "collect"
-  description: string;
+  readonly id: number; // índice sequencial
+  readonly street: Street;
+  readonly actionIndex: number; // índice da action original ou -1 para pseudo ações como "collect"
+  readonly description: string;
 
   // cores do estado - REFATORADO para side-pots:
   pots: Pot[]; // array de potes (main pot + side pots)
@@ -76,70 +80,72 @@ export interface Snapshot {
   isAllIn?: Record<string, boolean>; // jogadores que estão all-in neste snapshot
 }
 
-export type Street = 'preflop' | 'flop' | 'turn' | 'river' | 'showdown';
-
 export type Player = {
-  name: string;
-  position: Position;
-  stack: number;
-  cards?: Card[];
-  isHero: boolean;
-  seat?: number; // Número do assento original
-  bounty?: number; // Tournament bounty amount
-  status?: 'active' | 'sitting_out' | 'disconnected'; // Player status
+  readonly name: string;
+  readonly position: Position;
+  readonly stack: number;
+  readonly cards?: readonly Card[];
+  readonly isHero: boolean;
+  readonly seat?: number; // Número do assento original
+  readonly bounty?: number; // Tournament bounty amount
+  readonly status?: 'active' | 'sitting_out' | 'disconnected'; // Player status
 };
 
 export type HandHistory = {
-  handId: string;
-  site: 'PokerStars' | 'GGPoker' | '888poker' | 'PartyPoker' | 'Other';
-  gameType: 'Hold\'em' | 'Omaha' | 'Stud';
-  limit: 'No Limit' | 'Pot Limit' | 'Fixed Limit';
-  stakes: string; // e.g., "$0.25/$0.50"
-  maxPlayers: number;
-  buttonSeat: number;
-  dealerSeat: number;
-  smallBlind: number;
-  bigBlind: number;
-  ante?: number;
-  timestamp: Date;
-  players: Player[];
-  gameContext?: GameContext; // NEW: Context for proper value interpretation
+  readonly handId: string;
+  readonly site: 'PokerStars' | 'GGPoker' | '888poker' | 'PartyPoker' | 'Other';
+  readonly gameType: 'Hold\'em' | 'Omaha' | 'Stud';
+  readonly limit: 'No Limit' | 'Pot Limit' | 'Fixed Limit';
+  readonly stakes: string; // e.g., "$0.25/$0.50"
+  readonly maxPlayers: number;
+  readonly buttonSeat: number;
+  readonly dealerSeat: number;
+  readonly smallBlind: number;
+  readonly bigBlind: number;
+  readonly ante?: number;
+  readonly timestamp: Date;
+  readonly players: readonly Player[];
+  readonly gameContext: GameContext; // REQUIRED: Context for proper value interpretation
 
   // Antes (if tournament)
-  antes?: Action[];
+  readonly antes?: readonly Action[];
 
-  // Streets
-  preflop: Action[];
-  flop?: {
-    cards: Card[];
-    actions: Action[];
+  // Streets - Always defined, may have empty cards array
+  readonly preflop: readonly Action[];
+  readonly flop: {
+    readonly cards: readonly Card[];
+    readonly actions: readonly Action[];
   };
-  turn?: {
-    card: Card;
-    actions: Action[];
+  readonly turn: {
+    readonly card: Card | null;
+    readonly actions: readonly Action[];
   };
-  river?: {
-    card: Card;
-    actions: Action[];
+  readonly river: {
+    readonly card: Card | null;
+    readonly actions: readonly Action[];
   };
-  showdown?: {
-    info: string; // Texto completo do showdown parseado
-    winners: string[];
-    potWon: number;
-    rake?: number;
+  readonly showdown?: {
+    readonly info: string; // Texto completo do showdown parseado
+    readonly winners: readonly string[];
+    readonly potWon: number;
+    readonly rake?: number;
+    readonly playerWinnings?: Record<string, number>; // Individual player winnings from SUMMARY section
   };
 
   // Metadata
-  totalPot: number;
-  rake?: number;
-  currency: string;
-  originalText?: string; // NEW: Original raw hand history text for debugging/storage
+  readonly totalPot: number;
+  readonly rake?: number;
+  readonly currency: string;
+  readonly originalText?: string; // NEW: Original raw hand history text for debugging/storage
 };
 
 export type ParseResult = {
-  success: boolean;
-  data?: HandHistory; // Renamed from handHistory for consistency
-  handHistory?: HandHistory; // Keep for backward compatibility
-  error?: string;
-  warnings?: string[];
+  readonly success: boolean;
+  readonly data?: HandHistory; // Renamed from handHistory for consistency
+  readonly handHistory?: HandHistory; // Keep for backward compatibility
+  readonly error?: string;
+  readonly warnings?: readonly string[];
+  // NEW: Structured error and warning tracking
+  readonly errors?: readonly import('./errors').AppError[];
+  readonly structuredWarnings?: readonly import('./errors').AppError[];
 };
