@@ -34,7 +34,9 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError(null);
-      const response = await authApi.login(data);
+      // Only send email and password to the API (backend doesn't accept rememberMe)
+      const { email, password } = data;
+      const response = await authApi.login({ email, password });
 
       login(
         {
