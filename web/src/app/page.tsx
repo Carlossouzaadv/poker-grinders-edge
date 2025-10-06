@@ -3,9 +3,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setIsVisible(true);
@@ -13,6 +16,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#121212] text-white">
+      {/* Language Switcher - Fixed Position */}
+      <div className="fixed top-6 right-6 z-50">
+        <LanguageSwitcher />
+      </div>
+
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         {/* Background Image */}
@@ -31,21 +39,21 @@ export default function Home() {
         {/* Hero Content */}
         <div className={`relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <h1 className="font-montserrat text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight" style={{ textShadow: '0 0 20px rgba(0, 255, 140, 0.2)' }}>
-            A Vantagem que os Outros Não Veem.
+            {t('home.hero.title')}
           </h1>
           <p className="font-open-sans text-lg sm:text-xl text-[#E0E0E0] mb-10 max-w-3xl mx-auto leading-relaxed">
-            Analise seu histórico de mãos e transforme dados brutos em insights de nível elite. A análise profissional, agora acessível e gratuita.
+            {t('home.hero.subtitle')}
           </p>
           <Link href="/register">
             <button className="font-open-sans bg-[#00FF8C] hover:bg-[#00DD7A] text-[#121212] px-10 py-4 rounded-lg text-lg font-semibold transition-all duration-300 ease-in-out shadow-lg hover:shadow-[0_8px_24px_rgba(0,255,140,0.4)] hover:scale-105 transform">
-              Começar Análise Gratuita
+              {t('home.hero.cta')}
             </button>
           </Link>
           <p className="font-open-sans text-sm text-[#9E9E9E] mt-4">
-            Acesso instantâneo ao Hand Replayer. Sem cartão de crédito.
+            {t('home.hero.instantAccess')}
           </p>
           <p className="font-open-sans text-sm text-[#9E9E9E] mt-6">
-            Você é um <a href="#" className="text-[#E0E0E0] font-semibold hover:text-[#00FF8C] transition-colors duration-300">jogador individual</a>, <a href="#" className="text-[#E0E0E0] font-semibold hover:text-[#00FF8C] transition-colors duration-300">gerencia um time</a> ou é <a href="#" className="text-[#E0E0E0] font-semibold hover:text-[#00FF8C] transition-colors duration-300">coach</a>?
+            {t('home.hero.playerQuestion')} <a href="#" className="text-[#E0E0E0] font-semibold hover:text-[#00FF8C] transition-colors duration-300">{t('home.hero.playerIndividual')}</a>, <a href="#" className="text-[#E0E0E0] font-semibold hover:text-[#00FF8C] transition-colors duration-300">{t('home.hero.playerTeam')}</a> {t('home.hero.playerQuestion').toLowerCase().includes('you') ? 'or' : 'ou é'} <a href="#" className="text-[#E0E0E0] font-semibold hover:text-[#00FF8C] transition-colors duration-300">{t('home.hero.playerCoach')}</a>?
           </p>
         </div>
 
@@ -77,10 +85,10 @@ export default function Home() {
 
         <div className="relative z-10 max-w-5xl mx-auto">
           <h2 className="font-montserrat text-4xl sm:text-5xl font-bold text-white text-center mb-4">
-            Como Funciona
+            {t('home.howItWorks.title')}
           </h2>
           <p className="font-open-sans text-lg text-[#E0E0E0] text-center mb-16 max-w-2xl mx-auto">
-            Três passos simples para começar a analisar suas mãos como um profissional
+            {t('home.howItWorks.subtitle')}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -96,13 +104,13 @@ export default function Home() {
                 />
               </div>
               <div className="font-open-sans font-semibold text-sm text-[#00FF8C] tracking-wide mb-4">
-                PASSO 1
+                {t('home.howItWorks.step1.badge')}
               </div>
               <h3 className="font-montserrat text-2xl font-semibold text-white mb-3">
-                Copie
+                {t('home.howItWorks.step1.title')}
               </h3>
               <p className="font-open-sans text-[#E0E0E0] leading-relaxed">
-                Copie o histórico do seu torneio diretamente do PokerStars, GGPoker ou outro site.
+                {t('home.howItWorks.step1.description')}
               </p>
             </div>
 
@@ -118,13 +126,13 @@ export default function Home() {
                 />
               </div>
               <div className="font-open-sans font-semibold text-sm text-[#00FF8C] tracking-wide mb-4">
-                PASSO 2
+                {t('home.howItWorks.step2.badge')}
               </div>
               <h3 className="font-montserrat text-2xl font-semibold text-white mb-3">
-                Cole
+                {t('home.howItWorks.step2.title')}
               </h3>
               <p className="font-open-sans text-[#E0E0E0] leading-relaxed">
-                Cole no Poker Grinder's Edge e veja a mágica acontecer em segundos.
+                {t('home.howItWorks.step2.description')}
               </p>
             </div>
 
@@ -140,13 +148,13 @@ export default function Home() {
                 />
               </div>
               <div className="font-open-sans font-semibold text-sm text-[#00FF8C] tracking-wide mb-4">
-                PASSO 3
+                {t('home.howItWorks.step3.badge')}
               </div>
               <h3 className="font-montserrat text-2xl font-semibold text-white mb-3">
-                Analise
+                {t('home.howItWorks.step3.title')}
               </h3>
               <p className="font-open-sans text-[#E0E0E0] leading-relaxed">
-                Revise mãos, marque favoritas e compartilhe com seu time ou coach.
+                {t('home.howItWorks.step3.description')}
               </p>
             </div>
           </div>
@@ -158,10 +166,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="font-montserrat text-4xl sm:text-5xl font-bold text-white mb-4">
-              Isso é só o começo.
+              {t('home.ecosystem.title')}
             </h2>
             <p className="font-open-sans text-xl text-[#E0E0E0] max-w-3xl mx-auto">
-              O Hand Replayer é apenas a porta de entrada. Estamos construindo o ecossistema completo para transformar seu jogo.
+              {t('home.ecosystem.subtitle')}
             </p>
           </div>
 
@@ -170,7 +178,7 @@ export default function Home() {
             <div className="group relative p-8 rounded-2xl border border-[rgba(76,95,213,0.2)] transition-all duration-500 hover:border-[rgba(0,255,140,0.5)] hover:scale-105 hover:shadow-[0_16px_48px_rgba(0,255,140,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
               <div className="absolute top-4 right-4">
                 <span className="inline-block bg-[#4C5FD5] text-white text-xs font-open-sans font-semibold px-3 py-1.5 rounded-md">
-                  EM BREVE
+                  {t('home.ecosystem.feature1.badge')}
                 </span>
               </div>
               <div className="relative w-24 h-24 mx-auto mb-6">
@@ -183,10 +191,10 @@ export default function Home() {
                 />
               </div>
               <h3 className="font-montserrat text-2xl font-bold text-white text-center mb-4">
-                Gestor de Bankroll Inteligente
+                {t('home.ecosystem.feature1.title')}
               </h3>
               <p className="font-open-sans text-[#E0E0E0] text-center leading-relaxed">
-                Saiba exatamente onde você ganha e perde dinheiro. Controle total do seu bankroll com análise automática.
+                {t('home.ecosystem.feature1.description')}
               </p>
             </div>
 
@@ -194,7 +202,7 @@ export default function Home() {
             <div className="group relative p-8 rounded-2xl border border-[rgba(76,95,213,0.2)] transition-all duration-500 hover:border-[rgba(0,255,140,0.5)] hover:scale-105 hover:shadow-[0_16px_48px_rgba(0,255,140,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
               <div className="absolute top-4 right-4">
                 <span className="inline-block bg-[#4C5FD5] text-white text-xs font-open-sans font-semibold px-3 py-1.5 rounded-md">
-                  EM BREVE
+                  {t('home.ecosystem.feature2.badge')}
                 </span>
               </div>
               <div className="relative w-24 h-24 mx-auto mb-6">
@@ -207,10 +215,10 @@ export default function Home() {
                 />
               </div>
               <h3 className="font-montserrat text-2xl font-bold text-white text-center mb-4">
-                Laboratório de Estudo GTO
+                {t('home.ecosystem.feature2.title')}
               </h3>
               <p className="font-open-sans text-[#E0E0E0] text-center leading-relaxed">
-                Treine cenários e elimine seus leaks de forma gamificada. Aprenda estratégia optimal jogando.
+                {t('home.ecosystem.feature2.description')}
               </p>
             </div>
 
@@ -218,7 +226,7 @@ export default function Home() {
             <div className="group relative p-8 rounded-2xl border border-[rgba(76,95,213,0.2)] transition-all duration-500 hover:border-[rgba(0,255,140,0.5)] hover:scale-105 hover:shadow-[0_16px_48px_rgba(0,255,140,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
               <div className="absolute top-4 right-4">
                 <span className="inline-block bg-[#4C5FD5] text-white text-xs font-open-sans font-semibold px-3 py-1.5 rounded-md">
-                  EM BREVE
+                  {t('home.ecosystem.feature3.badge')}
                 </span>
               </div>
               <div className="relative w-24 h-24 mx-auto mb-6">
@@ -231,10 +239,10 @@ export default function Home() {
                 />
               </div>
               <h3 className="font-montserrat text-2xl font-bold text-white text-center mb-4">
-                Plataforma para Times e Coaches
+                {t('home.ecosystem.feature3.title')}
               </h3>
               <p className="font-open-sans text-[#E0E0E0] text-center leading-relaxed">
-                Gestão de atletas, análise de dados em massa e dashboards agregados para coaches profissionais.
+                {t('home.ecosystem.feature3.description')}
               </p>
             </div>
 
@@ -242,7 +250,7 @@ export default function Home() {
             <div className="group relative p-8 rounded-2xl border border-[rgba(76,95,213,0.2)] transition-all duration-500 hover:border-[rgba(0,255,140,0.5)] hover:scale-105 hover:shadow-[0_16px_48px_rgba(0,255,140,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
               <div className="absolute top-4 right-4">
                 <span className="inline-block bg-[#4C5FD5] text-white text-xs font-open-sans font-semibold px-3 py-1.5 rounded-md">
-                  EM BREVE
+                  {t('home.ecosystem.feature4.badge')}
                 </span>
               </div>
               <div className="relative w-24 h-24 mx-auto mb-6">
@@ -255,10 +263,10 @@ export default function Home() {
                 />
               </div>
               <h3 className="font-montserrat text-2xl font-bold text-white text-center mb-4">
-                Marketplace de Coaches
+                {t('home.ecosystem.feature4.title')}
               </h3>
               <p className="font-open-sans text-[#E0E0E0] text-center leading-relaxed">
-                Encontre o instrutor perfeito para elevar seu nível. Conexão direta entre coaches e jogadores.
+                {t('home.ecosystem.feature4.description')}
               </p>
             </div>
           </div>
@@ -266,11 +274,11 @@ export default function Home() {
           {/* CTA Secundário */}
           <div className="text-center mt-12">
             <p className="font-open-sans text-[#E0E0E0] mb-4">
-              Quer ser notificado quando essas funcionalidades forem lançadas?
+              {t('home.ecosystem.ctaText')}
             </p>
             <Link href="/register">
               <button className="font-open-sans bg-transparent border-2 border-[#00FF8C] text-[#00FF8C] hover:bg-[rgba(0,255,140,0.1)] px-8 py-3 rounded-lg font-semibold transition-all duration-300">
-                Entrar na Lista de Espera do Beta
+                {t('home.ecosystem.ctaButton')}
               </button>
             </Link>
           </div>
@@ -293,10 +301,10 @@ export default function Home() {
 
         <div className="relative z-10 max-w-6xl mx-auto">
           <h2 className="font-montserrat text-4xl sm:text-5xl font-bold text-white text-center mb-4">
-            A Escolha dos Profissionais
+            {t('home.testimonials.title')}
           </h2>
           <p className="font-open-sans text-lg text-[#E0E0E0] text-center mb-16 max-w-2xl mx-auto">
-            Jogadores sérios confiam no Poker Grinder's Edge para elevar seu jogo
+            {t('home.testimonials.subtitle')}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -312,11 +320,11 @@ export default function Home() {
                 />
               </div>
               <p className="font-open-sans text-[#E0E0E0] text-lg italic mb-6 leading-relaxed">
-                "O Poker Grinder's Edge mudou completamente meu processo de estudo. É a ferramenta mais rápida e poderosa que já usei."
+                &quot;{t('home.testimonials.testimonial1.quote')}&quot;
               </p>
               <div className="border-t border-[#00FF8C] pt-4">
-                <p className="font-montserrat text-white font-semibold mb-1">João Silva</p>
-                <p className="font-open-sans text-[#00FF8C] text-sm">Jogador Profissional de High Stakes</p>
+                <p className="font-montserrat text-white font-semibold mb-1">{t('home.testimonials.testimonial1.name')}</p>
+                <p className="font-open-sans text-[#00FF8C] text-sm">{t('home.testimonials.testimonial1.role')}</p>
               </div>
             </div>
 
@@ -332,11 +340,11 @@ export default function Home() {
                 />
               </div>
               <p className="font-open-sans text-[#E0E0E0] text-lg italic mb-6 leading-relaxed">
-                "Finalmente uma plataforma que entende as necessidades reais dos grinders. A detecção de leaks é simplesmente incrível."
+                &quot;{t('home.testimonials.testimonial2.quote')}&quot;
               </p>
               <div className="border-t border-[#00FF8C] pt-4">
-                <p className="font-montserrat text-white font-semibold mb-1">Maria Santos</p>
-                <p className="font-open-sans text-[#00FF8C] text-sm">Coach Profissional e MTT Specialist</p>
+                <p className="font-montserrat text-white font-semibold mb-1">{t('home.testimonials.testimonial2.name')}</p>
+                <p className="font-open-sans text-[#00FF8C] text-sm">{t('home.testimonials.testimonial2.role')}</p>
               </div>
             </div>
 
@@ -352,11 +360,11 @@ export default function Home() {
                 />
               </div>
               <p className="font-open-sans text-[#E0E0E0] text-lg italic mb-6 leading-relaxed">
-                "Desde que comecei a usar, meu ROI aumentou 35%. A análise GTO me ajudou a encontrar spots que eu estava deixando dinheiro na mesa."
+                &quot;{t('home.testimonials.testimonial3.quote')}&quot;
               </p>
               <div className="border-t border-[#00FF8C] pt-4">
-                <p className="font-montserrat text-white font-semibold mb-1">Pedro Costa</p>
-                <p className="font-open-sans text-[#00FF8C] text-sm">Grinder de Cash Game NL500</p>
+                <p className="font-montserrat text-white font-semibold mb-1">{t('home.testimonials.testimonial3.name')}</p>
+                <p className="font-open-sans text-[#00FF8C] text-sm">{t('home.testimonials.testimonial3.role')}</p>
               </div>
             </div>
           </div>
@@ -387,25 +395,25 @@ export default function Home() {
 
         <div className="relative z-10 max-w-4xl mx-auto text-center">
           <h2 className="font-montserrat text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-8">
-            Comece agora. Evolua sempre.
+            {t('home.finalCta.title')}
           </h2>
           <p className="font-open-sans text-xl text-[#E0E0E0] mb-10 max-w-2xl mx-auto leading-relaxed">
-            Use o Hand Replayer gratuitamente hoje e acompanhe a evolução do ecossistema completo que vai transformar seu poker.
+            {t('home.finalCta.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link href="/register">
               <button className="w-full sm:w-auto font-open-sans bg-[#00FF8C] hover:bg-[#00DD7A] text-[#121212] px-10 py-4 rounded-lg text-lg font-semibold transition-all duration-300 ease-in-out shadow-lg hover:shadow-[0_8px_24px_rgba(0,255,140,0.4)] hover:scale-105 transform">
-                Começar Grátis Agora
+                {t('home.finalCta.ctaPrimary')}
               </button>
             </Link>
             <Link href="/login">
               <button className="w-full sm:w-auto font-open-sans bg-transparent border-2 border-[#00FF8C] text-[#00FF8C] hover:bg-[rgba(0,255,140,0.1)] px-10 py-4 rounded-lg text-lg font-semibold transition-all duration-300">
-                Já Tenho Conta
+                {t('home.finalCta.ctaSecondary')}
               </button>
             </Link>
           </div>
           <p className="font-open-sans text-sm text-[#9E9E9E] mt-6 font-light">
-            A vantagem que os outros não veem.
+            {t('home.finalCta.tagline')}
           </p>
         </div>
       </section>
@@ -417,38 +425,38 @@ export default function Home() {
             {/* Column 1: Brand */}
             <div>
               <h3 className="font-montserrat text-2xl font-bold text-white mb-4">
-                Poker Grinder's Edge
+                {t('home.footer.brandTitle')}
               </h3>
               <p className="font-open-sans text-[#E0E0E0] leading-relaxed mb-4">
-                A vantagem que os outros não veem. Ferramentas profissionais para jogadores sérios que buscam excelência.
+                {t('home.footer.brandDescription')}
               </p>
               <p className="font-open-sans text-[#9E9E9E] text-sm">
-                Desenvolvido por grinders, para grinders.
+                {t('home.footer.brandTagline')}
               </p>
             </div>
 
             {/* Column 2: Quick Links */}
             <div>
-              <h4 className="font-montserrat text-lg font-semibold text-white mb-4">Links Rápidos</h4>
+              <h4 className="font-montserrat text-lg font-semibold text-white mb-4">{t('home.footer.quickLinks')}</h4>
               <ul className="space-y-3">
                 <li>
                   <Link href="/about" className="font-open-sans text-[#E0E0E0] hover:text-[#00FF8C] transition-colors duration-300">
-                    Sobre
+                    {t('home.footer.about')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/pricing" className="font-open-sans text-[#E0E0E0] hover:text-[#00FF8C] transition-colors duration-300">
-                    Preços
+                    {t('home.footer.pricing')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/contact" className="font-open-sans text-[#E0E0E0] hover:text-[#00FF8C] transition-colors duration-300">
-                    Contato
+                    {t('home.footer.contact')}
                   </Link>
                 </li>
                 <li>
                   <Link href="/blog" className="font-open-sans text-[#E0E0E0] hover:text-[#00FF8C] transition-colors duration-300">
-                    Blog
+                    {t('home.footer.blog')}
                   </Link>
                 </li>
               </ul>
@@ -456,14 +464,14 @@ export default function Home() {
 
             {/* Column 3: Newsletter & Social */}
             <div>
-              <h4 className="font-montserrat text-lg font-semibold text-white mb-4">Fique Por Dentro</h4>
+              <h4 className="font-montserrat text-lg font-semibold text-white mb-4">{t('home.footer.newsletter')}</h4>
               <p className="font-open-sans text-[#E0E0E0] text-sm mb-4">
-                Receba dicas e atualizações exclusivas.
+                {t('home.footer.newsletterText')}
               </p>
               <div className="relative mb-6">
                 <input
                   type="email"
-                  placeholder="Seu e-mail"
+                  placeholder={t('home.footer.emailPlaceholder')}
                   className="w-full bg-[#1a1a1a] border border-[rgba(76,95,213,0.3)] text-white px-4 py-3 pr-12 rounded-lg focus:outline-none focus:border-[#00FF8C] focus:shadow-[0_0_0_3px_rgba(0,255,140,0.1)] transition-all duration-300 placeholder:text-[#9E9E9E]"
                 />
                 <button className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center hover:scale-110 transition-transform duration-300">
@@ -506,7 +514,7 @@ export default function Home() {
           {/* Bottom Footer */}
           <div className="pt-8 border-t border-[#4C5FD5]/20 text-center">
             <p className="font-open-sans text-[#9E9E9E] text-sm">
-              © 2025 Poker Grinder's Edge. Todos os direitos reservados.
+              {t('home.footer.copyright')}
             </p>
           </div>
         </div>

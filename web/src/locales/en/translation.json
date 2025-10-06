@@ -224,5 +224,103 @@
       "message": "You've been added to our VIP list. You'll be the first to know about the launch!",
       "closing": "Closing in a few seconds..."
     }
+  },
+  "home": {
+    "hero": {
+      "title": "The Edge Others Don't See.",
+      "subtitle": "Analyze your hand history and transform raw data into elite-level insights. Professional analysis, now accessible and free.",
+      "cta": "Start Free Analysis",
+      "loginLink": "I Already Have an Account",
+      "instantAccess": "Instant access to Hand Replayer. No credit card required.",
+      "playerQuestion": "Are you an",
+      "playerIndividual": "individual player",
+      "playerTeam": "managing a team",
+      "playerCoach": "coach"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Three simple steps to start analyzing your hands like a professional",
+      "step1": {
+        "badge": "STEP 1",
+        "title": "Copy",
+        "description": "Copy your tournament history directly from PokerStars, GGPoker, or another site."
+      },
+      "step2": {
+        "badge": "STEP 2",
+        "title": "Paste",
+        "description": "Paste into Poker Grinder's Edge and watch the magic happen in seconds."
+      },
+      "step3": {
+        "badge": "STEP 3",
+        "title": "Analyze",
+        "description": "Review hands, bookmark favorites, and share with your team or coach."
+      }
+    },
+    "ecosystem": {
+      "title": "This is just the beginning.",
+      "subtitle": "The Hand Replayer is just the gateway. We're building the complete ecosystem to transform your game.",
+      "feature1": {
+        "badge": "COMING SOON",
+        "title": "Smart Bankroll Manager",
+        "description": "Know exactly where you're making and losing money. Complete control of your bankroll with automatic analysis."
+      },
+      "feature2": {
+        "badge": "COMING SOON",
+        "title": "GTO Study Laboratory",
+        "description": "Train scenarios and eliminate your leaks in a gamified way. Learn optimal strategy by playing."
+      },
+      "feature3": {
+        "badge": "COMING SOON",
+        "title": "Platform for Teams and Coaches",
+        "description": "Athlete management, mass data analysis, and aggregated dashboards for professional coaches."
+      },
+      "feature4": {
+        "badge": "COMING SOON",
+        "title": "Coaches Marketplace",
+        "description": "Find the perfect instructor to elevate your level. Direct connection between coaches and players."
+      },
+      "ctaText": "Want to be notified when these features are launched?",
+      "ctaButton": "Join the Beta Waiting List"
+    },
+    "testimonials": {
+      "title": "The Professionals' Choice",
+      "subtitle": "Serious players trust Poker Grinder's Edge to elevate their game",
+      "testimonial1": {
+        "quote": "Poker Grinder's Edge completely changed my study process. It's the fastest and most powerful tool I've ever used.",
+        "name": "John Smith",
+        "role": "High Stakes Professional Player"
+      },
+      "testimonial2": {
+        "quote": "Finally a platform that understands the real needs of grinders. The leak detection is simply amazing.",
+        "name": "Mary Johnson",
+        "role": "Professional Coach and MTT Specialist"
+      },
+      "testimonial3": {
+        "quote": "Since I started using it, my ROI increased by 35%. The GTO analysis helped me find spots where I was leaving money on the table.",
+        "name": "Peter Williams",
+        "role": "NL500 Cash Game Grinder"
+      }
+    },
+    "finalCta": {
+      "title": "Start now. Evolve always.",
+      "subtitle": "Use the Hand Replayer for free today and follow the evolution of the complete ecosystem that will transform your poker.",
+      "ctaPrimary": "Start Free Now",
+      "ctaSecondary": "I Already Have an Account",
+      "tagline": "The edge others don't see."
+    },
+    "footer": {
+      "brandTitle": "Poker Grinder's Edge",
+      "brandDescription": "The edge others don't see. Professional tools for serious players seeking excellence.",
+      "brandTagline": "Built by grinders, for grinders.",
+      "quickLinks": "Quick Links",
+      "about": "About",
+      "pricing": "Pricing",
+      "contact": "Contact",
+      "blog": "Blog",
+      "newsletter": "Stay Updated",
+      "newsletterText": "Receive exclusive tips and updates.",
+      "emailPlaceholder": "Your email",
+      "copyright": "© 2025 Poker Grinder's Edge. All rights reserved."
+    }
   }
 }

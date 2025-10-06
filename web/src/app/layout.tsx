@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Poppins, Montserrat, Open_Sans } from "next/font/google";
 import "./globals.css";
 import I18nProvider from '@/components/I18nProvider';
+import HTMLWrapper from '@/components/HTMLWrapper';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,12 +45,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    <HTMLWrapper>
       <body className={`${inter.variable} ${poppins.variable} ${montserrat.variable} ${openSans.variable} font-sans antialiased`}>
         <I18nProvider>
           {children}
         </I18nProvider>
       </body>
-    </html>
+    </HTMLWrapper>
   );
 }
