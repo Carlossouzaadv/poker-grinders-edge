@@ -8,6 +8,7 @@ import { HandParser } from '@/lib/hand-parser';
 import { splitHandHistories } from '@/lib/poker/hand-splitter';
 import { HandHistory } from '@/types/poker';
 import PokerReplayer from '@/components/PokerReplayer';
+import { addHandsToSession } from '@/lib/hand-history-api';
 
 export default function HandAnalyzerInputPage() {
   const router = useRouter();
@@ -28,6 +29,46 @@ export default function HandAnalyzerInputPage() {
   if (!isAuthenticated) {
     return null;
   }
+
+  /**
+   * Salva as mãos no banco de dados agrupadas por torneio + data
+   */
+  const saveHandsToDatabase = async (parsedHands: HandHistory[]) => {
+    if (parsedHands.length === 0) return;
+
+    try {
+      // Extrair nome do torneio e data da primeira mão
+      // Assumindo que todas as mãos são do mesmo torneio/sessão
+      const firstHand = parsedHands[0];
+
+      // Extrair nome do torneio (pode estar em stakes ou tableName)
+      let tournamentName = firstHand.stakes || firstHand.tableName || 'Unknown Tournament';
+
+      // Se for cash game, usar formato diferente
+      if (firstHand.gameContext?.isCashGame) {
+        tournamentName = `Cash Game ${firstHand.stakes || 'Unknown Stakes'}`;
+      }
+
+      // Formatar data (usar timestamp da mão ou data atual)
+      const handDate = firstHand.timestamp
+        ? new Date(firstHand.timestamp).toLocaleDateString('pt-BR')
+        : new Date().toLocaleDateString('pt-BR');
+
+      console.log(`💾 Salvando ${parsedHands.length} mão(s) em: "${tournamentName} - ${handDate}"`);
+
+      const result = await addHandsToSession(tournamentName, handDate, parsedHands);
+
+      if (result.isNew) {
+        console.log(`✅ Nova sessão criada: ${result.name} (${result.totalHands} mãos)`);
+      } else {
+        console.log(`✅ Mãos adicionadas à sessão existente: ${result.name} (total: ${result.totalHands} mãos)`);
+      }
+    } catch (error: any) {
+      console.error('❌ Erro ao salvar mãos:', error?.response?.data || error?.message);
+      // Não mostrar erro para o usuário, apenas logar
+      // O replayer continua funcionando normalmente mesmo se o salvamento falhar
+    }
+  };
 
   const handleAnalyze = () => {
     if (!handHistoryText.trim()) {
@@ -78,6 +119,9 @@ export default function HandAnalyzerInputPage() {
       setAllHands(parsedHands);
       setCurrentHandIndex(0);
       setError('');
+
+      // Salvar automaticamente no banco de dados
+      saveHandsToDatabase(parsedHands);
 
       // Avisar sobre mãos que falharam
       if (parseErrors.length > 0) {

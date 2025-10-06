@@ -42,6 +42,24 @@ export class HandHistorySessionsController {
   }
 
   /**
+   * POST /hand-history-sessions/add-hands
+   * Add hands to existing session or create new session grouped by tournament+date
+   * Automatically groups hands from same tournament on same date
+   */
+  @Post('add-hands')
+  async addHandsToSession(
+    @Body() body: { tournamentName: string; date: string; parsedHands: any[] },
+    @CurrentUser() user: User,
+  ) {
+    return this.handHistorySessionsService.addHandsToSession(
+      body.tournamentName,
+      body.date,
+      body.parsedHands,
+      user.id,
+    );
+  }
+
+  /**
    * GET /hand-history-sessions
    * List all hand history sessions for the authenticated user
    */

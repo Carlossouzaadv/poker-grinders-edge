@@ -287,6 +287,105 @@ export class HandHistorySessionsService {
   }
 
   /**
+   * @method addHandsToSession
+   * @description Adiciona mãos a uma sessão existente ou cria uma nova sessão.
+   * Agrupa sessões por nome do torneio + data para o mesmo usuário.
+   *
+   * Se já existe uma sessão com o mesmo tournamentName e date:
+   *   - Adiciona as novas mãos à sessão existente
+   * Se não existe:
+   *   - Cria uma nova sessão com o nome "{tournamentName} - {date}"
+   *
+   * @param {string} tournamentName - Nome do torneio (ex: "Bounty Hunter $2.50")
+   * @param {string} date - Data do torneio no formato ISO ou DD/MM/YYYY
+   * @param {any[]} parsedHands - Array de mãos já parseadas
+   * @param {string} userId - ID do usuário
+   * @returns {Promise<any>} Sessão (nova ou atualizada) com as mãos adicionadas
+   */
+  async addHandsToSession(
+    tournamentName: string,
+    date: string,
+    parsedHands: any[],
+    userId: string,
+  ) {
+    // Formatar nome da sessão: "Bounty Hunter $2.50 - 05/10/2023"
+    const sessionName = `${tournamentName} - ${date}`;
+
+    // Buscar sessão existente com o mesmo nome para esse usuário
+    const existingSession = await this.prisma.handHistorySession.findFirst({
+      where: {
+        userId,
+        name: sessionName,
+      },
+      include: {
+        hands: {
+          orderBy: { handIndex: 'desc' },
+          take: 1, // Pegar apenas a última mão para saber o próximo índice
+        },
+      },
+    });
+
+    if (existingSession) {
+      // Sessão existe - adicionar novas mãos
+      const nextHandIndex = existingSession.hands[0]?.handIndex + 1 || 0;
+
+      // Criar as novas mãos
+      const handsToCreate = parsedHands.map((hand, idx) => ({
+        sessionId: existingSession.id,
+        handIndex: nextHandIndex + idx,
+        handText: JSON.stringify(hand), // Guardar texto original se disponível
+        parsedData: hand,
+      }));
+
+      await this.prisma.handHistoryHand.createMany({
+        data: handsToCreate,
+      });
+
+      // Atualizar totalHands da sessão
+      await this.prisma.handHistorySession.update({
+        where: { id: existingSession.id },
+        data: {
+          totalHands: existingSession.totalHands + parsedHands.length,
+        },
+      });
+
+      return {
+        id: existingSession.id,
+        name: existingSession.name,
+        totalHands: existingSession.totalHands + parsedHands.length,
+        handsAdded: parsedHands.length,
+        isNew: false,
+      };
+    } else {
+      // Sessão não existe - criar nova
+      const session = await this.prisma.handHistorySession.create({
+        data: {
+          userId,
+          name: sessionName,
+          siteFormat: parsedHands[0]?.site || 'Unknown',
+          totalHands: parsedHands.length,
+          rawHandHistory: '', // Deixar vazio por enquanto
+          hands: {
+            create: parsedHands.map((hand, idx) => ({
+              handIndex: idx,
+              handText: JSON.stringify(hand),
+              parsedData: hand,
+            })),
+          },
+        },
+      });
+
+      return {
+        id: session.id,
+        name: session.name,
+        totalHands: session.totalHands,
+        handsAdded: parsedHands.length,
+        isNew: true,
+      };
+    }
+  }
+
+  /**
    * @private
    * @method parseMultipleHandsPlaceholder
    * @description PLACEHOLDER temporário para parsing de múltiplas mãos.
