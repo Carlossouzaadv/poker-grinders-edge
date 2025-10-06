@@ -389,7 +389,7 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
             </div>
           </div>
         ) : (
-          /* Replayer Interface - REDESIGNED: Mesa dominante, controles compactos */}
+          /* Replayer Interface - REDESIGNED: Mesa dominante, controles compactos */
           <div className="w-full">
             {/* Ação Atual - Banner superior */}
             {currentDescription && (
