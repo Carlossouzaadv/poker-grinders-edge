@@ -8,6 +8,18 @@ let app: INestApplication | null = null;
 
 async function bootstrap() {
   if (!app) {
+    // Log environment variables for debugging (mask sensitive data)
+    const dbUrl = process.env.DATABASE_URL;
+    const dbUrlMasked = dbUrl ? `${dbUrl.substring(0, 30)}...${dbUrl.substring(dbUrl.length - 20)}` : 'NOT SET';
+
+    console.log('🔧 Environment Check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      DATABASE_URL: dbUrlMasked,
+      DATABASE_URL_LENGTH: dbUrl?.length || 0,
+      HAS_JWT_SECRET: !!process.env.JWT_SECRET,
+      HAS_ALLOWED_ORIGINS: !!process.env.ALLOWED_ORIGINS,
+    });
+
     app = await NestFactory.create(AppModule);
 
     // Enable CORS for frontend
