@@ -43,6 +43,31 @@ async function bootstrap() {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Add CORS headers manually (belt and suspenders approach)
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || ['*'];
+  const origin = req.headers.origin || '';
+
+  console.log('🔍 CORS Check:', {
+    requestOrigin: origin,
+    allowedOrigins,
+    method: req.method,
+  });
+
+  if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
+
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    console.log('✅ Preflight request handled');
+    res.status(200).end();
+    return;
+  }
+
   const app = await bootstrap();
   const server = app.getHttpAdapter().getInstance();
   return server(req, res);
