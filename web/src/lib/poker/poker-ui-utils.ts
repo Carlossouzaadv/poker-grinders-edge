@@ -21,100 +21,100 @@ export class PokerUIUtils {
     switch (maxPlayers) {
       case 2: // Heads-up
         const pos2 = [
-          { left: '50%', bottom: '5%', transform: 'translateX(-50%)' }, // Hero
-          { left: '50%', top: '5%', transform: 'translateX(-50%)' }    // Oponente
+          { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero - mais baixo
+          { left: '50%', top: '0%', transform: 'translateX(-50%)' }    // Oponente - mais alto
         ];
         return { position: 'absolute' as const, ...pos2[visualSeat - 1] };
 
       case 3: // 3-max
         const pos3 = [
-          { left: '50%', bottom: '5%', transform: 'translateX(-50%)' }, // Hero
-          { left: '15%', top: '35%', transform: 'none' },               // Left
-          { right: '15%', top: '35%', transform: 'none' }               // Right
+          { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero - mais baixo
+          { left: '5%', top: '35%', transform: 'none' },                // Left - mais para fora
+          { right: '5%', top: '35%', transform: 'none' }                // Right - mais para fora
         ];
         return { position: 'absolute' as const, ...pos3[visualSeat - 1] };
 
       case 4: // 4-max
         const pos4 = [
-          { left: '50%', bottom: '5%', transform: 'translateX(-50%)' }, // Hero
-          { left: '12%', bottom: '35%', transform: 'none' },            // Bottom Left
-          { left: '50%', top: '5%', transform: 'translateX(-50%)' },    // Top Center
-          { right: '12%', bottom: '35%', transform: 'none' }            // Bottom Right
+          { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero - mais baixo
+          { left: '5%', bottom: '35%', transform: 'none' },             // Bottom Left - mais para fora
+          { left: '50%', top: '0%', transform: 'translateX(-50%)' },    // Top Center - mais alto
+          { right: '5%', bottom: '35%', transform: 'none' }             // Bottom Right - mais para fora
         ];
         return { position: 'absolute' as const, ...pos4[visualSeat - 1] };
 
       case 5: // 5-max
         const pos5 = [
-          { left: '50%', bottom: '5%', transform: 'translateX(-50%)' }, // Hero
-          { left: '12%', bottom: '35%', transform: 'none' },            // Bottom Left
-          { left: '12%', top: '35%', transform: 'none' },               // Top Left
-          { right: '12%', top: '35%', transform: 'none' },              // Top Right
-          { right: '12%', bottom: '35%', transform: 'none' }            // Bottom Right
+          { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero - mais baixo
+          { left: '5%', bottom: '35%', transform: 'none' },             // Bottom Left - mais para fora
+          { left: '18%', top: '15%', transform: 'none' },               // Top Left - mais ao meio e mais alto
+          { right: '18%', top: '15%', transform: 'none' },              // Top Right - mais ao meio e mais alto
+          { right: '5%', bottom: '35%', transform: 'none' }             // Bottom Right - mais para fora
         ];
         return { position: 'absolute' as const, ...pos5[visualSeat - 1] };
 
       case 6: // 6-max (padrão)
         const pos6 = [
-          { left: '50%', bottom: '3%', transform: 'translateX(-50%)' }, // Hero (visual 1)
-          { left: '9%', top: '60%', transform: 'none' },                // Visual 2 (Bottom Left) - LATERAL INFERIOR
-          { left: '9%', top: '10%', transform: 'none' },                // Visual 3 (Top Left) - LATERAL SUPERIOR
-          { left: '50%', top: '3%', transform: 'translateX(-50%)' },    // Visual 4 (Top Center)
-          { right: '9%', top: '10%', transform: 'none' },               // Visual 5 (Top Right) - LATERAL SUPERIOR
-          { right: '9%', top: '60%', transform: 'none' }                // Visual 6 (Bottom Right) - LATERAL INFERIOR
+          { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero (visual 1) - mais baixo
+          { left: '6%', top: '60%', transform: 'none' },                // Visual 2 (Bottom Left) - mais para fora
+          { left: '15%', top: '10%', transform: 'none' },               // Visual 3 (Top Left) - mais ao centro
+          { left: '50%', top: '0%', transform: 'translateX(-50%)' },    // Visual 4 (Top Center) - mais alto
+          { right: '15%', top: '10%', transform: 'none' },              // Visual 5 (Top Right) - mais ao centro
+          { right: '6%', top: '60%', transform: 'none' }                // Visual 6 (Bottom Right) - mais para fora
         ];
         return { position: 'absolute' as const, ...pos6[visualSeat - 1] };
 
       case 7: // 7-max
         const pos7 = [
-          { left: '50%', bottom: '3%', transform: 'translateX(-50%)' }, // Hero
-          { left: '8%', bottom: '25%', transform: 'none' },             // Bottom Left
-          { left: '8%', top: '45%', transform: 'none' },                // Left Mid
-          { left: '8%', top: '18%', transform: 'none' },                // Top Left
-          { left: '50%', top: '3%', transform: 'translateX(-50%)' },    // Top Center
-          { right: '8%', top: '18%', transform: 'none' },               // Top Right
-          { right: '8%', bottom: '25%', transform: 'none' }             // Bottom Right
+          { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero - mais baixo
+          { left: '5%', bottom: '20%', transform: 'none' },             // Bottom Left - mais para fora e separado
+          { left: '5%', top: '50%', transform: 'none' },                // Left Mid - separado do player 2
+          { left: '18%', top: '8%', transform: 'none' },                // Top Left - mais alto e ao centro
+          { left: '50%', top: '0%', transform: 'translateX(-50%)' },    // Top Center - mais alto
+          { right: '18%', top: '8%', transform: 'none' },               // Top Right - mais alto e ao centro
+          { right: '5%', bottom: '35%', transform: 'none' }             // Bottom Right - mais baixo e ao meio
         ];
         return { position: 'absolute' as const, ...pos7[visualSeat - 1] };
 
       case 8: // 8-max
         const pos8 = [
-          { left: '50%', bottom: '3%', transform: 'translateX(-50%)' }, // Hero
-          { left: '15%', bottom: '15%', transform: 'none' },            // Bottom Left
-          { left: '3%', bottom: '42%', transform: 'none' },             // Left Mid-Low
-          { left: '20%', top: '8%', transform: 'none' },                // Left Mid-High
-          { left: '50%', top: '3%', transform: 'translateX(-50%)' },    // Top Center
-          { right: '20%', top: '8%', transform: 'none' },               // Right Mid-High
-          { right: '3%', bottom: '42%', transform: 'none' },            // Right Mid-Low
-          { right: '15%', bottom: '15%', transform: 'none' }            // Bottom Right
+          { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Hero - mais para fora
+          { left: '12%', bottom: '12%', transform: 'none' },             // Bottom Left - mais para fora
+          { left: '0%', bottom: '40%', transform: 'none' },              // Left Mid-Low - mais para fora
+          { left: '18%', top: '5%', transform: 'none' },                 // Left Mid-High - mais para fora
+          { left: '50%', top: '-2%', transform: 'translateX(-50%)' },    // Top Center - mais para fora
+          { right: '18%', top: '5%', transform: 'none' },                // Right Mid-High - mais para fora
+          { right: '0%', bottom: '40%', transform: 'none' },             // Right Mid-Low - mais para fora
+          { right: '12%', bottom: '12%', transform: 'none' }             // Bottom Right - mais para fora
         ];
         return { position: 'absolute' as const, ...pos8[visualSeat - 1] };
 
       case 9: // 9-max (full ring)
         const pos9 = [
-          { left: '50%', bottom: '3%', transform: 'translateX(-50%)' }, // Hero
-          { left: '8%', bottom: '22%', transform: 'none' },             // Bottom Left - AJUSTADO
-          { left: '8%', bottom: '45%', transform: 'none' },             // Left Mid-Low - MAIOR espaçamento
-          { left: '8%', top: '28%', transform: 'none' },                // Left Mid-High - MAIOR espaçamento
-          { left: '25%', top: '3%', transform: 'translateX(-50%)' },    // Top Left
-          { right: '25%', top: '3%', transform: 'translateX(50%)' },    // Top Right
-          { right: '8%', top: '28%', transform: 'none' },               // Right Mid-High - MAIOR espaçamento
-          { right: '8%', bottom: '45%', transform: 'none' },            // Right Mid-Low - MAIOR espaçamento
-          { right: '8%', bottom: '22%', transform: 'none' }             // Bottom Right - AJUSTADO
+          { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Hero - mais para fora
+          { left: '5%', bottom: '18%', transform: 'none' },              // Bottom Left - separado
+          { left: '0%', bottom: '40%', transform: 'none' },              // Left Mid-Low - mais espaço
+          { left: '5%', top: '22%', transform: 'none' },                 // Left Mid-High - mais espaço
+          { left: '25%', top: '-2%', transform: 'translateX(-50%)' },    // Top Left - mais alto
+          { right: '25%', top: '-2%', transform: 'translateX(50%)' },    // Top Right - mais alto
+          { right: '5%', top: '22%', transform: 'none' },                // Right Mid-High - mais espaço
+          { right: '0%', bottom: '40%', transform: 'none' },             // Right Mid-Low - mais espaço
+          { right: '5%', bottom: '18%', transform: 'none' }              // Bottom Right - separado
         ];
         return { position: 'absolute' as const, ...pos9[visualSeat - 1] };
 
       case 10: // 10-max
         const pos10 = [
-          { left: '50%', bottom: '3%', transform: 'translateX(-50%)' }, // Hero
-          { left: '8%', bottom: '20%', transform: 'none' },             // Bottom Left - AJUSTADO
-          { left: '8%', bottom: '38%', transform: 'none' },             // Left Mid-Low - MAIOR espaçamento
-          { left: '8%', bottom: '56%', transform: 'none' },             // Left Mid - MAIOR espaçamento
-          { left: '8%', top: '25%', transform: 'none' },                // Left Mid-High - MAIOR espaçamento
-          { left: '25%', top: '3%', transform: 'translateX(-50%)' },    // Top Left
-          { right: '25%', top: '3%', transform: 'translateX(50%)' },    // Top Right
-          { right: '8%', top: '25%', transform: 'none' },               // Right Mid-High - MAIOR espaçamento
-          { right: '8%', bottom: '56%', transform: 'none' },            // Right Mid - MAIOR espaçamento
-          { right: '8%', bottom: '20%', transform: 'none' }             // Bottom Right - AJUSTADO
+          { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Hero - mais para fora
+          { left: '5%', bottom: '15%', transform: 'none' },              // Bottom Left - bem separado
+          { left: '2%', bottom: '32%', transform: 'none' },              // Left Mid-Low - espaço adequado
+          { left: '0%', bottom: '50%', transform: 'none' },              // Left Mid - mais separado
+          { left: '5%', top: '20%', transform: 'none' },                 // Left Mid-High - mais espaço
+          { left: '25%', top: '-2%', transform: 'translateX(-50%)' },    // Top Left - mais alto
+          { right: '25%', top: '-2%', transform: 'translateX(50%)' },    // Top Right - mais alto
+          { right: '5%', top: '20%', transform: 'none' },                // Right Mid-High - mais espaço
+          { right: '0%', bottom: '50%', transform: 'none' },             // Right Mid - mais separado
+          { right: '5%', bottom: '15%', transform: 'none' }              // Bottom Right - bem separado
         ];
         return { position: 'absolute' as const, ...pos10[visualSeat - 1] };
 

@@ -158,7 +158,7 @@ function generateMockHand(maxPlayers: number): { handHistory: HandHistory; snaps
     players.push({
       name: isHero ? 'Hero' : `Player${i}`,
       position,
-      stack: 1000 + (i * 100), // Varying stacks
+      stack: 1000 + (i * 100), // Fixed stacks for hydration consistency
       seat: i,
       isHero,
       cards: isHero ? [
@@ -168,11 +168,11 @@ function generateMockHand(maxPlayers: number): { handHistory: HandHistory; snaps
     });
   }
 
-  // Button position (varies based on table size)
-  const buttonSeat = Math.ceil(maxPlayers / 2);
+  // Button position: Hero (seat 1) is always the button for testing
+  const buttonSeat = 1;
 
   const handHistory: HandHistory = {
-    handId: `TEST-${maxPlayers}MAX-${Date.now()}`,
+    handId: `TEST-${maxPlayers}MAX-12345678`,  // Fixed ID to prevent hydration mismatch
     site: 'TestSite',
     gameType: "Hold'em",
     limit: 'No Limit',
@@ -182,7 +182,7 @@ function generateMockHand(maxPlayers: number): { handHistory: HandHistory; snaps
     dealerSeat: buttonSeat,
     smallBlind: 0.5,
     bigBlind: 1,
-    timestamp: new Date(),
+    timestamp: new Date('2025-01-13T12:00:00Z'), // Fixed timestamp to prevent hydration mismatch
     players,
     preflop: [],
     totalPot: 100,
