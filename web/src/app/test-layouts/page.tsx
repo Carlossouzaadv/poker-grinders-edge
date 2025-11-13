@@ -211,6 +211,12 @@ function generateMockHand(maxPlayers: number): { handHistory: HandHistory; snaps
     playerStacks[p.name] = p.stack;
   });
 
+  // Calculate correct SB and BB positions
+  // Hero is seat 1 (BTN), SB is next player (seat 2), BB is next after SB (seat 3)
+  // For heads-up: BTN is also SB, so only 2 players
+  const sbPlayerIndex = maxPlayers === 2 ? 0 : 1; // Heads-up: seat 1, others: seat 2
+  const bbPlayerIndex = maxPlayers === 2 ? 1 : 2; // Heads-up: seat 2, others: seat 3
+
   const snapshot: Snapshot = {
     id: 0,
     street: 'flop',
@@ -219,8 +225,8 @@ function generateMockHand(maxPlayers: number): { handHistory: HandHistory; snaps
     pots: [{ value: 100, eligiblePlayers: players.map(p => p.name), isPotSide: false }],
     collectedPot: 0,
     pendingContribs: {
-      [players[0].name]: 10, // SB visual chip
-      [players[1].name]: 20, // BB visual chip
+      [players[sbPlayerIndex].name]: 10, // SB visual chip (0.5 x 20 for visibility)
+      [players[bbPlayerIndex].name]: 20, // BB visual chip (1 x 20 for visibility)
     },
     totalDisplayedPot: 100,
     playerStacks,

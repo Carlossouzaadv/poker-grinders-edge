@@ -232,7 +232,7 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
             <div className="flex space-x-2 mb-2">
               {communityCards.length > 0 ? (
                 communityCards.map((card, index) => (
-                  <Card key={index} card={card} size="medium" />
+                  <Card key={index} card={card} size="large" />
                 ))
               ) : (
                 <div className="text-white text-center px-6 py-3 bg-black/20 rounded-lg backdrop-blur-sm">

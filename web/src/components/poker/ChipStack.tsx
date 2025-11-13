@@ -219,8 +219,8 @@ const ChipStack: React.FC<ChipStackProps> = React.memo(({
     );
   };
 
-  // Se empilhamento realista estiver ativo e o valor for > 25, usar o sistema novo
-  if (enableRealisticStacking && valor > 25) {
+  // Se empilhamento realista estiver ativo e o valor for >= 10, usar o sistema novo
+  if (enableRealisticStacking && valor >= 10) {
     return renderRealisticChipStack();
   }
 

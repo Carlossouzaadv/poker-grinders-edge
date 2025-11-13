@@ -142,60 +142,104 @@ export class PokerUIUtils {
   static getActionAreaPosition(visualSeat: number, maxPlayers: number): CSSProperties {
     // Posições específicas para cada asiento visual para evitar sobreposição
     switch (maxPlayers) {
+      case 2: // Heads-up
+        const pos2 = [
+          { left: '50%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero
+          { left: '50%', top: '18%', transform: 'translateX(-50%)' }     // Opponent
+        ];
+        return { position: 'absolute' as const, zIndex: 25, ...pos2[visualSeat - 1] };
+
+      case 3: // 3-max
+        const pos3 = [
+          { left: '50%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero
+          { left: '22%', bottom: '48%', transform: 'translateX(-50%)' }, // Left
+          { right: '22%', bottom: '48%', transform: 'translateX(50%)' }  // Right
+        ];
+        return { position: 'absolute' as const, zIndex: 25, ...pos3[visualSeat - 1] };
+
       case 8: // 8-max
         const pos8 = [
-          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' }, // Hero
-          { left: '28%', bottom: '30%', transform: 'translateX(-50%)' }, // Bottom Left
-          { left: '18%', bottom: '45%', transform: 'translateX(-50%)' }, // Left Mid-Low
-          { left: '34%', top: '25%', transform: 'translateX(-50%)' },    // Left Mid-High
-          { left: '50%', top: '25%', transform: 'translateX(-50%)' },    // Top Center
-          { right: '34%', top: '25%', transform: 'translateX(50%)' },    // Right Mid-High
-          { right: '18%', bottom: '45%', transform: 'translateX(50%)' }, // Right Mid-Low
-          { right: '28%', bottom: '30%', transform: 'translateX(50%)' }  // Bottom Right
+          { left: '50%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero
+          { left: '28%', bottom: '23%', transform: 'translateX(-50%)' }, // Bottom Left
+          { left: '18%', bottom: '50%', transform: 'translateX(-50%)' }, // Left Mid-Low
+          { left: '32%', top: '22%', transform: 'translateX(-50%)' },    // Left Mid-High
+          { left: '50%', top: '18%', transform: 'translateX(-50%)' },    // Top Center
+          { right: '32%', top: '22%', transform: 'translateX(50%)' },    // Right Mid-High
+          { right: '18%', bottom: '50%', transform: 'translateX(50%)' }, // Right Mid-Low
+          { right: '28%', bottom: '23%', transform: 'translateX(50%)' }  // Bottom Right
         ];
         return { position: 'absolute' as const, zIndex: 25, ...pos8[visualSeat - 1] };
 
       case 7: // 7-max
         const pos7 = [
-          { left: '50%', bottom: '23%', transform: 'translateX(-50%)' }, // Hero
-          { left: '28%', bottom: '35%', transform: 'translateX(-50%)' }, // Bottom Left
-          { left: '23%', bottom: '52%', transform: 'translateX(-50%)' }, // Left Mid
-          { left: '30%', top: '30%', transform: 'translateX(-50%)' },    // Top Left
-          { left: '50%', top: '25%', transform: 'translateX(-50%)' },    // Top Center
-          { right: '30%', top: '30%', transform: 'translateX(50%)' },    // Top Right
-          { right: '28%', bottom: '35%', transform: 'translateX(50%)' }  // Bottom Right
+          { left: '50%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero
+          { left: '30%', bottom: '33%', transform: 'translateX(-50%)' }, // Bottom Left
+          { left: '16%', bottom: '43%', transform: 'translateX(-50%)' }, // Left Mid
+          { left: '30%', top: '25%', transform: 'translateX(-50%)' },    // Top Left
+          { left: '50%', top: '18%', transform: 'translateX(-50%)' },    // Top Center
+          { right: '30%', top: '25%', transform: 'translateX(50%)' },    // Top Right
+          { right: '25%', bottom: '45%', transform: 'translateX(50%)' }  // Bottom Right
         ];
         return { position: 'absolute' as const, zIndex: 25, ...pos7[visualSeat - 1] };
 
       case 6: // 6-max
         const pos6 = [
-          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' }, // Hero
-          { left: '25%', bottom: '40%', transform: 'translateX(-50%)' }, // Bottom Left
-          { left: '25%', top: '40%', transform: 'translateX(-50%)' },    // Top Left
-          { left: '50%', top: '25%', transform: 'translateX(-50%)' },    // Top Center
-          { right: '25%', top: '40%', transform: 'translateX(50%)' },    // Top Right
-          { right: '25%', bottom: '40%', transform: 'translateX(50%)' }  // Bottom Right
+          { left: '50%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero
+          { left: '22%', bottom: '68%', transform: 'translateX(-50%)' }, // Bottom Left
+          { left: '28%', top: '25%', transform: 'translateX(-50%)' },    // Top Left
+          { left: '50%', top: '18%', transform: 'translateX(-50%)' },    // Top Center
+          { right: '28%', top: '25%', transform: 'translateX(50%)' },    // Top Right
+          { right: '22%', bottom: '68%', transform: 'translateX(50%)' }  // Bottom Right
         ];
         return { position: 'absolute' as const, zIndex: 25, ...pos6[visualSeat - 1] };
 
       case 5: // 5-max
         const pos5 = [
-          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' },
-          { left: '25%', bottom: '40%', transform: 'translateX(-50%)' },
-          { left: '20%', top: '35%', transform: 'translateX(-50%)' },
-          { right: '20%', top: '35%', transform: 'translateX(50%)' },
-          { right: '25%', bottom: '40%', transform: 'translateX(50%)' }
+          { left: '50%', bottom: '18%', transform: 'translateX(-50%)' },
+          { left: '25%', bottom: '48%', transform: 'translateX(-50%)' },
+          { left: '28%', top: '25%', transform: 'translateX(-50%)' },
+          { right: '28%', top: '25%', transform: 'translateX(50%)' },
+          { right: '25%', bottom: '48%', transform: 'translateX(50%)' }
         ];
         return { position: 'absolute' as const, zIndex: 25, ...pos5[visualSeat - 1] };
 
       case 4: // 4-max
         const pos4 = [
-          { left: '50%', bottom: '25%', transform: 'translateX(-50%)' },
-          { left: '25%', bottom: '50%', transform: 'translateX(-50%)' },
-          { left: '50%', top: '25%', transform: 'translateX(-50%)' },
-          { right: '25%', bottom: '50%', transform: 'translateX(50%)' }
+          { left: '50%', bottom: '18%', transform: 'translateX(-50%)' },
+          { left: '22%', bottom: '48%', transform: 'translateX(-50%)' },
+          { left: '50%', top: '18%', transform: 'translateX(-50%)' },
+          { right: '22%', bottom: '48%', transform: 'translateX(50%)' }
         ];
         return { position: 'absolute' as const, zIndex: 25, ...pos4[visualSeat - 1] };
+
+      case 9: // 9-max
+        const pos9 = [
+          { left: '50%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero
+          { left: '28%', bottom: '25%', transform: 'translateX(-50%)' }, // Bottom Left
+          { left: '18%', bottom: '50%', transform: 'translateX(-50%)' }, // Left Mid-Low
+          { left: '20%', top: '28%', transform: 'translateX(-50%)' },    // Left Mid-High
+          { left: '40%', top: '18%', transform: 'translateX(-50%)' },    // Top Left
+          { right: '40%', top: '18%', transform: 'translateX(50%)' },    // Top Right
+          { right: '20%', top: '28%', transform: 'translateX(50%)' },    // Right Mid-High
+          { right: '18%', bottom: '50%', transform: 'translateX(50%)' }, // Right Mid-Low
+          { right: '28%', bottom: '25%', transform: 'translateX(50%)' }  // Bottom Right
+        ];
+        return { position: 'absolute' as const, zIndex: 25, ...pos9[visualSeat - 1] };
+
+      case 10: // 10-max
+        const pos10 = [
+          { left: '50%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero
+          { left: '32%', bottom: '22%', transform: 'translateX(-50%)' }, // Bottom Left
+          { left: '20%', bottom: '38%', transform: 'translateX(-50%)' }, // Left Mid-Low
+          { left: '16%', bottom: '55%', transform: 'translateX(-50%)' }, // Left Mid
+          { left: '20%', top: '28%', transform: 'translateX(-50%)' },    // Left Mid-High
+          { left: '38%', top: '18%', transform: 'translateX(-50%)' },    // Top Left
+          { right: '38%', top: '18%', transform: 'translateX(50%)' },    // Top Right
+          { right: '20%', top: '28%', transform: 'translateX(50%)' },    // Right Mid-High
+          { right: '16%', bottom: '55%', transform: 'translateX(50%)' }, // Right Mid
+          { right: '32%', bottom: '22%', transform: 'translateX(50%)' }  // Bottom Right
+        ];
+        return { position: 'absolute' as const, zIndex: 25, ...pos10[visualSeat - 1] };
 
       default:
         // Fallback para outros números
