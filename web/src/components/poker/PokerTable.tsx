@@ -221,7 +221,7 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
               <div className="flex flex-col items-center mb-4">
                 <ChipStack
                   valor={potTotal}
-                  size="medium"
+                  size="small"
                   showLabel={false}
                   enableRealisticStacking={true}
                 />
@@ -429,7 +429,7 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
                   {/* Professional chip display without connecting lines like PokerStars */}
                   <ChipStack
                     valor={chipsToShow}
-                    size="medium"
+                    size="small"
                     showLabel={true}
                     enableRealisticStacking={true}
                   />
