@@ -167,11 +167,12 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
                   alt="PokerMastery"
                   className="max-w-[220px] max-h-[120px]"
                   style={{
-                    filter: 'drop-shadow(2px 2px 6px rgba(0,0,0,0.8)) brightness(1.1) contrast(1.1)',
+                    filter: 'drop-shadow(2px 2px 6px rgba(0,0,0,0.8))',
+                    mixBlendMode: 'multiply',
                     opacity: 1,
-                    mixBlendMode: 'normal',
                     backgroundColor: 'transparent',
-                    objectFit: 'contain'
+                    objectFit: 'contain',
+                    isolation: 'isolate'
                   }}
                   onError={(e) => {
                     // Fallback para texto se imagem não carregar
@@ -221,7 +222,7 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
               <div className="flex flex-col items-center mb-4">
                 <ChipStack
                   valor={potTotal}
-                  size="small"
+                  size="medium"
                   showLabel={false}
                   enableRealisticStacking={true}
                 />
@@ -429,7 +430,7 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
                   {/* Professional chip display without connecting lines like PokerStars */}
                   <ChipStack
                     valor={chipsToShow}
-                    size="small"
+                    size="medium"
                     showLabel={true}
                     enableRealisticStacking={true}
                   />
