@@ -96,7 +96,7 @@
     "title": "The Replayer is just the ",
     "titleHighlight": "Beginning",
     "subtitle": "The Hand Replayer is just a free sample of the complete ecosystem we're building.",
-    "tagline": "Poker Grinder's Edge will be your command center for evolution in poker.",
+    "tagline": "PokerMastery will be your command center for evolution in poker.",
     "mockups": {
       "title": "See it to Believe it",
       "subtitle": "These are the real screens you'll have soon. It's not just a promise - it's the future of poker."
@@ -133,7 +133,7 @@
     },
     "cta": {
       "title": "Be the First to Get Access",
-      "description": "Leave your email and be the first to know when we launch the complete Poker Grinder's Edge. Get VIP access to the revolution in poker study.",
+      "description": "Leave your email and be the first to know when we launch the complete PokerMastery. Get VIP access to the revolution in poker study.",
       "button": "I Want to Be the First to Know!",
       "benefits": {
         "earlyAccess": "Early access",
@@ -203,7 +203,7 @@
   },
   "leadCapture": {
     "title": "The Replayer is just the Beginning",
-    "subtitle": "Be the first to have access to the complete Poker Grinder's Edge.",
+    "subtitle": "Be the first to have access to the complete PokerMastery.",
     "description": "The revolution in poker study is coming!",
     "features": {
       "bankroll": "Complete Bankroll Management to never be in the dark again",
@@ -248,7 +248,7 @@
       "step2": {
         "badge": "STEP 2",
         "title": "Paste",
-        "description": "Paste into Poker Grinder's Edge and watch the magic happen in seconds."
+        "description": "Paste into PokerMastery and watch the magic happen in seconds."
       },
       "step3": {
         "badge": "STEP 3",
@@ -284,9 +284,9 @@
     },
     "testimonials": {
       "title": "The Professionals' Choice",
-      "subtitle": "Serious players trust Poker Grinder's Edge to elevate their game",
+      "subtitle": "Serious players trust PokerMastery to elevate their game",
       "testimonial1": {
-        "quote": "Poker Grinder's Edge completely changed my study process. It's the fastest and most powerful tool I've ever used.",
+        "quote": "PokerMastery completely changed my study process. It's the fastest and most powerful tool I've ever used.",
         "name": "John Smith",
         "role": "High Stakes Professional Player"
       },
@@ -309,7 +309,7 @@
       "tagline": "The edge others don't see."
     },
     "footer": {
-      "brandTitle": "Poker Grinder's Edge",
+      "brandTitle": "PokerMastery",
       "brandDescription": "The edge others don't see. Professional tools for serious players seeking excellence.",
       "brandTagline": "Built by grinders, for grinders.",
       "quickLinks": "Quick Links",
@@ -320,7 +320,7 @@
       "newsletter": "Stay Updated",
       "newsletterText": "Receive exclusive tips and updates.",
       "emailPlaceholder": "Your email",
-      "copyright": "© 2025 Poker Grinder's Edge. All rights reserved."
+      "copyright": "© 2025 PokerMastery. All rights reserved."
     }
   }
 }

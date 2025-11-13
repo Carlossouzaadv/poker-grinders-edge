@@ -96,7 +96,7 @@
     "title": "O Replayer é só o ",
     "titleHighlight": "Começo",
     "subtitle": "O Hand Replayer é apenas uma amostra grátis do ecossistema completo que estamos construindo.",
-    "tagline": "O Poker Grinder's Edge será o seu centro de comando para a evolução no poker.",
+    "tagline": "O PokerMastery será o seu centro de comando para a evolução no poker.",
     "mockups": {
       "title": "Visualize para Crer",
       "subtitle": "Estas são as telas reais que você terá em breve. Não é apenas uma promessa - é o futuro do poker."
@@ -133,7 +133,7 @@
     },
     "cta": {
       "title": "Seja o Primeiro a Ter Acesso",
-      "description": "Deixe seu e-mail e seja o primeiro a saber quando lançarmos o Poker Grinder's Edge completo. Tenha acesso VIP à revolução no estudo do poker.",
+      "description": "Deixe seu e-mail e seja o primeiro a saber quando lançarmos o PokerMastery completo. Tenha acesso VIP à revolução no estudo do poker.",
       "button": "Quero Ser o Primeiro a Saber!",
       "benefits": {
         "earlyAccess": "Acesso antecipado",
@@ -203,7 +203,7 @@
   },
   "leadCapture": {
     "title": "O Replayer é só o Começo",
-    "subtitle": "Seja o primeiro a ter acesso ao Poker Grinder's Edge completo.",
+    "subtitle": "Seja o primeiro a ter acesso ao PokerMastery completo.",
     "description": "A revolução no estudo do poker está chegando!",
     "features": {
       "bankroll": "Gestão de Bankroll Completa para nunca mais ficar no escuro",
@@ -248,7 +248,7 @@
       "step2": {
         "badge": "PASSO 2",
         "title": "Cole",
-        "description": "Cole no Poker Grinder's Edge e veja a mágica acontecer em segundos."
+        "description": "Cole no PokerMastery e veja a mágica acontecer em segundos."
       },
       "step3": {
         "badge": "PASSO 3",
@@ -284,9 +284,9 @@
     },
     "testimonials": {
       "title": "A Escolha dos Profissionais",
-      "subtitle": "Jogadores sérios confiam no Poker Grinder's Edge para elevar seu jogo",
+      "subtitle": "Jogadores sérios confiam no PokerMastery para elevar seu jogo",
       "testimonial1": {
-        "quote": "O Poker Grinder's Edge mudou completamente meu processo de estudo. É a ferramenta mais rápida e poderosa que já usei.",
+        "quote": "O PokerMastery mudou completamente meu processo de estudo. É a ferramenta mais rápida e poderosa que já usei.",
         "name": "João Silva",
         "role": "Jogador Profissional de High Stakes"
       },
@@ -309,7 +309,7 @@
       "tagline": "A vantagem que os outros não veem."
     },
     "footer": {
-      "brandTitle": "Poker Grinder's Edge",
+      "brandTitle": "PokerMastery",
       "brandDescription": "A vantagem que os outros não veem. Ferramentas profissionais para jogadores sérios que buscam excelência.",
       "brandTagline": "Desenvolvido por grinders, para grinders.",
       "quickLinks": "Links Rápidos",
@@ -320,7 +320,7 @@
       "newsletter": "Fique Por Dentro",
       "newsletterText": "Receba dicas e atualizações exclusivas.",
       "emailPlaceholder": "Seu e-mail",
-      "copyright": "© 2025 Poker Grinder's Edge. Todos os direitos reservados."
+      "copyright": "© 2025 PokerMastery. Todos os direitos reservados."
     }
   }
 }

@@ -1,8 +1,8 @@
-# CLAUDE.md - Poker Grinder's Edge
+# CLAUDE.md - PokerMastery
 
 **AI Development Guide for Claude**
 
-This document serves as the primary guide for Claude AI to understand, maintain, and develop the Poker Grinder's Edge project efficiently. It provides context, conventions, and key information needed for effective collaboration.
+This document serves as the primary guide for Claude AI to understand, maintain, and develop the PokerMastery project efficiently. It provides context, conventions, and key information needed for effective collaboration.
 
 ---
 
@@ -39,7 +39,7 @@ Comprehensive improvements to GGPoker hand history parsing:
 
 ### Mission
 
-**Poker Grinder's Edge** is a comprehensive ecosystem for poker players and teams, providing tools for bankroll management, GTO study, hand analysis, and coaching.
+**PokerMastery** is a comprehensive ecosystem for poker players and teams, providing tools for bankroll management, GTO study, hand analysis, and coaching.
 
 ### Two-Pronged Approach
 

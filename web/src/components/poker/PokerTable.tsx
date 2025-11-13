@@ -149,7 +149,7 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
             `
           }}
         >
-          {/* Logo do Poker Grinder's Edge - MUITO MAIS VISÍVEL */}
+          {/* Logo do PokerMastery - MUITO MAIS VISÍVEL */}
           <div className="replayer-table__logo absolute inset-0 flex items-center justify-center pointer-events-none">
             <div
               className="text-center select-none"
@@ -163,8 +163,8 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
               <div className="relative">
                 {/* Imagem do logo se existir */}
                 <img
-                  src="/assets/images/poker-grinders-edge-logo.png"
-                  alt="Poker Grinder's Edge"
+                  src="/assets/images/pokermastery-logo.png"
+                  alt="PokerMastery"
                   className="max-w-[220px] max-h-[120px]" // TAMANHO MAIOR
                   style={{
                     filter: 'drop-shadow(2px 2px 6px rgba(0,0,0,0.8)) brightness(1.1) contrast(1.1)', // SOMBRA MAIS FORTE E MAIOR CONTRASTE
@@ -190,21 +190,13 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
                   }}>
                     POKER
                   </div>
-                  <div className="text-green-400 font-bold text-2xl mb-1" style={{
+                  <div className="text-green-400 font-bold text-3xl mb-1" style={{
                     fontFamily: 'Bebas Neue, Arial Black, sans-serif',
                     letterSpacing: '3px',
                     textShadow: '2px 2px 4px rgba(0,0,0,0.9)', // SOMBRA MAIS FORTE
                     transform: 'scale(1.1)' // LIGEIRAMENTE MAIOR
                   }}>
-                    GRINDER'S
-                  </div>
-                  <div className="text-yellow-400 font-bold text-3xl" style={{
-                    fontFamily: 'Bebas Neue, Arial Black, sans-serif',
-                    letterSpacing: '2px',
-                    textShadow: '2px 2px 4px rgba(0,0,0,0.9)', // SOMBRA MAIS FORTE
-                    transform: 'scale(1.1)' // LIGEIRAMENTE MAIOR
-                  }}>
-                    EDGE
+                    MASTERY
                   </div>
                   <div className="text-gray-300 text-xs mt-1 font-medium" style={{
                     fontFamily: 'Arial, sans-serif',

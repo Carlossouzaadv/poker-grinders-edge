@@ -28,12 +28,12 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Poker Hand Replayer | Estude suas mãos de Poker de Graça",
+  title: "PokerMastery | Estude suas mãos de Poker de Graça",
   description: "A ferramenta de estudo que faltava para os grinders. Visualize suas mãos de poker de forma interativa e gratuita. Suporte para PokerStars, GGPoker e mais.",
-  keywords: "poker, hand replayer, estudo poker, PokerStars, GGPoker, grinder, análise mãos",
-  authors: [{ name: "Poker Grinder's Edge" }],
+  keywords: "poker, hand replayer, estudo poker, PokerStars, GGPoker, grinder, análise mãos, PokerMastery",
+  authors: [{ name: "PokerMastery" }],
   openGraph: {
-    title: "Poker Hand Replayer - Estude de Graça",
+    title: "PokerMastery - Estude de Graça",
     description: "A ferramenta de estudo que faltava para os grinders",
     type: "website"
   }
