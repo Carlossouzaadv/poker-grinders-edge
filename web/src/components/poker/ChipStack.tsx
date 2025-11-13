@@ -199,11 +199,9 @@ const ChipStack: React.FC<ChipStackProps> = React.memo(({
                 bottom: index > 0 ? `${index * stackOffset}px` : '0',
                 left: '0',
                 zIndex: 10 + index,
-                // FORÇA BRUTA: Remove qualquer fundo
-                backgroundColor: 'transparent !important',
-                background: 'transparent !important',
-                border: 'none !important',
-                borderColor: 'transparent !important',
+                // Remove apenas a cor de fundo, mantém background-image do sprite
+                backgroundColor: 'transparent',
+                border: 'none',
                 outline: 'none',
               }}
               title={`$${chip.denomination}`}
@@ -245,11 +243,9 @@ const ChipStack: React.FC<ChipStackProps> = React.memo(({
             className={size === 'small' ? 'chip' : `chip chip-25 ${sizeClass}`}
             style={{
               ...(size === 'small' ? getSmallChipStyles('chip-25') : {}),
-              // FORÇA BRUTA: Remove qualquer fundo
-              backgroundColor: 'transparent !important',
-              background: 'transparent !important',
-              border: 'none !important',
-              borderColor: 'transparent !important',
+              // Remove apenas a cor de fundo, mantém background-image do sprite
+              backgroundColor: 'transparent',
+              border: 'none',
               outline: 'none',
             }}
             title={`Aposta de $${valor} (2x $25)`}
@@ -263,11 +259,9 @@ const ChipStack: React.FC<ChipStackProps> = React.memo(({
               top: stackOffset.top,
               left: stackOffset.left,
               zIndex: 2,
-              // FORÇA BRUTA: Remove qualquer fundo
-              backgroundColor: 'transparent !important',
-              background: 'transparent !important',
-              border: 'none !important',
-              borderColor: 'transparent !important',
+              // Remove apenas a cor de fundo, mantém background-image do sprite
+              backgroundColor: 'transparent',
+              border: 'none',
               outline: 'none',
             }}
             title={`Aposta de $${valor} (2x $25)`}
