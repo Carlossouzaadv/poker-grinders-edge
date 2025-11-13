@@ -37,9 +37,9 @@ export class PokerUIUtils {
       case 4: // 4-max
         const pos4 = [
           { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero - mais baixo
-          { left: '0%', bottom: '28%', transform: 'none' },             // Bottom Left - ainda mais para fora e mais alto
+          { left: '0%', bottom: '20%', transform: 'none' },             // Bottom Left - mais pra cima
           { left: '50%', top: '0%', transform: 'translateX(-50%)' },    // Top Center - mais alto
-          { right: '0%', bottom: '28%', transform: 'none' }             // Bottom Right - ainda mais para fora e mais alto
+          { right: '0%', bottom: '20%', transform: 'none' }             // Bottom Right - mais pra cima
         ];
         return { position: 'absolute' as const, ...pos4[visualSeat - 1] };
 
@@ -67,7 +67,7 @@ export class PokerUIUtils {
       case 7: // 7-max
         const pos7 = [
           { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero - mais baixo
-          { left: '15%', top: '60%', transform: 'none' },               // Bottom Left - bem mais pra baixo na borda
+          { left: '15%', top: '65%', transform: 'none' },               // Bottom Left - um pouco mais pra baixo
           { left: '0%', top: '33%', transform: 'none' },                // Left Mid - descer um pouco
           { left: '18%', top: '8%', transform: 'none' },                // Top Left - mais alto e ao centro
           { left: '50%', top: '0%', transform: 'translateX(-50%)' },    // Top Center - mais alto
@@ -92,29 +92,29 @@ export class PokerUIUtils {
       case 9: // 9-max (full ring)
         const pos9 = [
           { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Hero - mais para fora
-          { left: '14%', bottom: '22%', transform: 'none' },             // Bottom Left - descer mais e chegar perto do hero
+          { left: '16%', bottom: '26%', transform: 'none' },             // Bottom Left - descer mais e chegar mais perto do hero
           { left: '0%', bottom: '38%', transform: 'none' },              // Left Mid-Low - colocar pra fora
-          { left: '12%', top: '8%', transform: 'none' },                 // Left Mid-High - entrar mais na mesa
-          { left: '32%', top: '2%', transform: 'translateX(-50%)' },     // Top Left - mais perto ainda
-          { right: '32%', top: '2%', transform: 'translateX(50%)' },     // Top Right - mais perto ainda
-          { right: '12%', top: '8%', transform: 'none' },                // Right Mid-High - entrar mais na mesa
+          { left: '14%', top: '8%', transform: 'none' },                 // Left Mid-High - aproximar mais
+          { left: '34%', top: '2%', transform: 'translateX(-50%)' },     // Top Left - mais perto
+          { right: '34%', top: '2%', transform: 'translateX(50%)' },     // Top Right - mais perto
+          { right: '14%', top: '8%', transform: 'none' },                // Right Mid-High - aproximar mais
           { right: '0%', bottom: '38%', transform: 'none' },             // Right Mid-Low - colocar pra fora
-          { right: '14%', bottom: '22%', transform: 'none' }             // Bottom Right - descer mais e chegar perto do hero
+          { right: '16%', bottom: '26%', transform: 'none' }             // Bottom Right - descer mais e chegar mais perto do hero
         ];
         return { position: 'absolute' as const, ...pos9[visualSeat - 1] };
 
       case 10: // 10-max
         const pos10 = [
           { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Hero - mais para fora
-          { left: '16%', bottom: '18%', transform: 'none' },             // Bottom Left - descer mais e chegar perto do hero
-          { left: '2%', bottom: '28%', transform: 'none' },              // Left Mid-Low - colocar pra fora
-          { left: '0%', bottom: '48%', transform: 'none' },              // Left Mid - colocar mais pra fora
-          { left: '10%', top: '8%', transform: 'none' },                 // Left Mid-High - entrar mais na mesa
-          { left: '31%', top: '2%', transform: 'translateX(-50%)' },     // Top Left - mais perto ainda
-          { right: '31%', top: '2%', transform: 'translateX(50%)' },     // Top Right - mais perto ainda
-          { right: '10%', top: '8%', transform: 'none' },                // Right Mid-High - entrar mais na mesa
-          { right: '0%', bottom: '48%', transform: 'none' },             // Right Mid - colocar mais pra fora
-          { right: '16%', bottom: '18%', transform: 'none' }             // Bottom Right - descer mais e chegar perto do hero
+          { left: '18%', bottom: '8%', transform: 'none' },              // Player 2 - mais pra baixo e um pouco mais pra direita
+          { left: '2%', bottom: '28%', transform: 'none' },              // Player 3 - Left Mid-Low
+          { left: '4%', bottom: '54%', transform: 'none' },              // Player 4 - mais pra cima e mais pra dentro da mesa
+          { left: '14%', top: '8%', transform: 'none' },                 // Player 5 - mais pra direita
+          { left: '34%', top: '2%', transform: 'translateX(-50%)' },     // Player 6 - mais pra direita
+          { right: '34%', top: '2%', transform: 'translateX(50%)' },     // Player 7 - Top Right
+          { right: '14%', top: '12%', transform: 'none' },               // Player 8 - mais pra baixo
+          { right: '4%', bottom: '42%', transform: 'none' },             // Player 9 - mais pra baixo
+          { right: '18%', bottom: '8%', transform: 'none' }              // Player 10 - mais pra baixo
         ];
         return { position: 'absolute' as const, ...pos10[visualSeat - 1] };
 
@@ -144,14 +144,14 @@ export class PokerUIUtils {
     switch (maxPlayers) {
       case 2: // Heads-up
         const pos2 = [
-          { left: '52%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - um pouco pra direita
-          { left: '48%', top: '18%', transform: 'translateX(-50%)' }     // Opponent - um pouco pra esquerda
+          { left: '55%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - mais pra direita
+          { left: '45%', top: '18%', transform: 'translateX(-50%)' }     // Opponent - mais pra esquerda
         ];
         return { position: 'absolute' as const, zIndex: 25, ...pos2[visualSeat - 1] };
 
       case 3: // 3-max
         const pos3 = [
-          { left: '52%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - um pouco pra direita
+          { left: '55%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - mais pra direita
           { left: '22%', bottom: '48%', transform: 'translateX(-50%)' }, // Left
           { right: '22%', bottom: '48%', transform: 'translateX(50%)' }  // Right
         ];
@@ -159,11 +159,11 @@ export class PokerUIUtils {
 
       case 8: // 8-max
         const pos8 = [
-          { left: '52%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - um pouco pra direita
+          { left: '55%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - mais pra direita
           { left: '28%', bottom: '23%', transform: 'translateX(-50%)' }, // Bottom Left
           { left: '18%', bottom: '50%', transform: 'translateX(-50%)' }, // Left Mid-Low
           { left: '32%', top: '22%', transform: 'translateX(-50%)' },    // Left Mid-High
-          { left: '48%', top: '18%', transform: 'translateX(-50%)' },    // Top Center - um pouco pra esquerda
+          { left: '45%', top: '18%', transform: 'translateX(-50%)' },    // Top Center - mais pra esquerda
           { right: '32%', top: '22%', transform: 'translateX(50%)' },    // Right Mid-High
           { right: '18%', bottom: '50%', transform: 'translateX(50%)' }, // Right Mid-Low
           { right: '28%', bottom: '23%', transform: 'translateX(50%)' }  // Bottom Right
@@ -172,11 +172,11 @@ export class PokerUIUtils {
 
       case 7: // 7-max
         const pos7 = [
-          { left: '52%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - um pouco pra direita
+          { left: '55%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - mais pra direita
           { left: '30%', bottom: '33%', transform: 'translateX(-50%)' }, // Bottom Left
           { left: '16%', bottom: '43%', transform: 'translateX(-50%)' }, // Left Mid
           { left: '30%', top: '25%', transform: 'translateX(-50%)' },    // Top Left
-          { left: '48%', top: '18%', transform: 'translateX(-50%)' },    // Top Center - um pouco pra esquerda
+          { left: '45%', top: '18%', transform: 'translateX(-50%)' },    // Top Center - mais pra esquerda
           { right: '30%', top: '25%', transform: 'translateX(50%)' },    // Top Right
           { right: '25%', bottom: '45%', transform: 'translateX(50%)' }  // Bottom Right
         ];
@@ -184,10 +184,10 @@ export class PokerUIUtils {
 
       case 6: // 6-max
         const pos6 = [
-          { left: '52%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - um pouco pra direita
+          { left: '55%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - mais pra direita
           { left: '18%', bottom: '42%', transform: 'translateX(-50%)' }, // Bottom Left (SB) - corrigido pra ficar perto do player
           { left: '28%', top: '25%', transform: 'translateX(-50%)' },    // Top Left
-          { left: '48%', top: '18%', transform: 'translateX(-50%)' },    // Top Center (BB) - um pouco pra esquerda
+          { left: '45%', top: '18%', transform: 'translateX(-50%)' },    // Top Center (BB) - mais pra esquerda
           { right: '28%', top: '25%', transform: 'translateX(50%)' },    // Top Right
           { right: '18%', bottom: '42%', transform: 'translateX(50%)' }  // Bottom Right - corrigido também
         ];
@@ -195,8 +195,8 @@ export class PokerUIUtils {
 
       case 5: // 5-max
         const pos5 = [
-          { left: '52%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - um pouco pra direita
-          { left: '25%', bottom: '48%', transform: 'translateX(-50%)' },
+          { left: '55%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - mais pra direita
+          { left: '25%', bottom: '55%', transform: 'translateX(-50%)' }, // SB - descer mais as fichas
           { left: '28%', top: '25%', transform: 'translateX(-50%)' },
           { right: '28%', top: '25%', transform: 'translateX(50%)' },
           { right: '25%', bottom: '48%', transform: 'translateX(50%)' }
@@ -205,16 +205,16 @@ export class PokerUIUtils {
 
       case 4: // 4-max
         const pos4 = [
-          { left: '52%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - um pouco pra direita
+          { left: '55%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - mais pra direita
           { left: '22%', bottom: '48%', transform: 'translateX(-50%)' },
-          { left: '48%', top: '18%', transform: 'translateX(-50%)' },    // Top Center - um pouco pra esquerda
+          { left: '45%', top: '18%', transform: 'translateX(-50%)' },    // Top Center - mais pra esquerda
           { right: '22%', bottom: '48%', transform: 'translateX(50%)' }
         ];
         return { position: 'absolute' as const, zIndex: 25, ...pos4[visualSeat - 1] };
 
       case 9: // 9-max
         const pos9 = [
-          { left: '52%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - um pouco pra direita
+          { left: '55%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - mais pra direita
           { left: '28%', bottom: '25%', transform: 'translateX(-50%)' }, // Bottom Left
           { left: '18%', bottom: '50%', transform: 'translateX(-50%)' }, // Left Mid-Low
           { left: '20%', top: '28%', transform: 'translateX(-50%)' },    // Left Mid-High
@@ -228,7 +228,7 @@ export class PokerUIUtils {
 
       case 10: // 10-max
         const pos10 = [
-          { left: '52%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - um pouco pra direita
+          { left: '55%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - mais pra direita
           { left: '32%', bottom: '22%', transform: 'translateX(-50%)' }, // Bottom Left
           { left: '20%', bottom: '38%', transform: 'translateX(-50%)' }, // Left Mid-Low
           { left: '16%', bottom: '55%', transform: 'translateX(-50%)' }, // Left Mid
