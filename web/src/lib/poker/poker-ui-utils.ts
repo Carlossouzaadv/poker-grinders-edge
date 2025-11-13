@@ -108,11 +108,11 @@ export class PokerUIUtils {
           { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Hero - mais para fora
           { left: '18%', bottom: '8%', transform: 'none' },              // Player 2 - perfeito
           { left: '2%', bottom: '28%', transform: 'none' },              // Player 3 - Left Mid-Low
-          { left: '12%', top: '28%', transform: 'none' },                // Player 4 - MAIS pra cima e MAIS pra dentro
-          { left: '18%', top: '8%', transform: 'none' },                 // Player 5 - MAIS pra direita
-          { left: '38%', top: '2%', transform: 'translateX(-50%)' },     // Player 6 - MAIS pra direita
+          { left: '8%', top: '18%', transform: 'none' },                 // Player 4 - diagonal pra cima e pra fora
+          { left: '20%', top: '8%', transform: 'none' },                 // Player 5 - um pouquinho mais pra direita
+          { left: '40%', top: '2%', transform: 'translateX(-50%)' },     // Player 6 - um pouco mais pra direita
           { right: '38%', top: '2%', transform: 'translateX(50%)' },     // Player 7 - MAIS pra esquerda
-          { right: '18%', top: '12%', transform: 'none' },               // Player 8 - MAIS pra esquerda
+          { right: '16%', top: '15%', transform: 'none' },               // Player 8 - um pouco pra direita e pra baixo
           { right: '0%', bottom: '32%', transform: 'none' },             // Player 9 - MAIS pra fora e MAIS pra baixo
           { right: '18%', bottom: '8%', transform: 'none' }              // Player 10 - perfeito
         ];
