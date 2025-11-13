@@ -159,7 +159,7 @@ const ChipStack: React.FC<ChipStackProps> = React.memo(({
     if (breakdown.length === 0) return null;
 
     // Offset entre fichas para empilhamento vertical
-    const stackOffset = size === 'small' ? 1.5 : size === 'medium' ? 2.5 : 3.5;
+    const stackOffset = size === 'small' ? 1.5 : size === 'medium' ? 4 : 5;
 
     // Criar array com todas as fichas em ordem (maiores embaixo, menores em cima)
     const allChips: { chipClass: string; denomination: number; stackIndex: number }[] = [];

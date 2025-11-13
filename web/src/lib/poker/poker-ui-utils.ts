@@ -46,10 +46,10 @@ export class PokerUIUtils {
       case 5: // 5-max
         const pos5 = [
           { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero - mais baixo
-          { left: '5%', bottom: '35%', transform: 'none' },             // Bottom Left - mais para fora
-          { left: '8%', top: '8%', transform: 'none' },                 // Top Left (UTG) - mais para fora e mais alto
-          { right: '8%', top: '8%', transform: 'none' },                // Top Right (UTG+1) - mais para fora e mais alto
-          { right: '5%', bottom: '35%', transform: 'none' }             // Bottom Right - mais para fora
+          { left: '10%', bottom: '35%', transform: 'none' },            // Bottom Left - mais alinhado com borda
+          { left: '15%', top: '10%', transform: 'none' },               // Top Left (UTG) - mais alinhado com borda lateral
+          { right: '15%', top: '10%', transform: 'none' },              // Top Right (UTG+1) - mais alinhado com borda lateral
+          { right: '10%', bottom: '35%', transform: 'none' }            // Bottom Right - mais alinhado com borda
         ];
         return { position: 'absolute' as const, ...pos5[visualSeat - 1] };
 
@@ -67,8 +67,8 @@ export class PokerUIUtils {
       case 7: // 7-max
         const pos7 = [
           { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero - mais baixo
-          { left: '10%', bottom: '20%', transform: 'none' },            // Bottom Left - mais para direita (separado do seat 3)
-          { left: '2%', top: '38%', transform: 'none' },                // Left Mid - mais para esquerda e mais alto (separado do seat 2)
+          { left: '15%', bottom: '25%', transform: 'none' },            // Bottom Left - mais para direita e mais baixo
+          { left: '0%', top: '28%', transform: 'none' },                // Left Mid - mais para esquerda e mais alto
           { left: '18%', top: '8%', transform: 'none' },                // Top Left - mais alto e ao centro
           { left: '50%', top: '0%', transform: 'translateX(-50%)' },    // Top Center - mais alto
           { right: '18%', top: '8%', transform: 'none' },               // Top Right - mais alto e ao centro
@@ -92,29 +92,29 @@ export class PokerUIUtils {
       case 9: // 9-max (full ring)
         const pos9 = [
           { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Hero - mais para fora
-          { left: '8%', bottom: '12%', transform: 'none' },              // Bottom Left - mais espaçado
-          { left: '0%', bottom: '48%', transform: 'none' },              // Left Mid-Low - mais espaço vertical
-          { left: '3%', top: '18%', transform: 'none' },                 // Left Mid-High - melhor espaçamento
-          { left: '32%', top: '2%', transform: 'translateX(-50%)' },     // Top Left - mais para dentro e centralizado
-          { right: '32%', top: '2%', transform: 'translateX(50%)' },     // Top Right - mais para dentro e centralizado
-          { right: '3%', top: '18%', transform: 'none' },                // Right Mid-High - melhor espaçamento
-          { right: '0%', bottom: '48%', transform: 'none' },             // Right Mid-Low - mais espaço vertical
-          { right: '8%', bottom: '12%', transform: 'none' }              // Bottom Right - mais espaçado
+          { left: '12%', bottom: '15%', transform: 'none' },             // Bottom Left - mais espaçamento
+          { left: '2%', bottom: '38%', transform: 'none' },              // Left Mid-Low - melhor espaço vertical
+          { left: '5%', top: '12%', transform: 'none' },                 // Left Mid-High - mais espaçamento do player 3
+          { left: '28%', top: '3%', transform: 'translateX(-50%)' },     // Top Left - mais para o centro
+          { right: '28%', top: '3%', transform: 'translateX(50%)' },     // Top Right - mais para o centro
+          { right: '5%', top: '12%', transform: 'none' },                // Right Mid-High - mais espaçamento
+          { right: '2%', bottom: '38%', transform: 'none' },             // Right Mid-Low - melhor espaço vertical
+          { right: '12%', bottom: '15%', transform: 'none' }             // Bottom Right - mais espaçamento
         ];
         return { position: 'absolute' as const, ...pos9[visualSeat - 1] };
 
       case 10: // 10-max
         const pos10 = [
           { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Hero - mais para fora
-          { left: '10%', bottom: '8%', transform: 'none' },              // Bottom Left - bem mais espaçado
-          { left: '2%', bottom: '28%', transform: 'none' },              // Left Mid-Low - espaçamento vertical maior
-          { left: '0%', bottom: '52%', transform: 'none' },              // Left Mid - melhor distribuição
-          { left: '2%', top: '15%', transform: 'none' },                 // Left Mid-High - maior espaçamento
-          { left: '30%', top: '2%', transform: 'translateX(-50%)' },     // Top Left - mais para dentro e alto
-          { right: '30%', top: '2%', transform: 'translateX(50%)' },     // Top Right - mais para dentro e alto
-          { right: '2%', top: '15%', transform: 'none' },                // Right Mid-High - maior espaçamento
-          { right: '0%', bottom: '52%', transform: 'none' },             // Right Mid - melhor distribuição
-          { right: '10%', bottom: '8%', transform: 'none' }              // Bottom Right - bem mais espaçado
+          { left: '14%', bottom: '10%', transform: 'none' },             // Bottom Left - muito mais espaçado
+          { left: '4%', bottom: '25%', transform: 'none' },              // Left Mid-Low - melhor espaçamento vertical
+          { left: '1%', bottom: '45%', transform: 'none' },              // Left Mid - distribuição melhorada
+          { left: '4%', top: '10%', transform: 'none' },                 // Left Mid-High - espaçamento significativo
+          { left: '27%', top: '3%', transform: 'translateX(-50%)' },     // Top Left - mais centralizado
+          { right: '27%', top: '3%', transform: 'translateX(50%)' },     // Top Right - mais centralizado
+          { right: '4%', top: '10%', transform: 'none' },                // Right Mid-High - espaçamento significativo
+          { right: '1%', bottom: '45%', transform: 'none' },             // Right Mid - distribuição melhorada
+          { right: '14%', bottom: '10%', transform: 'none' }             // Bottom Right - muito mais espaçado
         ];
         return { position: 'absolute' as const, ...pos10[visualSeat - 1] };
 

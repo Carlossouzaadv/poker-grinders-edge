@@ -165,14 +165,10 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
                 <img
                   src="/assets/images/pokermastery-logo.png"
                   alt="PokerMastery"
-                  className="max-w-[220px] max-h-[120px]"
+                  className="max-w-[220px] max-h-[120px] mix-blend-screen"
                   style={{
-                    filter: 'drop-shadow(2px 2px 6px rgba(0,0,0,0.8))',
-                    mixBlendMode: 'multiply',
-                    opacity: 1,
-                    backgroundColor: 'transparent',
-                    objectFit: 'contain',
-                    isolation: 'isolate'
+                    filter: 'drop-shadow(2px 2px 6px rgba(0,0,0,0.8)) brightness(1.2) contrast(1.2)',
+                    objectFit: 'contain'
                   }}
                   onError={(e) => {
                     // Fallback para texto se imagem não carregar
