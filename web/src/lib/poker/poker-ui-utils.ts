@@ -37,9 +37,9 @@ export class PokerUIUtils {
       case 4: // 4-max
         const pos4 = [
           { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero - mais baixo
-          { left: '0%', top: '48%', transform: 'none' },                // Player 2 - BEM mais pra cima
+          { left: '0%', bottom: '40%', transform: 'none' },             // Player 2 - base no player 3 do 8-max (perfeito)
           { left: '50%', top: '0%', transform: 'translateX(-50%)' },    // Top Center - mais alto
-          { right: '0%', top: '48%', transform: 'none' }                // Player 4 - BEM mais pra cima
+          { right: '0%', bottom: '40%', transform: 'none' }             // Player 4 - base no player 7 do 8-max (perfeito)
         ];
         return { position: 'absolute' as const, ...pos4[visualSeat - 1] };
 
@@ -67,12 +67,12 @@ export class PokerUIUtils {
       case 7: // 7-max
         const pos7 = [
           { left: '50%', bottom: '0%', transform: 'translateX(-50%)' }, // Hero - mais baixo
-          { left: '15%', top: '65%', transform: 'none' },               // Bottom Left - um pouco mais pra baixo
-          { left: '0%', top: '33%', transform: 'none' },                // Left Mid - descer um pouco
-          { left: '18%', top: '8%', transform: 'none' },                // Top Left - mais alto e ao centro
-          { left: '50%', top: '0%', transform: 'translateX(-50%)' },    // Top Center - mais alto
-          { right: '18%', top: '8%', transform: 'none' },               // Top Right - mais alto e ao centro
-          { right: '2%', bottom: '35%', transform: 'none' }             // Bottom Right - um pouco pra fora
+          { left: '15%', top: '65%', transform: 'none' },               // Player 2 - Bottom Left
+          { left: '0%', bottom: '40%', transform: 'none' },             // Player 3 - base no player 3 do 8-max (perfeito)
+          { left: '18%', top: '8%', transform: 'none' },                // Player 4 - Top Left
+          { left: '50%', top: '0%', transform: 'translateX(-50%)' },    // Player 5 - Top Center
+          { right: '18%', top: '8%', transform: 'none' },               // Player 6 - Top Right
+          { right: '0%', bottom: '40%', transform: 'none' }             // Player 7 - base no player 7 do 8-max (perfeito)
         ];
         return { position: 'absolute' as const, ...pos7[visualSeat - 1] };
 
@@ -95,8 +95,8 @@ export class PokerUIUtils {
           { left: '18%', bottom: '8%', transform: 'none' },              // Player 2 - base no player 2 do 10-max
           { left: '0%', bottom: '38%', transform: 'none' },              // Player 3 (Left Mid-Low) - colocar pra fora
           { left: '12%', top: '8%', transform: 'none' },                 // Player 4 - aproximar mais
-          { left: '36%', top: '2%', transform: 'translateX(-50%)' },     // Player 5 - mais perto entre si
-          { right: '36%', top: '2%', transform: 'translateX(50%)' },     // Player 6 - mais perto entre si
+          { left: '38%', top: '2%', transform: 'translateX(-50%)' },     // Player 5 - MAIS perto entre si
+          { right: '38%', top: '2%', transform: 'translateX(50%)' },     // Player 6 - MAIS perto entre si
           { right: '12%', top: '8%', transform: 'none' },                // Player 7 - aproximar mais
           { right: '0%', bottom: '38%', transform: 'none' },             // Player 8 (Right Mid-Low) - colocar pra fora
           { right: '18%', bottom: '8%', transform: 'none' }              // Player 9 - base no player 10 do 10-max
@@ -108,12 +108,12 @@ export class PokerUIUtils {
           { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Hero - mais para fora
           { left: '18%', bottom: '8%', transform: 'none' },              // Player 2 - perfeito
           { left: '2%', bottom: '28%', transform: 'none' },              // Player 3 - Left Mid-Low
-          { left: '8%', top: '38%', transform: 'none' },                 // Player 4 - MAIS pra cima e MAIS pra dentro
-          { left: '16%', top: '8%', transform: 'none' },                 // Player 5 - mais pra direita
-          { left: '36%', top: '2%', transform: 'translateX(-50%)' },     // Player 6 - mais pra direita
-          { right: '36%', top: '2%', transform: 'translateX(50%)' },     // Player 7 - mais pra esquerda
-          { right: '16%', top: '12%', transform: 'none' },               // Player 8 - mais pra esquerda
-          { right: '2%', bottom: '36%', transform: 'none' },             // Player 9 - mais pra fora e mais pra baixo
+          { left: '12%', top: '28%', transform: 'none' },                // Player 4 - MAIS pra cima e MAIS pra dentro
+          { left: '18%', top: '8%', transform: 'none' },                 // Player 5 - MAIS pra direita
+          { left: '38%', top: '2%', transform: 'translateX(-50%)' },     // Player 6 - MAIS pra direita
+          { right: '38%', top: '2%', transform: 'translateX(50%)' },     // Player 7 - MAIS pra esquerda
+          { right: '18%', top: '12%', transform: 'none' },               // Player 8 - MAIS pra esquerda
+          { right: '0%', bottom: '32%', transform: 'none' },             // Player 9 - MAIS pra fora e MAIS pra baixo
           { right: '18%', bottom: '8%', transform: 'none' }              // Player 10 - perfeito
         ];
         return { position: 'absolute' as const, ...pos10[visualSeat - 1] };
@@ -196,7 +196,7 @@ export class PokerUIUtils {
       case 5: // 5-max
         const pos5 = [
           { left: '55%', bottom: '18%', transform: 'translateX(-50%)' }, // Hero - mais pra direita
-          { left: '25%', bottom: '68%', transform: 'translateX(-50%)' }, // SB - descer BEM MAIS as fichas
+          { left: '22%', top: '68%', transform: 'translateX(-50%)' },    // SB - descer as fichas (usar top pra descer)
           { left: '28%', top: '25%', transform: 'translateX(-50%)' },
           { right: '28%', top: '25%', transform: 'translateX(50%)' },
           { right: '25%', bottom: '48%', transform: 'translateX(50%)' }
