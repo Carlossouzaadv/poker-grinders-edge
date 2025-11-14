@@ -106,15 +106,15 @@ export class PokerUIUtils {
       case 10: // 10-max (distribuição simétrica e equidistante)
         const pos10 = [
           { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Player 1 (Hero) - bottom center
-          { left: '18%', bottom: '10%', transform: 'none' },             // Player 2 - espelhado do P10 (mesma distância do hero)
-          { left: '2%', bottom: '30%', transform: 'none' },              // Player 3 - espelhado do P9 (perfeito)
-          { left: '0%', top: '38%', transform: 'none' },                 // Player 4 - MEIO entre P3 e P5
-          { left: '18%', top: '2%', transform: 'none' },                 // Player 5 - MAIS perto do P6
+          { left: '22%', bottom: '8%', transform: 'none' },              // Player 2 - espelhado do P10 (mesma distância do hero)
+          { left: '5%', bottom: '23%', transform: 'none' },              // Player 3 - espelhado do P9 (perfeito)
+          { left: '7%', top: '18%', transform: 'none' },                 // Player 4 - MEIO entre P3 e P5
+          { left: '25%', top: '5%', transform: 'none' },                 // Player 5 - MAIS perto do P6
           { left: '50%', top: '-2%', transform: 'translateX(-50%)' },    // Player 6 - top center (espelhado do Hero)
-          { right: '18%', top: '2%', transform: 'none' },                // Player 7 - MAIS perto do P6 (espelhado do P5)
-          { right: '0%', top: '38%', transform: 'none' },                // Player 8 - MEIO entre P9 e P7 (espelhado do P4)
-          { right: '2%', bottom: '30%', transform: 'none' },             // Player 9 - perfeito
-          { right: '18%', bottom: '10%', transform: 'none' }             // Player 10 - perfeito
+          { right: '25%', top: '5%', transform: 'none' },                // Player 7 - MAIS perto do P6 (espelhado do P5)
+          { right: '7%', top: '18%', transform: 'none' },                // Player 8 - MEIO entre P9 e P7 (espelhado do P4)
+          { right: '5%', bottom: '23%', transform: 'none' },             // Player 9 - perfeito
+          { right: '22%', bottom: '8%', transform: 'none' }              // Player 10 - perfeito
         ];
         return { position: 'absolute' as const, ...pos10[visualSeat - 1] };
 
