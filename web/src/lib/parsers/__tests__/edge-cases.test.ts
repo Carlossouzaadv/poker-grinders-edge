@@ -331,7 +331,7 @@ Seat 1: Player1 (1000 in chips)`);
   describe('GGPoker Advanced Scenarios', () => {
     // GGPoker Edge 1: Large pot with comma-separated amounts
     it('should handle GGPoker large pots with commas', () => {
-      const GG_LARGE_POT = `Poker Hand #HD345678901: Hold'em No Limit (500/1,000) - 2025/01/15 14:00:00
+      const GG_LARGE_POT = `Poker Hand #HD345678901: Hold'em No Limit ($500/$1,000) - 2025/01/15 14:00:00
 Table 'Big Money' 6-max Seat #2 is the button
 Seat 1: Hero (125,000 in chips)
 Seat 2: BigFish (95,500 in chips)
@@ -355,7 +355,7 @@ Hero: calls 58,000 and is all-in
 *** SHOW DOWN ***
 Hero: shows [Kh Ks] (three of a kind, Kings)
 Shark: shows [Ah Ad] (a pair of Aces)
-Hero wins with three of a kind, Kings
+Hero collected 251,000 from pot
 *** SUMMARY ***
 Total pot 251,000 | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0
 Board [Kd 7c 2h 9s 4c]
@@ -377,7 +377,7 @@ Seat 5: Shark showed [Ah Ad] and lost with a pair of Aces`;
 
     // GGPoker Edge 2: Tournament with antes and multiple all-ins
     it('should handle GGPoker tournament with antes', () => {
-      const GG_TOURNAMENT_ANTES = `Poker Hand #TM456789012: Tournament #222333444 Hold'em No Limit Level VI (100/200/20) - 2025/01/15 15:00:00
+      const GG_TOURNAMENT_ANTES = `Poker Hand #TM456789012: Tournament #222333444, Test Tournament $5 Hold'em No Limit - Level6(100/200) - 2025/01/15 15:00:00
 Table '222333444 8' 9-max Seat #3 is the button
 Seat 1: Player1 (5,500 in chips)
 Seat 2: Player2 (3,200 in chips)
@@ -405,7 +405,7 @@ Player1: folds
 *** SHOW DOWN ***
 Player2: shows [Ac Kh] (high card Ace)
 Hero: shows [Qh Qd] (a pair of Queens)
-Hero wins with a pair of Queens
+Hero collected 7,400 from pot
 *** SUMMARY ***
 Total pot 7,400 | Rake 0
 Board [Jh 8c 3d 2s 9h]
@@ -423,7 +423,7 @@ Seat 3: Hero (button) showed [Qh Qd] and won (7,400) with a pair of Queens`;
 
     // GGPoker Edge 3: 3-way pot with different winners
     it('should handle GGPoker 3-way pot with side pots', () => {
-      const GG_3WAY = `Poker Hand #HD567890123: Hold'em No Limit (50/100) - 2025/01/15 16:00:00
+      const GG_3WAY = `Poker Hand #HD567890123: Hold'em No Limit ($50/$100) - 2025/01/15 16:00:00
 Table 'Three Way' 6-max Seat #1 is the button
 Seat 1: ShortStack (800 in chips)
 Seat 3: Hero (2,500 in chips)
@@ -444,7 +444,8 @@ BigStack: calls 1,700
 ShortStack: shows [Jh Th] (a flush, Ace high)
 Hero: shows [As Kd] (two pair, Aces and Kings)
 BigStack: shows [9c 9d] (three of a kind, Nines)
-ShortStack wins with a flush, Ace high
+ShortStack collected 2,400 from pot
+BigStack collected 3,200 from pot
 *** SUMMARY ***
 Total pot 5,600 Main pot 2,400. Side pot 3,200. | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0
 Board [Ah Kh 9h 2c 5s]
@@ -463,7 +464,7 @@ Seat 5: BigStack (big blind) showed [9c 9d] and won (3,200) with three of a kind
 
     // GGPoker Edge 4: 9-max full table
     it('should handle GGPoker 9-max table', () => {
-      const GG_9MAX = `Poker Hand #HD678901234: Hold'em No Limit (10/20) - 2025/01/15 17:00:00
+      const GG_9MAX = `Poker Hand #HD678901234: Hold'em No Limit ($10/$20) - 2025/01/15 17:00:00
 Table 'Full House' 9-max Seat #5 is the button
 Seat 1: P1 (2,000 in chips)
 Seat 2: P2 (2,000 in chips)
@@ -489,7 +490,7 @@ P6: folds
 P7: folds
 P2: folds
 Uncalled bet (140) returned to Hero
-Hero wins 150
+Hero collected 150 from pot
 *** SUMMARY ***
 Total pot 150 | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0
 Seat 5: Hero (button) collected (150)`;
@@ -504,7 +505,7 @@ Seat 5: Hero (button) collected (150)`;
 
     // GGPoker Edge 5: Heads-up with straddle
     it('should handle GGPoker heads-up match', () => {
-      const GG_HEADSUP = `Poker Hand #HD789012345: Hold'em No Limit (25/50) - 2025/01/15 18:00:00
+      const GG_HEADSUP = `Poker Hand #HD789012345: Hold'em No Limit ($25/$50) - 2025/01/15 18:00:00
 Table 'HU Battle' 2-max Seat #1 is the button
 Seat 1: Hero (1,500 in chips)
 Seat 2: Villain (1,500 in chips)
@@ -522,7 +523,7 @@ Villain: calls 1,050 and is all-in
 *** SHOW DOWN ***
 Hero: shows [Kc Kh] (a pair of Kings)
 Villain: shows [Ah Jd] (high card Ace)
-Hero wins with a pair of Kings
+Hero collected 3,000 from pot
 *** SUMMARY ***
 Total pot 3,000 | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0
 Board [9d 7c 2h Qs 3s]
