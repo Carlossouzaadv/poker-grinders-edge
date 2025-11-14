@@ -594,12 +594,19 @@ export class HandParser {
           while (currentLine < lines.length) {
             const summaryLine = lines[currentLine];
 
-            // Parse total pot and rake: "Total pot 2185 | Rake 0"
-            const potRakeMatch = summaryLine.match(/Total pot (\d+(?:\.\d+)?)(?:\s*\|\s*Rake\s+(\d+(?:\.\d+)?))?/);
+            // Parse total pot and rake
+            // Formats: "Total pot $58.50 | Rake $2.50", "Total pot 900 | Rake 0", "Total pot $2.50"
+            const potRakeMatch = summaryLine.match(/Total pot \$?([0-9.]+)(?:\s*\|\s*Rake\s+\$?([0-9.]+))?/);
             if (potRakeMatch) {
               const [, potAmount, rake] = potRakeMatch;
               totalPotAmount = parseFloat(potAmount);
-              rakeAmount = rake ? parseFloat(rake) : 0;
+
+              // IMPORTANT: Rake only exists in cash games, NOT tournaments
+              if (isTournament) {
+                rakeAmount = 0; // Tournaments never have rake
+              } else {
+                rakeAmount = rake ? parseFloat(rake) : 0;
+              }
             }
 
             // Procurar por cartas muckadas: "Seat 5: Player 5 mucked [Ks Qs]"
@@ -1064,13 +1071,20 @@ export class HandParser {
             // Parse total pot, main pot, side pots and rake
             // GGPoker format: "Total pot 60,482 | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0"
             // Also support: "Total pot 4500 Main pot 3000. Side pot 1500. | Rake 0"
-            const potRakeMatch = summaryLine.match(/Total pot ([0-9,]+)(?:.+?)?\s*\|\s*Rake\s+([0-9,]+)/);
+            // Also support: "Total pot $58.50 | Rake $2.50" (with dollar signs)
+            const potRakeMatch = summaryLine.match(/Total pot \$?([0-9,]+(?:\.[0-9]+)?)(?:.+?)?\s*\|\s*Rake\s+\$?([0-9,]+(?:\.[0-9]+)?)/);
             if (potRakeMatch) {
               // Remove commas from amounts
               const potStr = potRakeMatch[1].replace(/,/g, '');
               const rakeStr = potRakeMatch[2].replace(/,/g, '');
-              totalPotAmount = parseInt(potStr, 10);
-              rakeAmount = parseInt(rakeStr, 10);
+              totalPotAmount = parseFloat(potStr);
+
+              // IMPORTANT: Rake only exists in cash games, NOT tournaments
+              if (isTournament) {
+                rakeAmount = 0; // Tournaments never have rake
+              } else {
+                rakeAmount = parseFloat(rakeStr);
+              }
             }
 
             // Parse board cards (GGPoker format: "Board [Jh 6c Tc 5c 9c]")
@@ -1436,10 +1450,19 @@ export class HandParser {
             const summaryLine = lines[currentLine];
 
             // Parse total pot and rake
-            const potRakeMatch = summaryLine.match(/Total pot (\d+)\s*\|\s*Rake\s+(\d+)/);
+            // Formats: "Total pot $58.50 | Rake $2.50", "Total pot 900 | Rake 0"
+            const potRakeMatch = summaryLine.match(/Total pot \$?([0-9,]+(?:\.[0-9]+)?)\s*\|\s*Rake\s+\$?([0-9,]+(?:\.[0-9]+)?)/);
             if (potRakeMatch) {
-              totalPotAmount = parseInt(potRakeMatch[1]);
-              rakeAmount = parseInt(potRakeMatch[2]);
+              const potStr = potRakeMatch[1].replace(/,/g, '');
+              const rakeStr = potRakeMatch[2].replace(/,/g, '');
+              totalPotAmount = parseFloat(potStr);
+
+              // IMPORTANT: Rake only exists in cash games, NOT tournaments
+              if (isTournament) {
+                rakeAmount = 0; // Tournaments never have rake
+              } else {
+                rakeAmount = parseFloat(rakeStr);
+              }
             }
 
             // CRITICAL: Parse mucked cards revealed in summary
