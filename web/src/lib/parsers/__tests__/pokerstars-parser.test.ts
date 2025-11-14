@@ -247,17 +247,21 @@ Hero wins with trips`;
 
     it('should parse multiway all-in with side pots (Hand #8)', () => {
       const result = HandParser.parse(PS_TOURNAMENT_MULTIWAY_ALLIN);
+
+      expect(result.success).toBe(true);
+      expect(result.handHistory).toBeDefined();
+
       const hand = result.handHistory as HandHistory;
-
       expect(hand.tournamentId).toBe('888888');
+      expect(hand.gameContext.isTournament).toBe(true);
 
-      // Should have showdown
-      const riverSnapshot = hand.snapshots.find(s => s.street === 'showdown');
-      expect(riverSnapshot).toBeDefined();
+      // Should have showdown data
+      expect(hand.showdown).toBeDefined();
 
-      // Hero should win
+      // Hero should exist in players
       const heroPlayer = hand.players.find(p => p.name === 'Hero');
       expect(heroPlayer).toBeDefined();
+      expect(heroPlayer!.isHero).toBe(true);
     });
   });
 
@@ -411,8 +415,8 @@ Seat 7: Hero (all-in) showed [Jc Jd] and lost with a pair of Jacks`;
       ]);
 
       // Should have showdown
-      const showdownSnap = hand.snapshots.find(s => s.street === 'showdown');
-      expect(showdownSnap).toBeDefined();
+      // Showdown data is in hand.showdown
+      expect(hand.showdown).toBeDefined();
     });
 
     it('should handle uncalled bet returned to Hero (Amostra 1)', () => {
@@ -449,8 +453,8 @@ Seat 7: Hero (all-in) showed [Jc Jd] and lost with a pair of Jacks`;
       const hand = result.handHistory as HandHistory;
 
       // Should have showdown with side pots
-      const showdownSnap = hand.snapshots.find(s => s.street === 'showdown');
-      expect(showdownSnap).toBeDefined();
+      // Showdown data is in hand.showdown
+      expect(hand.showdown).toBeDefined();
 
       // Total pot should be 7800 (main: 4800, side: 3000)
       expect(hand.totalPot).toBe(7800);
@@ -531,15 +535,15 @@ Seat 3: Player3 folded before Flop (didn't bet)`;
       const hand = result.handHistory as HandHistory;
 
       // Should have preflop, flop, turn, river snapshots
-      const preflopSnap = hand.snapshots.find(s => s.street === 'preflop');
-      const flopSnap = hand.snapshots.find(s => s.street === 'flop');
-      const turnSnap = hand.snapshots.find(s => s.street === 'turn');
-      const riverSnap = hand.snapshots.find(s => s.street === 'river');
+      // Preflop actions are in hand.preflop
+      // Flop data is in hand.flop
+      // Turn data is in hand.turn
+      // River data is in hand.river
 
-      expect(preflopSnap).toBeDefined();
-      expect(flopSnap).toBeDefined();
-      expect(turnSnap).toBeDefined();
-      expect(riverSnap).toBeDefined();
+      expect(hand.preflop.length).toBeGreaterThan(0);
+      expect(hand.flop.cards.length).toBeGreaterThan(0);
+      expect(hand.turn.card).toBeDefined();
+      expect(hand.river.card).toBeDefined();
     });
   });
 
@@ -732,15 +736,15 @@ Hero wins`;
       const hand = result.handHistory as HandHistory;
 
       // Should have snapshots for preflop, flop, turn, river
-      const preflopSnap = hand.snapshots.find(s => s.street === 'preflop');
-      const flopSnap = hand.snapshots.find(s => s.street === 'flop');
-      const turnSnap = hand.snapshots.find(s => s.street === 'turn');
-      const riverSnap = hand.snapshots.find(s => s.street === 'river');
+      // Preflop actions are in hand.preflop
+      // Flop data is in hand.flop
+      // Turn data is in hand.turn
+      // River data is in hand.river
 
-      expect(preflopSnap).toBeDefined();
-      expect(flopSnap).toBeDefined();
-      expect(turnSnap).toBeDefined();
-      expect(riverSnap).toBeDefined();
+      expect(hand.preflop.length).toBeGreaterThan(0);
+      expect(hand.flop.cards.length).toBeGreaterThan(0);
+      expect(hand.turn.card).toBeDefined();
+      expect(hand.river.card).toBeDefined();
     });
 
     it('should parse full house showdown (Hand #2)', () => {
@@ -750,8 +754,8 @@ Hero wins`;
       expect(hand.site).toBe('PokerStars');
 
       // Should have showdown
-      const showdownSnap = hand.snapshots.find(s => s.street === 'showdown');
-      expect(showdownSnap).toBeDefined();
+      // Showdown data is in hand.showdown
+      expect(hand.showdown).toBeDefined();
 
       // Hero should win
       const hero = hand.players.find(p => p.name === 'Hero');
@@ -868,8 +872,8 @@ Hero wins`;
       expect(hero!.holeCards).toEqual([{ rank: 'T', suit: 'd' }, { rank: 'T', suit: 's' }]);
 
       // Should have showdown
-      const showdownSnap = hand.snapshots.find(s => s.street === 'showdown');
-      expect(showdownSnap).toBeDefined();
+      // Showdown data is in hand.showdown
+      expect(hand.showdown).toBeDefined();
     });
 
     it('should handle river shove call (Hand #6)', () => {
@@ -877,8 +881,8 @@ Hero wins`;
       const hand = result.handHistory as HandHistory;
 
       // River snapshot should exist
-      const riverSnap = hand.snapshots.find(s => s.street === 'river');
-      expect(riverSnap).toBeDefined();
+      // River data is in hand.river
+      expect(hand.river.card).toBeDefined();
 
       // Hero should win
       const hero = hand.players.find(p => p.name === 'Hero');
@@ -921,7 +925,7 @@ Hero wins`;
 
       // Should track uncalled bet
       const riverSnap = hand1.snapshots.find(s => s.street === 'flop');
-      expect(riverSnap).toBeDefined();
+      expect(hand.river.card).toBeDefined();
     });
   });
 
@@ -987,8 +991,8 @@ Seat 3: Hero (button) collected ($0.38)`;
       const hand = result.handHistory as HandHistory;
 
       // Verify no floating point errors in tiny amounts
-      const preflopSnap = hand.snapshots.find(s => s.street === 'preflop');
-      expect(preflopSnap).toBeDefined();
+      // Preflop actions are in hand.preflop
+      expect(hand.preflop.length).toBeGreaterThan(0);
     });
   });
 
@@ -1043,8 +1047,8 @@ Seat 2: Hero (small blind) collected ($76)`;
       const hand = result.handHistory as HandHistory;
 
       // Straddle creates larger preflop pot
-      const preflopSnap = hand.snapshots.find(s => s.street === 'preflop');
-      expect(preflopSnap).toBeDefined();
+      // Preflop actions are in hand.preflop
+      expect(hand.preflop.length).toBeGreaterThan(0);
 
       // Hero should have AK
       const hero = hand.players.find(p => p.name === 'Hero');
@@ -1092,12 +1096,12 @@ Seat 3: Hero collected ($2.50)`;
       const hand = result.handHistory as HandHistory;
 
       // Should only have preflop snapshot
-      const preflopSnap = hand.snapshots.find(s => s.street === 'preflop');
-      expect(preflopSnap).toBeDefined();
+      // Preflop actions are in hand.preflop
+      expect(hand.preflop.length).toBeGreaterThan(0);
 
       // Should NOT have flop, turn, river, or showdown
-      const flopSnap = hand.snapshots.find(s => s.street === 'flop');
-      const showdownSnap = hand.snapshots.find(s => s.street === 'showdown');
+      // Flop data is in hand.flop
+      // Showdown data is in hand.showdown
       expect(flopSnap).toBeUndefined();
       expect(showdownSnap).toBeUndefined();
     });

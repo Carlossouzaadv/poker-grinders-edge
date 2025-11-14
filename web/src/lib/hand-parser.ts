@@ -140,6 +140,22 @@ export class HandParser {
         }
       }
 
+      // Formato 2b: Torneio ultra-simplificado (sem tipo de jogo, assume Hold'em No Limit)
+      // "PokerStars Hand #123: Tournament #456 Level IV (100/200)"
+      if (!headerMatch) {
+        headerMatch = lines[0].match(/PokerStars (?:Hand|Game) #(\d+):\s*Tournament #(\d+)\s+Level\s+[IVX]+\s*\(([0-9.]+)\/([0-9.]+)(?:\/([0-9.]+))?\)/);
+        if (headerMatch) {
+          [, handId, tournamentId] = headerMatch;
+          gameType = "Hold'em"; // Default to Hold'em
+          limit = 'No Limit'; // Default to No Limit
+          smallBlind = parseFloat(headerMatch[3]);
+          bigBlind = parseFloat(headerMatch[4]);
+          stakes = `Level (${smallBlind}/${bigBlind})`;
+          isTournament = true;
+          tournamentName = undefined;
+        }
+      }
+
       // Formato 3: Cash game padrão
       // "PokerStars Hand #123: Hold'em No Limit ($0.25/$0.50 USD) - 2023/..."
       if (!headerMatch) {
@@ -277,6 +293,10 @@ export class HandParser {
         }
       }
 
+      // Formato 3: Ultra-simplificado - players extraídos das ações
+      // Para hands que pulam direto para *** HOLE CARDS *** sem seats
+      // We'll extract players later from actions if still empty
+
       // Parse antes and blinds (torneios têm antes)
       let anteAmount = 0;
       const anteActions: Action[] = [];
@@ -329,7 +349,8 @@ export class HandParser {
       // Detectar hero cards - múltiplos formatos
       // Formato 1: "Dealt to Hero [Ah Kh]"
       // Formato 2: "Hero dealt [Ah Kh]"
-      if (lines[currentLine]?.startsWith('Dealt to ') || lines[currentLine]?.includes(' dealt [')) {
+      // Formato 3: "Hero [Ah Kh]" (ultra-simplificado)
+      if (lines[currentLine]?.startsWith('Dealt to ') || lines[currentLine]?.includes(' dealt [') || lines[currentLine]?.match(/^[A-Za-z0-9_\-\s]+ \[.+\]$/)) {
         let heroMatch = lines[currentLine].match(/Dealt to (.+?) \[(.+?)\]/);
 
         // Try simplified format if standard format didn't match
@@ -337,18 +358,35 @@ export class HandParser {
           heroMatch = lines[currentLine].match(/^(.+?) dealt \[(.+?)\]/);
         }
 
+        // Try ultra-simplified format: "Hero [Ah Kh]"
+        if (!heroMatch) {
+          heroMatch = lines[currentLine].match(/^([A-Za-z0-9_\-\s]+) \[(.+?)\]$/);
+        }
+
         if (heroMatch) {
           const [, heroName, cardsStr] = heroMatch;
-          const heroPlayerIndex = players.findIndex(p => p.name.trim() === heroName.trim());
-          if (heroPlayerIndex !== -1) {
-            const parsedCards = this.parseCards(cardsStr);
-            players[heroPlayerIndex] = {
-              ...players[heroPlayerIndex],
+          let heroPlayerIndex = players.findIndex(p => p.name.trim() === heroName.trim());
+
+          // If player doesn't exist yet (ultra-simplified format), create them
+          if (heroPlayerIndex === -1) {
+            players.push({
+              name: heroName.trim(),
+              position: 'BTN', // Will be updated based on actions
+              stack: 0, // Unknown stack
               isHero: true,
-              cards: parsedCards,
-              holeCards: parsedCards // Alias for backward compatibility
-            };
+              seat: players.length + 1,
+              status: 'active'
+            });
+            heroPlayerIndex = players.length - 1;
           }
+
+          const parsedCards = this.parseCards(cardsStr);
+          players[heroPlayerIndex] = {
+            ...players[heroPlayerIndex],
+            isHero: true,
+            cards: parsedCards,
+            holeCards: parsedCards // Alias for backward compatibility
+          };
         }
         currentLine++;
       }
@@ -388,6 +426,18 @@ export class HandParser {
 
         const action = this.parseAction(line, gameContext);
         if (action) {
+          // For ultra-simplified format: ensure player exists before adding action
+          const playerExists = players.some(p => p.name === action.player);
+          if (!playerExists) {
+            players.push({
+              name: action.player,
+              position: 'UTG', // Will be updated later if needed
+              stack: 0, // Unknown stack
+              isHero: false,
+              seat: players.length + 1,
+              status: 'active'
+            });
+          }
           preflop.push(action);
         } else {
           // Check for uncalled bet return
