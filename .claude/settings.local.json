@@ -25,7 +25,8 @@
       "Bash(npm run test:*)",
       "Bash(npm install:*)",
       "Bash(npx prisma:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(env)"
     ],
     "deny": [],
     "ask": []
