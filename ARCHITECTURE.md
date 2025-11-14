@@ -1,6 +1,6 @@
 # Arquitetura do Poker Grinder's Edge
 
-## Visão Geral
+## Visão Geral:
 
 O **Poker Grinder's Edge** é um ecossistema integrado composto por aplicativo móvel (B2C) e plataforma web (B2B SaaS) para jogadores e times de poker. Este documento descreve a arquitetura técnica, padrões de design e fluxo de dados do sistema.
 
