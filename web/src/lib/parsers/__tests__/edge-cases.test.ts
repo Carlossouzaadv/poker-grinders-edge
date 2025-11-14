@@ -299,7 +299,8 @@ Seat 2: Foldy2 (big blind) collected ($1)`;
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
-      expect(result.error).toContain('empty');
+      // Parser returns Portuguese message
+      expect(result.error).toContain('Por favor');
     });
 
     it('should fail gracefully on whitespace only', () => {
@@ -319,6 +320,415 @@ Seat 2: Foldy2 (big blind) collected ($1)`;
 Seat 1: Player1 (1000 in chips)`);
 
       expect(result.success).toBe(false);
+    });
+  });
+
+  /**
+   * =================================================================
+   * GGPOKER EDGE CASES
+   * =================================================================
+   */
+  describe('GGPoker Advanced Scenarios', () => {
+    // GGPoker Edge 1: Large pot with comma-separated amounts
+    it('should handle GGPoker large pots with commas', () => {
+      const GG_LARGE_POT = `Poker Hand #HD345678901: Hold'em No Limit (500/1,000) - 2025/01/15 14:00:00
+Table 'Big Money' 6-max Seat #2 is the button
+Seat 1: Hero (125,000 in chips)
+Seat 2: BigFish (95,500 in chips)
+Seat 5: Shark (180,000 in chips)
+Hero: posts small blind 500
+BigFish: posts big blind 1,000
+*** HOLE CARDS ***
+Dealt to Hero [Kh Ks]
+Shark: raises 3,000 to 4,000
+Hero: raises 10,000 to 14,000
+BigFish: folds
+Shark: calls 10,000
+*** FLOP *** [Kd 7c 2h]
+Hero: bets 18,000
+Shark: calls 18,000
+*** TURN *** [Kd 7c 2h] [9s]
+Hero: bets 35,000
+Shark: raises 113,000 to 148,000 and is all-in
+Hero: calls 58,000 and is all-in
+*** RIVER *** [Kd 7c 2h 9s] [4c]
+*** SHOW DOWN ***
+Hero: shows [Kh Ks] (three of a kind, Kings)
+Shark: shows [Ah Ad] (a pair of Aces)
+Hero wins with three of a kind, Kings
+*** SUMMARY ***
+Total pot 251,000 | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0
+Board [Kd 7c 2h 9s 4c]
+Seat 1: Hero (small blind) showed [Kh Ks] and won (251,000) with three of a kind, Kings
+Seat 2: BigFish (big blind) folded before Flop
+Seat 5: Shark showed [Ah Ad] and lost with a pair of Aces`;
+
+      const result = HandParser.parse(GG_LARGE_POT);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.site).toBe('GGPoker');
+      expect(hand.totalPot).toBe(251000);
+
+      // Verify large stacks parsed correctly
+      const hero = hand.players.find(p => p.name === 'Hero');
+      expect(hero?.stack).toBe(125000);
+    });
+
+    // GGPoker Edge 2: Tournament with antes and multiple all-ins
+    it('should handle GGPoker tournament with antes', () => {
+      const GG_TOURNAMENT_ANTES = `Poker Hand #TM456789012: Tournament #222333444 Hold'em No Limit Level VI (100/200/20) - 2025/01/15 15:00:00
+Table '222333444 8' 9-max Seat #3 is the button
+Seat 1: Player1 (5,500 in chips)
+Seat 2: Player2 (3,200 in chips)
+Seat 3: Hero (8,000 in chips)
+Seat 5: Player5 (2,800 in chips)
+Seat 7: Player7 (6,500 in chips)
+Player1: posts the ante 20
+Player2: posts the ante 20
+Hero: posts the ante 20
+Player5: posts the ante 20
+Player7: posts the ante 20
+Player5: posts small blind 100
+Player7: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Hero [Qh Qd]
+Player1: raises 400 to 600
+Player2: raises 2,580 to 3,180 and is all-in
+Hero: calls 3,180
+Player5: folds
+Player7: folds
+Player1: folds
+*** FLOP *** [Jh 8c 3d]
+*** TURN *** [Jh 8c 3d] [2s]
+*** RIVER *** [Jh 8c 3d 2s] [9h]
+*** SHOW DOWN ***
+Player2: shows [Ac Kh] (high card Ace)
+Hero: shows [Qh Qd] (a pair of Queens)
+Hero wins with a pair of Queens
+*** SUMMARY ***
+Total pot 7,400 | Rake 0
+Board [Jh 8c 3d 2s 9h]
+Seat 2: Player2 showed [Ac Kh] and lost with high card Ace
+Seat 3: Hero (button) showed [Qh Qd] and won (7,400) with a pair of Queens`;
+
+      const result = HandParser.parse(GG_TOURNAMENT_ANTES);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.gameContext.isTournament).toBe(true);
+      expect(hand.ante).toBe(20);
+      expect(hand.rake).toBe(0); // Tournaments never have rake
+    });
+
+    // GGPoker Edge 3: 3-way pot with different winners
+    it('should handle GGPoker 3-way pot with side pots', () => {
+      const GG_3WAY = `Poker Hand #HD567890123: Hold'em No Limit (50/100) - 2025/01/15 16:00:00
+Table 'Three Way' 6-max Seat #1 is the button
+Seat 1: ShortStack (800 in chips)
+Seat 3: Hero (2,500 in chips)
+Seat 5: BigStack (4,000 in chips)
+Hero: posts small blind 50
+BigStack: posts big blind 100
+*** HOLE CARDS ***
+Dealt to Hero [As Kd]
+ShortStack: raises 700 to 800 and is all-in
+Hero: calls 750
+BigStack: calls 700
+*** FLOP *** [Ah Kh 9h]
+Hero: bets 1,700 and is all-in
+BigStack: calls 1,700
+*** TURN *** [Ah Kh 9h] [2c]
+*** RIVER *** [Ah Kh 9h 2c] [5s]
+*** SHOW DOWN ***
+ShortStack: shows [Jh Th] (a flush, Ace high)
+Hero: shows [As Kd] (two pair, Aces and Kings)
+BigStack: shows [9c 9d] (three of a kind, Nines)
+ShortStack wins with a flush, Ace high
+*** SUMMARY ***
+Total pot 5,600 Main pot 2,400. Side pot 3,200. | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0
+Board [Ah Kh 9h 2c 5s]
+Seat 1: ShortStack (button) showed [Jh Th] and won (2,400) with a flush, Ace high
+Seat 3: Hero (small blind) showed [As Kd] and lost with two pair, Aces and Kings
+Seat 5: BigStack (big blind) showed [9c 9d] and won (3,200) with three of a kind, Nines`;
+
+      const result = HandParser.parse(GG_3WAY);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.showdown).toBeDefined();
+      // Different winners for main pot and side pot
+      expect(hand.showdown!.winners.length).toBeGreaterThan(0);
+    });
+
+    // GGPoker Edge 4: 9-max full table
+    it('should handle GGPoker 9-max table', () => {
+      const GG_9MAX = `Poker Hand #HD678901234: Hold'em No Limit (10/20) - 2025/01/15 17:00:00
+Table 'Full House' 9-max Seat #5 is the button
+Seat 1: P1 (2,000 in chips)
+Seat 2: P2 (2,000 in chips)
+Seat 3: P3 (2,000 in chips)
+Seat 4: P4 (2,000 in chips)
+Seat 5: Hero (2,000 in chips)
+Seat 6: P6 (2,000 in chips)
+Seat 7: P7 (2,000 in chips)
+Seat 8: P8 (2,000 in chips)
+Seat 9: P9 (2,000 in chips)
+P6: posts small blind 10
+P7: posts big blind 20
+*** HOLE CARDS ***
+Dealt to Hero [Ac Ad]
+P8: folds
+P9: folds
+P1: folds
+P2: raises 40 to 60
+P3: folds
+P4: folds
+Hero: raises 140 to 200
+P6: folds
+P7: folds
+P2: folds
+Uncalled bet (140) returned to Hero
+Hero wins 150
+*** SUMMARY ***
+Total pot 150 | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0
+Seat 5: Hero (button) collected (150)`;
+
+      const result = HandParser.parse(GG_9MAX);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.maxPlayers).toBe(9);
+      expect(hand.players.length).toBe(9);
+    });
+
+    // GGPoker Edge 5: Heads-up with straddle
+    it('should handle GGPoker heads-up match', () => {
+      const GG_HEADSUP = `Poker Hand #HD789012345: Hold'em No Limit (25/50) - 2025/01/15 18:00:00
+Table 'HU Battle' 2-max Seat #1 is the button
+Seat 1: Hero (1,500 in chips)
+Seat 2: Villain (1,500 in chips)
+Hero: posts small blind 25
+Villain: posts big blind 50
+*** HOLE CARDS ***
+Dealt to Hero [Kc Kh]
+Hero: raises 100 to 150
+Villain: raises 300 to 450
+Hero: raises 1,050 to 1,500 and is all-in
+Villain: calls 1,050 and is all-in
+*** FLOP *** [9d 7c 2h]
+*** TURN *** [9d 7c 2h] [Qs]
+*** RIVER *** [9d 7c 2h Qs] [3s]
+*** SHOW DOWN ***
+Hero: shows [Kc Kh] (a pair of Kings)
+Villain: shows [Ah Jd] (high card Ace)
+Hero wins with a pair of Kings
+*** SUMMARY ***
+Total pot 3,000 | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0
+Board [9d 7c 2h Qs 3s]
+Seat 1: Hero (button) (small blind) showed [Kc Kh] and won (3,000) with a pair of Kings
+Seat 2: Villain (big blind) showed [Ah Jd] and lost with high card Ace`;
+
+      const result = HandParser.parse(GG_HEADSUP);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.maxPlayers).toBe(2);
+      expect(hand.players.length).toBe(2);
+    });
+  });
+
+  /**
+   * =================================================================
+   * PARTYPOKER EDGE CASES
+   * =================================================================
+   */
+  describe('PartyPoker Advanced Scenarios', () => {
+    // PartyPoker Edge 1: Runner-runner straight
+    it('should handle PartyPoker runner-runner hand', () => {
+      const PP_RUNNER = `***** Hand History for Game 123456789 *****
+$1/$2 USD NL Texas Hold'em - Friday, January 15, 14:00:00 ET 2025
+Table High Action (Real Money)
+Seat 3 is the button
+Seat 1: Player1 (200)
+Seat 2: Hero (250)
+Seat 3: Player3 (180)
+Seat 5: Player5 (220)
+Player5 posts small blind [1]
+Player1 posts big blind [2]
+** Dealing down cards **
+Dealt to Hero [7c 8c]
+Hero raises [6] to 8
+Player3 calls [8]
+Player5 folds
+Player1 calls [6]
+** Dealing flop ** [Ac 2h Kd]
+Player1 checks
+Hero bets [12]
+Player3 calls [12]
+Player1 folds
+** Dealing turn ** [9s]
+Hero bets [20]
+Player3 calls [20]
+** Dealing river ** [6h]
+Hero checks
+Player3 bets [35]
+Hero calls [35]
+Player3 shows [Td Jd] a straight, Seven to Jack
+Hero shows [7c 8c] a straight, Six to Ten
+Player3 wins 157 with a straight, Seven to Jack
+***** End of hand T123456789 *****`;
+
+      const result = HandParser.parse(PP_RUNNER);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.site).toBe('PartyPoker');
+      expect(hand.board?.length).toBe(5);
+    });
+
+    // PartyPoker Edge 2: Multiple mucked hands
+    it('should handle PartyPoker mucked cards', () => {
+      const PP_MUCKED = `***** Hand History for Game 234567890 *****
+$2/$4 USD NL Texas Hold'em - Friday, January 15, 15:00:00 ET 2025
+Table Muck City (Real Money)
+Seat 2 is the button
+Seat 1: Player1 (400)
+Seat 2: Player2 (350)
+Seat 3: Hero (500)
+Seat 5: Player5 (450)
+Hero posts small blind [2]
+Player5 posts big blind [4]
+** Dealing down cards **
+Dealt to Hero [As Ah]
+Player1 raises [12] to 16
+Player2 calls [16]
+Hero raises [50] to 52
+Player5 folds
+Player1 calls [36]
+Player2 calls [36]
+** Dealing flop ** [Kh Qd Jc]
+Hero bets [75]
+Player1 folds
+Player2 folds
+Uncalled bet (75) returned to Hero
+Hero wins 160 with [As Ah] a pair of Aces
+Player1 mucks [Tc Th]
+Player2 mucks hand
+***** End of hand T234567890 *****`;
+
+      const result = HandParser.parse(PP_MUCKED);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      // Player1 mucked and revealed cards
+      const player1 = hand.players.find(p => p.name === 'Player1');
+      expect(player1).toBeDefined();
+    });
+
+    // PartyPoker Edge 3: Split pot scenario
+    it('should handle PartyPoker split pot', () => {
+      const PP_SPLIT = `***** Hand History for Game 345678901 *****
+$0.50/$1 USD NL Texas Hold'em - Friday, January 15, 16:00:00 ET 2025
+Table Split City (Real Money)
+Seat 1 is the button
+Seat 1: Player1 (100)
+Seat 2: Hero (120)
+Seat 3: Player3 (95)
+Hero posts small blind [0.50]
+Player3 posts big blind [1]
+** Dealing down cards **
+Dealt to Hero [Ac Kh]
+Player1 raises [3] to 4
+Hero calls [3.50]
+Player3 calls [3]
+** Dealing flop ** [Ah Kc Qc]
+Hero bets [8]
+Player3 folds
+Player1 calls [8]
+** Dealing turn ** [Jc]
+Hero bets [16]
+Player1 calls [16]
+** Dealing river ** [Tc]
+Hero checks
+Player1 checks
+Hero shows [Ac Kh] a straight, Ten to Ace
+Player1 shows [As Ks] a straight, Ten to Ace
+Hero wins 30 with a straight, Ten to Ace
+Player1 wins 30 with a straight, Ten to Ace
+***** End of hand T345678901 *****`;
+
+      const result = HandParser.parse(PP_SPLIT);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.showdown).toBeDefined();
+      expect(hand.showdown!.winners).toContain('Hero');
+      expect(hand.showdown!.winners).toContain('Player1');
+    });
+
+    // PartyPoker Edge 4: Tournament format
+    it('should handle PartyPoker tournament', () => {
+      const PP_TOURNAMENT = `***** Hand History for Game 456789012 *****
+$5 + $0.50 USD NL Texas Hold'em - Tournament - Level III (25/50) - Friday, January 15, 17:00:00 ET 2025
+Table #555666 (Real Money)
+Seat 4 is the button
+Seat 1: Player1 (3,000)
+Seat 2: Hero (2,800)
+Seat 4: Player4 (1,500)
+Seat 6: Player6 (2,700)
+Player6 posts small blind [25]
+Player1 posts big blind [50]
+** Dealing down cards **
+Dealt to Hero [Jd Js]
+Hero raises [150] to 200
+Player4 folds
+Player6 folds
+Player1 calls [150]
+** Dealing flop ** [9h 5c 2d]
+Player1 checks
+Hero bets [250]
+Player1 folds
+Uncalled bet (250) returned to Hero
+Hero wins 425 with [Jd Js] a pair of Jacks
+***** End of hand T456789012 *****`;
+
+      const result = HandParser.parse(PP_TOURNAMENT);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.gameContext.isTournament).toBe(true);
+      expect(hand.rake).toBe(0); // No rake in tournaments
+    });
+
+    // PartyPoker Edge 5: Everyone folds to BB
+    it('should handle PartyPoker everyone folds preflop', () => {
+      const PP_ALLFOLD = `***** Hand History for Game 567890123 *****
+$0.25/$0.50 USD NL Texas Hold'em - Friday, January 15, 18:00:00 ET 2025
+Table Easy Money (Real Money)
+Seat 3 is the button
+Seat 1: Player1 (50)
+Seat 2: Player2 (75)
+Seat 3: Hero (100)
+Seat 5: Player5 (60)
+Player5 posts small blind [0.25]
+Player1 posts big blind [0.50]
+** Dealing down cards **
+Dealt to Hero [2h 7d]
+Player2 folds
+Hero folds
+Player5 folds
+Uncalled bet (0.25) returned to Player1
+Player1 wins 0.50
+***** End of hand T567890123 *****`;
+
+      const result = HandParser.parse(PP_ALLFOLD);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.showdown).toBeUndefined();
+      expect(hand.flop.cards.length).toBe(0);
+      expect(hand.totalPot).toBe(0.50);
     });
   });
 

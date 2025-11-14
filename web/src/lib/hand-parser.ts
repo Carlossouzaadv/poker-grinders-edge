@@ -79,15 +79,17 @@ export class HandParser {
     // Format 1: "GGPoker Hand #123456" (generic)
     // Format 2: "Poker Hand #TM123456: Tournament #..." (GGPoker tournament format)
     // Format 3: "Poker Hand #CG123456: ..." (GGPoker cash game format)
-    // Format 4: "Game ID:" with Natural8
+    // Format 4: "Poker Hand #HD123456: ..." (GGPoker HD format - cash/tournament)
+    // Format 5: "Game ID:" with Natural8
     if (handText.includes('GGPoker Hand #') ||
-        /Poker Hand #(?:TM|CG)\d+/.test(handText) ||
+        /Poker Hand #(?:TM|CG|HD)\d+/.test(handText) ||
         (handText.includes('Game ID:') && handText.includes('Natural8'))) {
       return 'GGPoker';
     }
 
     // PartyPoker detection
-    if (handText.includes('PartyPoker Hand #')) {
+    if (handText.includes('PartyPoker Hand #') ||
+        handText.includes('***** Hand History for Game')) {
       return 'PartyPoker';
     }
 
