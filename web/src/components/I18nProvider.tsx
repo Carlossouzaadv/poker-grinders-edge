@@ -9,6 +9,11 @@ interface I18nProviderProps {
 }
 
 const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
+  // Ensure i18n is initialized on client side
+  if (typeof window !== 'undefined' && !i18n.isInitialized) {
+    i18n.init().catch(err => console.warn('i18n init failed:', err));
+  }
+
   return (
     <I18nextProvider i18n={i18n}>
       {children}
