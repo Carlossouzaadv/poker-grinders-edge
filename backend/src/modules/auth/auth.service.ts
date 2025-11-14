@@ -60,36 +60,48 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     const { email, password, firstName, lastName, phone } = registerDto;
 
-    // Check if user already exists
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    try {
+      // Check if user already exists
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email },
+      });
 
-    if (existingUser) {
-      throw new ConflictException('User already exists with this email');
+      if (existingUser) {
+        throw new ConflictException('User already exists with this email');
+      }
+    } catch (error) {
+      console.error('❌ Database error in register - Check if user exists:', error);
+      throw new Error(`Database error: ${error.message}`);
     }
 
-    // Hash password with bcrypt (salt rounds: 12 for strong security)
-    const hashedPassword = await bcrypt.hash(password, 12);
+    try {
+      // Hash password with bcrypt (salt rounds: 12 for strong security)
+      const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        phone, // Optional phone number for future MFA/notifications
-      },
-    });
+      // Create user
+      const user = await this.prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          firstName,
+          lastName,
+          phone, // Optional phone number for future MFA/notifications
+        },
+      });
 
-    // Generate JWT tokens (access + refresh)
-    const tokens = await this.generateTokens(user);
+      console.log('✅ User created successfully:', email);
 
-    return {
-      ...tokens,
-      user: this.sanitizeUser(user),
-    };
+      // Generate JWT tokens (access + refresh)
+      const tokens = await this.generateTokens(user);
+
+      return {
+        ...tokens,
+        user: this.sanitizeUser(user),
+      };
+    } catch (error) {
+      console.error('❌ Error during registration:', error);
+      throw error;
+    }
   }
 
   /**
@@ -255,35 +267,46 @@ export class AuthService {
    * @returns {Promise<{access_token: string, refresh_token: string}>} Par de tokens JWT
    */
   private async generateTokens(user: User) {
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      userType: user.userType,
-      plan: user.plan,
-    };
+    try {
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        userType: user.userType,
+        plan: user.plan,
+      };
 
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
-    });
+      console.log('📝 Generating tokens for user:', user.email);
 
-    // Save refresh token to database
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days
+      const accessToken = this.jwtService.sign(payload);
+      const refreshToken = this.jwtService.sign(payload, {
+        secret: process.env.JWT_REFRESH_SECRET,
+        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
+      });
 
-    await this.prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId: user.id,
-        expiresAt,
-      },
-    });
+      console.log('🔐 Tokens generated, saving to database...');
 
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    };
+      // Save refresh token to database
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30); // 30 days
+
+      await this.prisma.refreshToken.create({
+        data: {
+          token: refreshToken,
+          userId: user.id,
+          expiresAt,
+        },
+      });
+
+      console.log('✅ Refresh token saved');
+
+      return {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      };
+    } catch (error) {
+      console.error('❌ Error generating tokens:', error);
+      throw error;
+    }
   }
 
   /**
