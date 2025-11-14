@@ -58,7 +58,7 @@ const ChipStack: React.FC<ChipStackProps> = React.memo(({
       height: '27.5px',
       backgroundImage: `url('/assets/images/chips-sprite.png')`,
       backgroundRepeat: 'no-repeat',
-      backgroundSize: '158px 137.5px',
+      backgroundSize: '150px 137.5px',
       backgroundColor: 'transparent',
       border: 'none',
       boxSizing: 'border-box' as const,
