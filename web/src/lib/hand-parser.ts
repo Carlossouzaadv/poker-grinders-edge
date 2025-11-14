@@ -732,7 +732,7 @@ export class HandParser {
               totalPotAmount = parseFloat(potAmount);
 
               // IMPORTANT: Rake only exists in cash games, NOT tournaments
-              if (isTournament) {
+              if (gameContext.isTournament) {
                 rakeAmount = 0; // Tournaments never have rake
               } else {
                 rakeAmount = rake ? parseFloat(rake) : 0;
@@ -1226,7 +1226,7 @@ export class HandParser {
               totalPotAmount = parseFloat(potStr);
 
               // IMPORTANT: Rake only exists in cash games, NOT tournaments
-              if (isTournament) {
+              if (gameContext.isTournament) {
                 rakeAmount = 0; // Tournaments never have rake
               } else {
                 rakeAmount = parseFloat(rakeStr);
@@ -1425,6 +1425,7 @@ export class HandParser {
 
       // Parse blinds (PartyPoker typically doesn't have antes in standard tournaments)
       const anteActions: Action[] = [];
+      const boardCards: string[] = [];
 
       while (currentLine < lines.length &&
              (lines[currentLine]?.includes('posts small blind') ||
@@ -1575,10 +1576,10 @@ export class HandParser {
               showdownInfo += showLine + '\n';
             }
 
-            const winMatch = showLine.match(/(.+?) collected (\d+) from pot/);
+            const winMatch = showLine.match(/(.+?) collected \$?([0-9.]+) from pot/);
             if (winMatch) {
               winners.push(winMatch[1]);
-              potWon = parseInt(winMatch[2]);
+              potWon += parseFloat(winMatch[2]); // Use += for split pots
               showdownInfo += showLine + '\n';
             }
 
@@ -1607,11 +1608,19 @@ export class HandParser {
               totalPotAmount = parseFloat(potStr);
 
               // IMPORTANT: Rake only exists in cash games, NOT tournaments
-              if (isTournament) {
+              if (gameContext.isTournament) {
                 rakeAmount = 0; // Tournaments never have rake
               } else {
                 rakeAmount = parseFloat(rakeStr);
               }
+            }
+
+            // Parse board cards (PartyPoker format: "Board [Jh 6c Tc 5c 9c]")
+            const boardMatch = summaryLine.match(/Board \[([^\]]+)\]/);
+            if (boardMatch) {
+              const boardStr = boardMatch[1];
+              const parsedBoardCards = this.parseCards(boardStr);
+              boardCards.push(...parsedBoardCards);
             }
 
             // CRITICAL: Parse mucked cards revealed in summary
@@ -1664,7 +1673,8 @@ export class HandParser {
         showdown: showdownData || undefined,
         totalPot: totalPotAmount || 0,
         rake: rakeAmount,
-        currency: 'USD'
+        currency: 'USD',
+        board: boardCards.length > 0 ? boardCards : undefined // Community cards
       };
 
       // Validate HandHistory after parsing
