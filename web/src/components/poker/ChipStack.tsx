@@ -66,39 +66,39 @@ const ChipStack: React.FC<ChipStackProps> = React.memo(({
       imageRendering: 'crisp-edges' as const,
     };
 
-    // Precision-aligned positions based on PokerStars analysis
-    // Each chip perfectly centered within its allocated space
+    // Scaled positions for small chips (150px × 137.5px sprite)
+    // Proportionally scaled from medium (240px × 220px) by factor of 0.625
     const positions: Record<string, string> = {
-      // Row 1: Professional centering with pixel-perfect alignment
-      'chip-1': '-2px 2px',             // White $1 - perfectly centered
-      'chip-100': '-41px 2px',          // Black $100 - perfectly centered
-      'chip-1b': '-81px 2px',           // $1B - perfectly centered
-      'chip-25b': '-121px 2px',         // $25B - perfectly centered
+      // Row 1 (Y = 0px scaled)
+      'chip-1': '-1.25px 1.25px',           // White $1
+      'chip-100': '-25.625px 1.25px',       // Black $100
+      'chip-1b': '-50.625px 1.25px',        // $1B
+      'chip-25b': '-75.625px 1.25px',       // $25B
 
-      // Row 2: Consistent vertical spacing
-      'chip-100k': '-2px -25.5px',      // $100k - perfectly centered
-      'chip-100m': '-41px -25.5px',     // $100M - perfectly centered
-      'chip-1c': '-81px -25.5px',       // 1c - perfectly centered
-      'chip-25c': '-121px -25.5px',     // 25c - perfectly centered
+      // Row 2 (Y = -25.5px * 0.625 = -15.9375px)
+      'chip-100k': '-1.25px -15.9375px',    // $100k
+      'chip-100m': '-25.625px -15.9375px',  // $100M
+      'chip-1c': '-50.625px -15.9375px',    // 1c
+      'chip-25c': '-75.625px -15.9375px',   // 25c
 
-      // Row 3: Optimized for visual balance
-      'chip-1k': '-2px -53px',          // $1k - perfectly centered
-      'chip-1m': '-41px -53px',         // $1M - perfectly centered
-      'chip-25': '-81px -53px',         // Green $25 - perfectly centered
-      'chip-25k': '-121px -53px',       // $25k - perfectly centered
+      // Row 3 (Y = -53px * 0.625 = -33.125px)
+      'chip-1k': '-1.25px -33.125px',       // $1k
+      'chip-1m': '-25.625px -33.125px',     // $1M
+      'chip-25': '-50.625px -33.125px',     // Green $25
+      'chip-25k': '-75.625px -33.125px',    // $25k
 
-      // Row 4: Maintaining consistent spacing
-      'chip-25m': '-2px -80.5px',       // $25M - perfectly centered
-      'chip-5': '-41px -80.5px',        // Red $5 - perfectly centered
-      'chip-500': '-81px -80.5px',      // Purple $500 - perfectly centered
-      'chip-500k': '-121px -80.5px',    // $500k - perfectly centered
+      // Row 4 (Y = -80.5px * 0.625 = -50.3125px)
+      'chip-25m': '-1.25px -50.3125px',     // $25M
+      'chip-5': '-25.625px -50.3125px',     // Red $5
+      'chip-500': '-50.625px -50.3125px',   // Purple $500
+      'chip-500k': '-75.625px -50.3125px',  // $500k
 
-      // Row 5: Final row positioning
-      'chip-5m': '-2px -108px',         // $5M - perfectly centered
+      // Row 5 (Y = -108px * 0.625 = -67.5px)
+      'chip-5m': '-1.25px -67.5px',         // $5M
 
-      // Fallback chips with consistent positioning
-      'chip-50': '-81px -53px',         // Using green $25 position for $50 (not 25c)
-      'chip-500m': '-81px -80.5px',     // Using 500 position for $500M
+      // Fallback chips
+      'chip-50': '-50.625px -33.125px',     // Using green $25 position
+      'chip-500m': '-50.625px -50.3125px',  // Using 500 position
     };
 
     const position = positions[chipClass] || '-2px 2px';
