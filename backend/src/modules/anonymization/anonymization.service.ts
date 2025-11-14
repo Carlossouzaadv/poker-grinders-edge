@@ -35,10 +35,10 @@ export class AnonymizationService {
 
   /**
    * Process pending anonymization jobs
-   * Called by cron job every 2 hours
+   * Called by cron job once daily at 3 AM UTC
    * @param batchSize Maximum number of hands to process per execution
    */
-  async processPendingJobs(batchSize: number = 200): Promise<{
+  async processPendingJobs(batchSize: number = 1000): Promise<{
     jobsProcessed: number;
     handsProcessed: number;
     errors: number;
@@ -60,7 +60,7 @@ export class AnonymizationService {
           attempts: { lt: 3 }, // Max 3 attempts
         },
         orderBy: { createdAt: 'asc' },
-        take: 10, // Process up to 10 jobs per cron run
+        take: 20, // Process up to 20 jobs per daily cron run
       });
 
       if (pendingJobs.length === 0) {

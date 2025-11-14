@@ -3,13 +3,15 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * Vercel Cron Job Endpoint
  *
- * This endpoint is called by Vercel's cron service every 2 hours.
+ * This endpoint is called by Vercel's cron service once daily at 3 AM UTC.
  * It forwards the request to the backend NestJS API which processes
  * pending anonymization jobs.
  *
  * Security: Only Vercel cron can call this (via Authorization header)
  *
  * Configuration: See vercel.json
+ * Schedule: "0 3 * * *" (daily at 3 AM UTC)
+ * Batch Size: 1000 hands per execution
  */
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
@@ -46,7 +48,7 @@ export async function GET(request: NextRequest) {
         'Authorization': `Bearer ${cronSecret}`,
       },
       body: JSON.stringify({
-        batchSize: 200, // Process up to 200 hands per run
+        batchSize: 1000, // Process up to 1000 hands per daily run
       }),
     });
 

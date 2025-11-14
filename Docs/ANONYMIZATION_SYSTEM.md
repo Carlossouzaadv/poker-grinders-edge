@@ -5,8 +5,8 @@
 Sistema assíncrono que anonimiza hand histories dos usuários para criar um banco de dados para treinamento de IA, sem afetar a experiência do usuário.
 
 **Características:**
-- ✅ Processamento em background (cron a cada 2h)
-- ✅ Zero custo adicional (Vercel Cron grátis)
+- ✅ Processamento em background (cron diário às 3h UTC)
+- ✅ Zero custo adicional (Vercel Cron grátis - Hobby plan)
 - ✅ Anonimização completa de nomes
 - ✅ Categorização por rake (cash) e stakes (torneios)
 - ✅ Deduplicação automática
@@ -23,11 +23,11 @@ HandHistorySession created
          ↓
 AnonymizationJob created (PENDING)
          ↓
-Vercel Cron (every 2h) → /api/cron/anonymize-hands
+Vercel Cron (daily 3 AM UTC) → /api/cron/anonymize-hands
          ↓
 Backend NestJS → AnonymizationService.processPendingJobs()
          ↓
-Process up to 200 hands per execution
+Process up to 1000 hands per execution
          ↓
 AnonymizedHand saved to database
          ↓
@@ -88,18 +88,19 @@ O arquivo `web/vercel.json` já está configurado:
   "crons": [
     {
       "path": "/api/cron/anonymize-hands",
-      "schedule": "0 */2 * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }
 ```
 
-**Schedule:** A cada 2 horas = 12 execuções/dia
+**Schedule:** Diário às 3h UTC = 1 execução/dia
 
 **Capacidade:**
-- 200 mãos por execução
-- **2,400 mãos/dia** processadas
-- Mais que suficiente para MVP
+- 1000 mãos por execução
+- **1000 mãos/dia** processadas
+- **30,000 mãos/mês**
+- Mais que suficiente para MVP e crescimento inicial
 
 ---
 
@@ -191,18 +192,18 @@ Response: { sessionId, handsCount }
 ### 2. Anonimização (Background)
 
 ```typescript
-// Vercel Cron triggers every 2h
+// Vercel Cron triggers daily at 3 AM UTC
 GET /api/cron/anonymize-hands
 Headers: { Authorization: "Bearer <CRON_SECRET>" }
 
 // Web forwards to backend
 POST <backend>/anonymization/process
-Body: { batchSize: 200 }
+Body: { batchSize: 1000 }
 
 // Backend processa:
-1. Find pending jobs (max 10)
+1. Find pending jobs (max 20 per execution)
 2. For each job:
-   - Get HandHistoryHands (limit 200)
+   - Get HandHistoryHands (limit 1000)
    - Anonymize player names (Player1, Player2, ...)
    - Replace names in text
    - Categorize by rake/stakes
@@ -380,7 +381,7 @@ console.log('Sample:', anonymized[0]);
 4. Veja execuções:
    ```
    [CRON] Starting anonymization job...
-   [CRON] Anonymization completed in 8.5s: 200 hands processed, 2 jobs completed, 0 errors
+   [CRON] Anonymization completed in 15s: 450 hands processed, 5 jobs completed, 0 errors
    ```
 
 ### Verificar Status dos Jobs
@@ -495,9 +496,9 @@ Dashboard mostrando:
 - ✅ Backend: Railway (já rodando)
 
 **Capacidade gratuita:**
-- 2,400 mãos/dia
-- 72,000 mãos/mês
-- 864,000 mãos/ano
+- 1,000 mãos/dia
+- 30,000 mãos/mês
+- 365,000 mãos/ano
 
 Mais que suficiente para o MVP e fase inicial!
 
@@ -534,10 +535,10 @@ Para conformidade com GDPR:
 
 | Aspecto | Detalhe |
 |---------|---------|
-| **Frequência** | A cada 2 horas (12x/dia) |
-| **Capacidade** | 200 mãos/execução = 2,400 mãos/dia |
-| **Custo** | Zero (Vercel free tier) |
-| **Latência** | Máx 4h entre upload e anonimização |
+| **Frequência** | Diária às 3h UTC (1x/dia) |
+| **Capacidade** | 1000 mãos/execução = 1000 mãos/dia |
+| **Custo** | Zero (Vercel Hobby plan) |
+| **Latência** | Máx 24h entre upload e anonimização |
 | **Impacto UX** | Zero (processamento em background) |
 | **Segurança** | Protected by CRON_SECRET |
 | **Deduplicação** | Sim (por handId) |
