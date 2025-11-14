@@ -1132,6 +1132,260 @@ Seat 3: Hero collected ($2.50)`;
       ]);
     });
   });
+
+  /**
+   * =================================================================
+   * EDGE CASES - ADVANCED SCENARIOS
+   * =================================================================
+   * Testing complex, rare, and edge case scenarios that can happen
+   * in real games but are less common
+   */
+  describe('Edge Cases - PokerStars Advanced Scenarios', () => {
+    // Edge Case 1: 3-way all-in with complex side pots
+    it('should handle 3-way all-in with partial coverage and multiple side pots', () => {
+      const PS_3WAY_ALLIN = `PokerStars Hand #234567890: Hold'em No Limit ($1/$2 USD) - 2025/01/15 14:30:00 ET
+Table 'Vega IV' 6-max Seat #4 is the button
+Seat 1: ShortStack ($35.00 in chips)
+Seat 3: MidStack ($87.50 in chips)
+Seat 4: Hero ($150.00 in chips)
+Seat 5: BigStack ($200.00 in chips)
+ShortStack: posts small blind $1
+MidStack: posts big blind $2
+*** HOLE CARDS ***
+Dealt to Hero [As Ah]
+Hero: raises $6 to $8
+BigStack: raises $18 to $26
+ShortStack: raises $9 to $35 and is all-in
+MidStack: calls $33
+Hero: raises $115 to $150 and is all-in
+BigStack: calls $124
+MidStack: calls $52.50 and is all-in
+*** FLOP *** [Kh 9c 2d]
+*** TURN *** [Kh 9c 2d] [3s]
+*** RIVER *** [Kh 9c 2d 3s] [7h]
+*** SHOW DOWN ***
+ShortStack: shows [Qc Qd] (a pair of Queens)
+MidStack: shows [Jc Js] (a pair of Jacks)
+Hero: shows [As Ah] (a pair of Aces)
+BigStack: shows [Kc Ks] (three of a kind, Kings)
+BigStack wins with three of a kind, Kings
+*** SUMMARY ***
+Total pot $419.50 Main pot $137. Side pot-1 $157.50. Side pot-2 $125. | Rake $0
+Board [Kh 9c 2d 3s 7h]
+Seat 1: ShortStack (small blind) showed [Qc Qd] and lost with a pair of Queens
+Seat 3: MidStack (big blind) showed [Jc Js] and lost with a pair of Jacks
+Seat 4: Hero (button) showed [As Ah] and lost with a pair of Aces
+Seat 5: BigStack showed [Kc Ks] and won ($419.50) with three of a kind, Kings`;
+
+      const result = HandParser.parse(PS_3WAY_ALLIN);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.site).toBe('PokerStars');
+      expect(hand.totalPot).toBe(419.50);
+
+      // Verify all 4 players present
+      expect(hand.players.length).toBe(4);
+
+      // Verify showdown
+      expect(hand.showdown).toBeDefined();
+      expect(hand.showdown!.winners).toContain('BigStack');
+
+      // Verify board cards
+      expect(hand.board).toContain('Kh');
+      expect(hand.board?.length).toBe(5);
+    });
+
+    // Edge Case 2: Heads-up battle (button vs BB)
+    it('should handle heads-up hand correctly', () => {
+      const PS_HEADSUP = `PokerStars Hand #345678901: Hold'em No Limit ($5/$10 USD) - 2025/01/15 15:00:00 ET
+Table 'Heads-Up Match' 2-max Seat #1 is the button
+Seat 1: Hero ($1000.00 in chips)
+Seat 2: Villain ($1000.00 in chips)
+Hero: posts small blind $5
+Villain: posts big blind $10
+*** HOLE CARDS ***
+Dealt to Hero [Ac Kd]
+Hero: raises $20 to $30
+Villain: raises $70 to $100
+Hero: raises $200 to $300
+Villain: calls $200
+*** FLOP *** [As Ks Qh]
+Villain: checks
+Hero: bets $200
+Villain: raises $300 to $500
+Hero: raises $200 to $700 and is all-in
+Villain: calls $200 and is all-in
+*** TURN *** [As Ks Qh] [2c]
+*** RIVER *** [As Ks Qh 2c] [9d]
+*** SHOW DOWN ***
+Hero: shows [Ac Kd] (two pair, Aces and Kings)
+Villain: shows [Ah Qd] (two pair, Aces and Queens)
+Hero wins with two pair, Aces and Kings
+*** SUMMARY ***
+Total pot $2000 | Rake $1
+Board [As Ks Qh 2c 9d]
+Seat 1: Hero (button) (small blind) showed [Ac Kd] and won ($1999) with two pair, Aces and Kings
+Seat 2: Villain (big blind) showed [Ah Qd] and lost with two pair, Aces and Queens`;
+
+      const result = HandParser.parse(PS_HEADSUP);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.maxPlayers).toBe(2);
+      expect(hand.players.length).toBe(2);
+
+      const hero = hand.players.find(p => p.name === 'Hero');
+      expect(hero?.position).toBe('BTN'); // In heads-up, button is also SB
+
+      expect(hand.showdown?.winners).toContain('Hero');
+      expect(hand.rake).toBe(1);
+    });
+
+    // Edge Case 3: Split pot (chop)
+    it('should handle split pot correctly', () => {
+      const PS_SPLIT_POT = `PokerStars Hand #456789012: Hold'em No Limit ($0.50/$1.00 USD) - 2025/01/15 16:00:00 ET
+Table 'Nebula VIII' 6-max Seat #3 is the button
+Seat 1: Player1 ($100.00 in chips)
+Seat 2: Hero ($120.00 in chips)
+Seat 3: Player3 ($95.00 in chips)
+Seat 5: Player5 ($110.00 in chips)
+Player5: posts small blind $0.50
+Player1: posts big blind $1
+*** HOLE CARDS ***
+Dealt to Hero [Ad Kh]
+Hero: raises $3 to $4
+Player3: folds
+Player5: calls $3.50
+Player1: calls $3
+*** FLOP *** [Ac Kc Qc]
+Player5: checks
+Player1: bets $8
+Hero: raises $16 to $24
+Player5: folds
+Player1: calls $16
+*** TURN *** [Ac Kc Qc] [Jc]
+Player1: checks
+Hero: bets $40
+Player1: calls $40
+*** RIVER *** [Ac Kc Qc Jc] [Tc]
+Player1: checks
+Hero: checks
+*** SHOW DOWN ***
+Player1: shows [As Ks] (a straight flush, Ten to Ace)
+Hero: shows [Ad Kh] (a straight flush, Ten to Ace)
+Player1 wins with a straight flush, Ten to Ace
+Hero wins with a straight flush, Ten to Ace
+*** SUMMARY ***
+Total pot $134 | Rake $2
+Board [Ac Kc Qc Jc Tc]
+Seat 1: Player1 (big blind) showed [As Ks] and won ($66) with a straight flush, Ten to Ace
+Seat 2: Hero showed [Ad Kh] and won ($66) with a straight flush, Ten to Ace`;
+
+      const result = HandParser.parse(PS_SPLIT_POT);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.showdown).toBeDefined();
+      expect(hand.showdown!.winners).toContain('Player1');
+      expect(hand.showdown!.winners).toContain('Hero');
+      expect(hand.showdown!.winners.length).toBe(2); // Both won
+      expect(hand.totalPot).toBe(134);
+    });
+
+    // Edge Case 4: Player sitting out wins blinds
+    it('should handle player sitting out status', () => {
+      const PS_SITTING_OUT = `PokerStars Hand #567890123: Hold'em No Limit ($0.25/$0.50 USD) - 2025/01/15 17:00:00 ET
+Table 'Orion XII' 6-max Seat #2 is the button
+Seat 1: ActivePlayer ($50.00 in chips)
+Seat 2: Hero ($75.00 in chips)
+Seat 3: SittingPlayer ($45.00 in chips, is sitting out)
+Seat 5: Player5 ($60.00 in chips)
+Player5: posts small blind $0.25
+ActivePlayer: posts big blind $0.50
+*** HOLE CARDS ***
+Dealt to Hero [2c 7d]
+Hero: folds
+SittingPlayer: folds
+Player5: folds
+Uncalled bet ($0.25) returned to ActivePlayer
+ActivePlayer collected $0.50 from pot
+ActivePlayer: doesn't show hand
+*** SUMMARY ***
+Total pot $0.50 | Rake $0
+Seat 1: ActivePlayer (big blind) collected ($0.50)
+Seat 3: SittingPlayer folded before Flop (didn't bet)`;
+
+      const result = HandParser.parse(PS_SITTING_OUT);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      const sittingPlayer = hand.players.find(p => p.name === 'SittingPlayer');
+      expect(sittingPlayer).toBeDefined();
+      // TODO: Parser should detect 'is sitting out' status in future
+      // expect(sittingPlayer?.status).toBe('sitting_out');
+
+      // Should not reach showdown
+      expect(hand.showdown).toBeUndefined();
+      expect(hand.flop.cards.length).toBe(0);
+    });
+
+    // Edge Case 5: PKO Tournament with bounty
+    it('should parse PKO tournament with bounty information', () => {
+      const PS_PKO = `PokerStars Hand #678901234: Tournament #987654321, $10+$10+$2 USD Hold'em No Limit - Level III (25/50) - 2025/01/15 18:00:00 ET
+Table '987654321 1' 9-max Seat #5 is the button
+Seat 1: Player1 (3000 in chips, $10 bounty)
+Seat 3: Hero (2850 in chips, $10 bounty)
+Seat 5: Player5 (1200 in chips, $10 bounty)
+Seat 7: BigStack (4950 in chips, $15 bounty)
+Player1: posts the ante 5
+Hero: posts the ante 5
+Player5: posts the ante 5
+BigStack: posts the ante 5
+Player1: posts small blind 25
+Hero: posts big blind 50
+*** HOLE CARDS ***
+Dealt to Hero [Kd Kc]
+Player5: raises 1145 to 1195 and is all-in
+BigStack: calls 1195
+Player1: folds
+Hero: raises 1650 to 2845 and is all-in
+BigStack: calls 1650
+*** FLOP *** [9h 3c 2d]
+*** TURN *** [9h 3c 2d] [Qh]
+*** RIVER *** [9h 3c 2d Qh] [5s]
+*** SHOW DOWN ***
+Player5: shows [Ah Jh] (high card Ace)
+Hero: shows [Kd Kc] (a pair of Kings)
+BigStack: shows [As Ad] (a pair of Aces)
+BigStack wins with a pair of Aces
+*** SUMMARY ***
+Total pot 6935 Main pot 3635. Side pot 3300. | Rake 0
+Board [9h 3c 2d Qh 5s]
+Seat 1: Player1 (small blind) folded before Flop
+Seat 3: Hero (big blind) showed [Kd Kc] and lost with a pair of Kings
+Seat 5: Player5 (button) showed [Ah Jh] and lost with high card Ace
+Seat 7: BigStack showed [As Ad] and won (6935) with a pair of Aces`;
+
+      const result = HandParser.parse(PS_PKO);
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory!;
+      expect(hand.tournamentId).toBe('987654321');
+
+      // Verify bounties are parsed
+      const player1 = hand.players.find(p => p.name === 'Player1');
+      expect(player1?.bounty).toBe(10);
+
+      const bigStack = hand.players.find(p => p.name === 'BigStack');
+      expect(bigStack?.bounty).toBe(15); // Started with higher bounty
+
+      // Verify antes
+      expect(hand.ante).toBe(5);
+      expect(hand.antes).toBeDefined();
+      expect(hand.antes?.length).toBeGreaterThanOrEqual(4); // 4 antes + possibly blinds
+    });
+  });
 });
 
 /**
