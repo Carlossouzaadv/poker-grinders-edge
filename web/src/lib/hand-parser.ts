@@ -198,18 +198,23 @@ export class HandParser {
       const timestampStr = headerMatch[headerMatch.length - 1];
       const parsedDate = timestampStr && timestampStr.includes('/') ? new Date(timestampStr) : new Date();
 
+      // Extract maxPlayers from header if present (e.g., "6-max", "9-max")
+      const maxPlayersMatch = lines[0].match(/(\d+)-max/);
+      let maxPlayers = maxPlayersMatch ? parseInt(maxPlayersMatch[1]) : 9; // Default to 9 if not specified
+
       // Linha 2: Table info (opcional em formatos simplificados)
       let tableName = 'Unknown';
-      let maxPlayers = 9; // Default
       let buttonSeat = 1; // Default
       let currentLine = 1;
 
       const tableMatch = lines[1]?.match(/Table '(.+?)' (\d+)-max Seat #(\d+) is the button/);
       if (tableMatch) {
-        [, tableName, maxPlayers, buttonSeat] = tableMatch;
+        [, tableName] = tableMatch;
+        maxPlayers = parseInt(tableMatch[2]); // Override with table info if present
+        buttonSeat = parseInt(tableMatch[3]);
         currentLine = 2; // Move to next line after table info
       } else {
-        // Formato simplificado sem table info - detectar maxPlayers pelos jogadores
+        // Formato simplificado sem table info - maxPlayers já foi extraído do header ou usa default 9
         currentLine = 1; // Stay on current line
       }
 
@@ -611,9 +616,32 @@ export class HandParser {
               }
             }
 
-            // Vilão muck: "Player 5: mucks hand"
-            if (showLine.includes(': mucks hand')) {
+            // Alternative showdown format without cards: "Hero shows full house (description)"
+            // This happens when winner doesn't explicitly show cards
+            const showNoCardsMatch = showLine.match(/^([A-Za-z0-9_\-\s]+) shows (.+)$/);
+            if (showNoCardsMatch && !showLine.includes('[')) {
+              const playerName = showNoCardsMatch[1].trim();
+              if (!winners.includes(playerName)) {
+                winners.push(playerName);
+              }
               showdownInfo += showLine + '\n';
+            }
+
+            // Vilão muck: "Player 5: mucks hand" or "Player mucks [cards]"
+            if (showLine.includes(': mucks hand') || showLine.includes(' mucks [')) {
+              showdownInfo += showLine + '\n';
+
+              // Try to extract mucked cards: "V3 mucks [Ad Ac]"
+              const muckMatch = showLine.match(/([A-Za-z0-9_\-\s]+) mucks \[([^\]]+)\]/);
+              if (muckMatch) {
+                const playerName = muckMatch[1].trim();
+                const cardsText = muckMatch[2];
+                const muckedCards = this.parseCards(cardsText);
+                const playerIndex = players.findIndex(p => p.name === playerName);
+                if (playerIndex !== -1 && muckedCards.length === 2) {
+                  players[playerIndex] = { ...players[playerIndex], cards: muckedCards, holeCards: muckedCards };
+                }
+              }
             }
 
             // Support "Hero wins pot" format
