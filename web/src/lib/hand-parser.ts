@@ -875,7 +875,8 @@ export class HandParser {
       // Pattern: "Poker Hand #TM123: Tournament #456, Tournament Name $X.XX Hold'em No Limit - LevelXX(SB/BB)"
       // The tournament name can include the buy-in at the end (e.g., "Bounty Hunters Special $2.50")
       // We need to capture everything between ", " and " Hold'em" (or Omaha/Stud)
-      let headerMatch = lines[0].match(/(?:GGPoker Hand|Poker Hand|Game ID:) #([A-Z0-9]+):\s*Tournament #(\d+),\s*(.+?)\s+(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit|Limit)\s*-\s*Level(\d+)\(([0-9.]+)\/([0-9.]+)\)/);
+      // NOTE: Real GGPoker hands use commas in blind amounts: Level15(1,500/3,000)
+      let headerMatch = lines[0].match(/(?:GGPoker Hand|Poker Hand|Game ID:) #([A-Z0-9]+):\s*Tournament #(\d+),\s*(.+?)\s+(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit|Limit)\s*-\s*Level(\d+)\(([0-9,.]+)\/([0-9,.]+)\)/);
 
       let handId: string, tourneyId: string | null = null, tournamentName: string | null = null;
       let gameType: string, limit: string, level: string | null = null;
@@ -885,8 +886,9 @@ export class HandParser {
       if (headerMatch) {
         // Tournament format matched
         [, handId, tourneyId, tournamentName, gameType, limit, level] = headerMatch;
-        smallBlind = parseFloat(headerMatch[7]);
-        bigBlind = parseFloat(headerMatch[8]);
+        // Remove commas from blind amounts (e.g., "1,500" -> "1500")
+        smallBlind = parseFloat(headerMatch[7].replace(/,/g, ''));
+        bigBlind = parseFloat(headerMatch[8].replace(/,/g, ''));
 
         // Extract buy-in from tournament name if present (e.g., "Bounty Hunters Special $2.50")
         const buyInMatch = tournamentName.match(/\$([0-9.]+)$/);
@@ -1106,6 +1108,7 @@ export class HandParser {
       let showdownData: { info: string; winners: string[]; potWon: number; rake?: number; } | null = null;
       let rakeAmount = 0;
       let totalPotAmount = 0;
+      const boardCards: string[] = []; // Community cards from SUMMARY section
 
       while (currentLine < lines.length) {
         const line = lines[currentLine];
@@ -1236,6 +1239,10 @@ export class HandParser {
             // Parse board cards (GGPoker format: "Board [Jh 6c Tc 5c 9c]")
             const boardMatch = summaryLine.match(/Board \[([^\]]+)\]/);
             if (boardMatch) {
+              const boardStr = boardMatch[1];
+              const parsedBoardCards = this.parseCards(boardStr);
+              // Convert Card objects to strings (e.g., {rank: 'A', suit: 's'} -> 'As')
+              boardCards.push(...parsedBoardCards.map(card => `${card.rank}${card.suit}`));
             }
 
             // Parse mucked cards
@@ -1322,7 +1329,8 @@ export class HandParser {
         showdown: showdownData || undefined,
         totalPot: totalPotAmount || 0,
         rake: rakeAmount,
-        currency: 'USD'
+        currency: 'USD',
+        board: boardCards.length > 0 ? boardCards : undefined // Community cards
       };
 
       // Validate HandHistory after parsing
@@ -1620,7 +1628,8 @@ export class HandParser {
             if (boardMatch) {
               const boardStr = boardMatch[1];
               const parsedBoardCards = this.parseCards(boardStr);
-              boardCards.push(...parsedBoardCards);
+              // Convert Card objects to strings (e.g., {rank: 'A', suit: 's'} -> 'As')
+              boardCards.push(...parsedBoardCards.map(card => `${card.rank}${card.suit}`));
             }
 
             // CRITICAL: Parse mucked cards revealed in summary
