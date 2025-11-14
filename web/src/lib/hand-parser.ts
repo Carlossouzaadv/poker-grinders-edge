@@ -97,42 +97,97 @@ export class HandParser {
     const warnings: string[] = [];
 
     try {
-      // Linha 1: Header com ID da mão - regex mais específica para torneios
-      let headerMatch = lines[0].match(/PokerStars (?:Hand|Game) #(\d+):\s*Tournament #\d+, (.+?) USD (Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit) - Level .+ \(([0-9.]+)\/([0-9.]+)\) - (.+)/);
+      // Linha 1: Header com ID da mão - múltiplos formatos suportados
+      let handId: string, gameType: string, limit: string, stakes: string, smallBlind: number, bigBlind: number, tournamentName: string | undefined;
+      let headerMatch: RegExpMatchArray | null = null;
+      let isTournament = false;
+      let tournamentId: string | undefined;
 
-      let handId: string, gameType: string, limit: string, stakes: string, smallBlind: number, bigBlind: number, tournamentName: string;
-
+      // Formato 1: Torneio completo com timestamp
+      // "PokerStars Hand #123: Tournament #456, $10+$1 USD Hold'em No Limit - Level I (10/20) - 2023/..."
+      headerMatch = lines[0].match(/PokerStars (?:Hand|Game) #(\d+):\s*Tournament #(\d+),\s*(.+?)\s+USD\s+(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit)\s*-\s*Level\s+.+?\s*\(([0-9.]+)\/([0-9.]+)(?:\/([0-9.]+))?\)\s*-\s*(.+)/);
       if (headerMatch) {
-        // É um torneio
-        [, handId, tournamentName, gameType, limit] = headerMatch;
-        smallBlind = parseFloat(headerMatch[5]);
-        bigBlind = parseFloat(headerMatch[6]);
-        stakes = tournamentName; // Use tournament name instead of blinds for tournaments
-      } else {
-        // Tentar cash game: "PokerStars Hand #123: Hold'em No Limit ($0.25/$0.50 USD) - 2023/..."
-        headerMatch = lines[0].match(/PokerStars (?:Hand|Game) #(\d+):\s*(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit)\s+\(\$?([0-9.]+)\/\$?([0-9.]+).+?\) - (.+)/);
+        [, handId, tournamentId, tournamentName, gameType, limit] = headerMatch;
+        smallBlind = parseFloat(headerMatch[6]);
+        bigBlind = parseFloat(headerMatch[7]);
+        stakes = tournamentName;
+        isTournament = true;
+      }
 
-        if (!headerMatch) {
-          return { success: false, error: 'Formato de header inválido - não reconhece cash game nem torneio' };
+      // Formato 2: Torneio simplificado (sem USD, formato curto)
+      // "PokerStars Hand #123: Tournament #456 NLHE Level II (50/100)"
+      if (!headerMatch) {
+        headerMatch = lines[0].match(/PokerStars (?:Hand|Game) #(\d+):\s*Tournament #(\d+)\s+([A-Z]+)\s+Level\s+[IVX]+\s*\(([0-9.]+)\/([0-9.]+)(?:\/([0-9.]+))?\)/);
+        if (headerMatch) {
+          [, handId, tournamentId] = headerMatch;
+          const gameAbbr = headerMatch[3];
+          // Convert abbreviations: NLHE -> Hold'em No Limit, PLO -> Omaha Pot Limit, etc.
+          if (gameAbbr.includes('HE')) {
+            gameType = "Hold'em";
+            limit = gameAbbr.startsWith('NL') ? 'No Limit' : gameAbbr.startsWith('PL') ? 'Pot Limit' : 'Fixed Limit';
+          } else if (gameAbbr.includes('O')) {
+            gameType = 'Omaha';
+            limit = gameAbbr.startsWith('PL') ? 'Pot Limit' : 'No Limit';
+          } else {
+            gameType = "Hold'em";
+            limit = 'No Limit';
+          }
+          smallBlind = parseFloat(headerMatch[4]);
+          bigBlind = parseFloat(headerMatch[5]);
+          stakes = `Level (${smallBlind}/${bigBlind})`;
+          isTournament = true;
+          tournamentName = undefined;
         }
-
-        [, handId, gameType, limit] = headerMatch;
-        smallBlind = parseFloat(headerMatch[4]);
-        bigBlind = parseFloat(headerMatch[5]);
-        stakes = `$${smallBlind}/$${bigBlind}`;
       }
 
-      // Parse da data - timestamp está em posições diferentes
-      const timestamp = headerMatch[headerMatch.length - 1]; // Última captura sempre é timestamp
-      const parsedDate = new Date(timestamp);
-
-      // Linha 2: Table info
-      const tableMatch = lines[1].match(/Table '(.+?)' (\d+)-max Seat #(\d+) is the button/);
-      if (!tableMatch) {
-        return { success: false, error: 'Informações da mesa inválidas' };
+      // Formato 3: Cash game padrão
+      // "PokerStars Hand #123: Hold'em No Limit ($0.25/$0.50 USD) - 2023/..."
+      if (!headerMatch) {
+        headerMatch = lines[0].match(/PokerStars (?:Hand|Game) #(\d+):\s*(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit)\s+\(\$?([0-9.]+)\/\$?([0-9.]+).+?\)(?:\s*-\s*(.+))?/);
+        if (headerMatch) {
+          [, handId, gameType, limit] = headerMatch;
+          smallBlind = parseFloat(headerMatch[4]);
+          bigBlind = parseFloat(headerMatch[5]);
+          stakes = `$${smallBlind}/$${bigBlind}`;
+          isTournament = false;
+        }
       }
 
-      const [, tableName, maxPlayers, buttonSeat] = tableMatch;
+      // Formato 4: Zoom poker
+      // "PokerStars Zoom Hand #123: Hold'em No Limit ($0.50/$1.00 USD) - 2023/..."
+      if (!headerMatch) {
+        headerMatch = lines[0].match(/PokerStars Zoom (?:Hand|Game) #(\d+):\s*(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit)\s+\(\$?([0-9.]+)\/\$?([0-9.]+).+?\)(?:\s*-\s*(.+))?/);
+        if (headerMatch) {
+          [, handId, gameType, limit] = headerMatch;
+          smallBlind = parseFloat(headerMatch[4]);
+          bigBlind = parseFloat(headerMatch[5]);
+          stakes = `$${smallBlind}/$${bigBlind}`;
+          isTournament = false;
+        }
+      }
+
+      if (!headerMatch) {
+        return { success: false, error: `Formato de header inválido - não reconhecido. Linha: "${lines[0]}"` };
+      }
+
+      // Parse da data - timestamp está em posições diferentes (opcional)
+      const timestampStr = headerMatch[headerMatch.length - 1];
+      const parsedDate = timestampStr && timestampStr.includes('/') ? new Date(timestampStr) : new Date();
+
+      // Linha 2: Table info (opcional em formatos simplificados)
+      let tableName = 'Unknown';
+      let maxPlayers = 9; // Default
+      let buttonSeat = 1; // Default
+      let currentLine = 1;
+
+      const tableMatch = lines[1]?.match(/Table '(.+?)' (\d+)-max Seat #(\d+) is the button/);
+      if (tableMatch) {
+        [, tableName, maxPlayers, buttonSeat] = tableMatch;
+        currentLine = 2; // Move to next line after table info
+      } else {
+        // Formato simplificado sem table info - detectar maxPlayers pelos jogadores
+        currentLine = 1; // Stay on current line
+      }
 
       // NOVA: Detectar contexto do jogo (Tournament vs Cash)
       const detectionResult = this.detectGameContext(lines[0], 'PokerStars');
@@ -146,15 +201,14 @@ export class HandParser {
 
       // Parse dos jogadores (seats)
       const players: Player[] = [];
-      let currentLine = 2;
 
-      while (currentLine < lines.length && lines[currentLine].startsWith('Seat ')) {
-        // Enhanced regex to capture bounty and sitting out status
+      // Formato 1: Formato completo com Seat
+      // "Seat 1: Hero ($100 in chips, $5 bounty)"
+      while (currentLine < lines.length && lines[currentLine]?.startsWith('Seat ')) {
         const seatMatch = lines[currentLine].match(/Seat (\d+): (.+?) \(\$?([0-9.]+) in chips(?:, \$([0-9.]+) bounty)?\)(?:\s+(is sitting out))?/);
         if (seatMatch) {
           const [, seat, playerName, stack, bounty, sittingOut] = seatMatch;
 
-          // Determine player status
           let status: 'active' | 'sitting_out' | 'disconnected' = 'active';
           if (sittingOut) {
             status = 'sitting_out';
@@ -162,15 +216,59 @@ export class HandParser {
 
           players.push({
             name: playerName,
-            position: this.getPosition(parseInt(seat), parseInt(buttonSeat), parseInt(maxPlayers)),
+            position: this.getPosition(parseInt(seat), parseInt(buttonSeat), Number(maxPlayers)),
             stack: parseFloat(stack),
-            isHero: false, // Será detectado depois
+            isHero: false,
             seat: parseInt(seat),
             bounty: bounty ? parseFloat(bounty) : undefined,
             status: status
           });
         }
         currentLine++;
+      }
+
+      // Formato 2: Formato simplificado sem Seat (apenas nome e stack)
+      // "Hero (4980)"
+      if (players.length === 0) {
+        let seatNum = 1;
+        while (currentLine < lines.length) {
+          const line = lines[currentLine];
+
+          // Stop at *** HOLE CARDS *** or empty line
+          if (!line || line.includes('***')) {
+            break;
+          }
+
+          // Match simplified format: "PlayerName (stack)"
+          const simpleMatch = line.match(/^([A-Za-z0-9_\-\s]+)\s+\(([0-9,]+)\)$/);
+          if (simpleMatch) {
+            const [, playerName, stackStr] = simpleMatch;
+            const stack = parseFloat(stackStr.replace(/,/g, ''));
+
+            players.push({
+              name: playerName.trim(),
+              position: this.getPosition(seatNum, Number(buttonSeat), players.length + 1), // Will be updated later
+              stack: stack,
+              isHero: false,
+              seat: seatNum,
+              status: 'active'
+            });
+
+            seatNum++;
+            currentLine++;
+          } else {
+            break;
+          }
+        }
+
+        // Update maxPlayers based on actual player count
+        if (players.length > 0) {
+          maxPlayers = players.length;
+          // Update positions now that we know maxPlayers
+          players.forEach((player, idx) => {
+            player.position = this.getPosition(player.seat, Number(buttonSeat), Number(maxPlayers));
+          });
+        }
       }
 
       // Parse antes and blinds (torneios têm antes)
@@ -222,12 +320,20 @@ export class HandParser {
         currentLine++;
       }
 
-      // Detectar hero cards
-      if (lines[currentLine]?.startsWith('Dealt to ')) {
-        const heroMatch = lines[currentLine].match(/Dealt to (.+?) \[(.+?)\]/);
+      // Detectar hero cards - múltiplos formatos
+      // Formato 1: "Dealt to Hero [Ah Kh]"
+      // Formato 2: "Hero dealt [Ah Kh]"
+      if (lines[currentLine]?.startsWith('Dealt to ') || lines[currentLine]?.includes(' dealt [')) {
+        let heroMatch = lines[currentLine].match(/Dealt to (.+?) \[(.+?)\]/);
+
+        // Try simplified format if standard format didn't match
+        if (!heroMatch) {
+          heroMatch = lines[currentLine].match(/^(.+?) dealt \[(.+?)\]/);
+        }
+
         if (heroMatch) {
           const [, heroName, cardsStr] = heroMatch;
-          const heroPlayerIndex = players.findIndex(p => p.name === heroName);
+          const heroPlayerIndex = players.findIndex(p => p.name.trim() === heroName.trim());
           if (heroPlayerIndex !== -1) {
             players[heroPlayerIndex] = {
               ...players[heroPlayerIndex],
@@ -1639,6 +1745,53 @@ export class HandParser {
   }
 
   private static parseAction(line: string, gameContext: GameContext): Action | null {
+    // FORMATO SIMPLIFICADO (sem dois pontos)
+    // "PlayerName folds" ou "PlayerName raises to X"
+
+    // Simplified: "PlayerName folds"
+    const simpleFoldMatch = line.match(/^([A-Za-z0-9_\-\s]+)\s+folds$/);
+    if (simpleFoldMatch) {
+      return { player: simpleFoldMatch[1].trim(), action: 'fold' };
+    }
+
+    // Simplified: "PlayerName checks"
+    const simpleCheckMatch = line.match(/^([A-Za-z0-9_\-\s]+)\s+checks$/);
+    if (simpleCheckMatch) {
+      return { player: simpleCheckMatch[1].trim(), action: 'check' };
+    }
+
+    // Simplified: "PlayerName calls"
+    const simpleCallMatch = line.match(/^([A-Za-z0-9_\-\s]+)\s+calls$/);
+    if (simpleCallMatch) {
+      return { player: simpleCallMatch[1].trim(), action: 'call', amount: 0 };
+    }
+
+    // Simplified: "PlayerName raises to X" or "PlayerName 3-bets to X" or "PlayerName 4-bets to X"
+    const simpleRaiseMatch = line.match(/^([A-Za-z0-9_\-\s]+)\s+(?:raises|(?:\d+)-bets?)\s+to\s+([0-9,]+)$/);
+    if (simpleRaiseMatch) {
+      const playerName = simpleRaiseMatch[1].trim();
+      const amount = parseFloat(simpleRaiseMatch[2].replace(/,/g, ''));
+      return {
+        player: playerName,
+        action: 'raise',
+        amount: amount,
+        totalBet: amount
+      };
+    }
+
+    // Simplified: "PlayerName bets X"
+    const simpleBetMatch = line.match(/^([A-Za-z0-9_\-\s]+)\s+bets\s+([0-9,]+)$/);
+    if (simpleBetMatch) {
+      const playerName = simpleBetMatch[1].trim();
+      const amount = parseFloat(simpleBetMatch[2].replace(/,/g, ''));
+      return {
+        player: playerName,
+        action: 'bet',
+        amount: amount
+      };
+    }
+
+    // FORMATO PADRÃO (com dois pontos)
     // Parse de ações: "PlayerName: folds", "PlayerName: calls $X", etc.
     const foldMatch = line.match(/^(.+?): folds/);
     if (foldMatch) {
