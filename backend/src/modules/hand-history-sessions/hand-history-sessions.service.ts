@@ -123,6 +123,15 @@ export class HandHistorySessionsService {
           })),
         });
 
+        // Create anonymization job for background processing
+        await tx.anonymizationJob.create({
+          data: {
+            userId,
+            handHistorySessionId: newSession.id,
+            status: 'PENDING',
+          },
+        });
+
         return newSession;
       });
 
