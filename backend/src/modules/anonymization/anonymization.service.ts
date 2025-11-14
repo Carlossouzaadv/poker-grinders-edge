@@ -378,9 +378,9 @@ export class AnonymizationService {
         cards: Object.fromEntries(
           Object.entries(cards).map(([player, playerCards]) => [
             playerMapping.get(player) || player,
-            playerCards,
+            playerCards as string,
           ]),
-        ),
+        ) as Record<string, string>,
       };
     }
 

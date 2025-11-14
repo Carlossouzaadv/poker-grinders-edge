@@ -124,7 +124,7 @@ function TableSizeTest({ maxPlayers }: { maxPlayers: number }) {
         <div className="grid grid-cols-5 gap-2 text-sm">
           {handHistory.players.map(player => {
             const heroSeat = handHistory.players.find(p => p.isHero)?.seat || 1;
-            let visualSeat = player.seat - (heroSeat - 1);
+            let visualSeat = (player.seat || 1) - (heroSeat - 1);
             if (visualSeat <= 0) visualSeat += maxPlayers;
 
             return (
