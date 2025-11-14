@@ -149,7 +149,7 @@ function TableSizeTest({ maxPlayers }: { maxPlayers: number }) {
 function generateMockHand(maxPlayers: number): { handHistory: HandHistory; snapshot: Snapshot } {
   // Generate players
   const players: Player[] = [];
-  const positions = ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'MP', 'MP+1', 'CO', 'HJ', 'LJ'] as const;
+  const positions = ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'MP1', 'MP2', 'CO', 'HJ', 'LJ'] as const;
 
   for (let i = 1; i <= maxPlayers; i++) {
     const isHero = i === 1; // Hero is always seat 1 in original seating
