@@ -103,18 +103,18 @@ export class PokerUIUtils {
         ];
         return { position: 'absolute' as const, ...pos9[visualSeat - 1] };
 
-      case 10: // 10-max
+      case 10: // 10-max (distribuição simétrica e equidistante)
         const pos10 = [
-          { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Hero - mais para fora
-          { left: '18%', bottom: '8%', transform: 'none' },              // Player 2 - perfeito
-          { left: '2%', bottom: '28%', transform: 'none' },              // Player 3 - Left Mid-Low
-          { left: '8%', top: '18%', transform: 'none' },                 // Player 4 - diagonal pra cima e pra fora
-          { left: '20%', top: '8%', transform: 'none' },                 // Player 5 - um pouquinho mais pra direita
-          { left: '40%', top: '2%', transform: 'translateX(-50%)' },     // Player 6 - um pouco mais pra direita
-          { right: '38%', top: '2%', transform: 'translateX(50%)' },     // Player 7 - MAIS pra esquerda
-          { right: '16%', top: '15%', transform: 'none' },               // Player 8 - um pouco pra direita e pra baixo
-          { right: '0%', bottom: '32%', transform: 'none' },             // Player 9 - MAIS pra fora e MAIS pra baixo
-          { right: '18%', bottom: '8%', transform: 'none' }              // Player 10 - perfeito
+          { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Player 1 (Hero) - bottom center
+          { left: '18%', bottom: '10%', transform: 'none' },             // Player 2 - bottom-left (equidistante)
+          { left: '2%', bottom: '30%', transform: 'none' },              // Player 3 - left-bottom (equidistante)
+          { left: '0%', bottom: '52%', transform: 'none' },              // Player 4 - left-middle (equidistante)
+          { left: '15%', top: '12%', transform: 'none' },                // Player 5 - left-top (equidistante)
+          { left: '50%', top: '-2%', transform: 'translateX(-50%)' },    // Player 6 - top center (espelhado do Hero)
+          { right: '15%', top: '12%', transform: 'none' },               // Player 7 - right-top (espelhado do P5)
+          { right: '0%', bottom: '52%', transform: 'none' },             // Player 8 - right-middle (espelhado do P4)
+          { right: '2%', bottom: '30%', transform: 'none' },             // Player 9 - right-bottom (espelhado do P3)
+          { right: '18%', bottom: '10%', transform: 'none' }             // Player 10 - bottom-right (espelhado do P2)
         ];
         return { position: 'absolute' as const, ...pos10[visualSeat - 1] };
 
