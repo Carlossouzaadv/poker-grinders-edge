@@ -140,6 +140,7 @@ export type HandHistory = {
   readonly totalPot: number;
   readonly rake?: number;
   readonly currency: string;
+  readonly board?: readonly string[]; // Community cards as strings (e.g., ['5d', '5h', '9c'])
   readonly originalText?: string; // NEW: Original raw hand history text for debugging/storage
 };
 

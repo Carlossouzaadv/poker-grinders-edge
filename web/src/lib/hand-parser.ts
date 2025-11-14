@@ -104,6 +104,8 @@ export class HandParser {
       let headerMatch: RegExpMatchArray | null = null;
       let isTournament = false;
       let tournamentId: string | undefined;
+      let currency = 'USD'; // Default currency
+      let currencySymbol = '$'; // Default currency symbol
 
       // Formato 1: Torneio completo com timestamp
       // "PokerStars Hand #123: Tournament #456, $10+$1 USD Hold'em No Limit - Level I (10/20) - 2023/..."
@@ -160,32 +162,40 @@ export class HandParser {
 
       // Formato 3: Cash game padrão
       // "PokerStars Hand #123: Hold'em No Limit ($0.25/$0.50 USD) - 2023/..."
+      // "PokerStars Hand #123: Hold'em No Limit (€0.25/€0.50 EUR) - 2023/..."
       if (!headerMatch) {
-        headerMatch = lines[0].match(/PokerStars (?:Hand|Game) #(\d+):\s*(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit)\s+\(\$?([0-9.]+)\/\$?([0-9.]+).+?\)(?:\s*-\s*(.+))?/);
+        headerMatch = lines[0].match(/PokerStars (?:Hand|Game) #(\d+):\s*(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit)\s+\(([€$£]?)([0-9.]+)\/\4([0-9.]+)\s*(USD|EUR|GBP)?\)(?:\s*-\s*(.+))?/);
         if (headerMatch) {
           [, handId, gameType, limit] = headerMatch;
-          smallBlind = parseFloat(headerMatch[4]);
-          bigBlind = parseFloat(headerMatch[5]);
+          currencySymbol = headerMatch[4] || '$'; // Extract currency symbol (€, $, £)
+          smallBlind = parseFloat(headerMatch[5]);
+          bigBlind = parseFloat(headerMatch[6]);
+          currency = headerMatch[7] || 'USD'; // Extract currency code (EUR, USD, GBP)
+
           // Format stakes with proper decimal places (e.g., $0.25/$0.50 not $0.25/$0.5)
           const sbFormatted = smallBlind < 1 ? smallBlind.toFixed(2) : smallBlind.toString();
           const bbFormatted = bigBlind < 1 ? bigBlind.toFixed(2) : bigBlind.toString();
-          stakes = `$${sbFormatted}/$${bbFormatted}`;
+          stakes = `${currencySymbol}${sbFormatted}/${currencySymbol}${bbFormatted}`;
           isTournament = false;
         }
       }
 
       // Formato 4: Zoom poker
       // "PokerStars Zoom Hand #123: Hold'em No Limit ($0.50/$1.00 USD) - 2023/..."
+      // "PokerStars Zoom Hand #123: Hold'em No Limit (€0.50/€1.00 EUR) - 2023/..."
       if (!headerMatch) {
-        headerMatch = lines[0].match(/PokerStars Zoom (?:Hand|Game) #(\d+):\s*(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit)\s+\(\$?([0-9.]+)\/\$?([0-9.]+).+?\)(?:\s*-\s*(.+))?/);
+        headerMatch = lines[0].match(/PokerStars Zoom (?:Hand|Game) #(\d+):\s*(Hold'em|Omaha|Stud)\s+(No Limit|Pot Limit|Fixed Limit)\s+\(([€$£]?)([0-9.]+)\/\4([0-9.]+)\s*(USD|EUR|GBP)?\)(?:\s*-\s*(.+))?/);
         if (headerMatch) {
           [, handId, gameType, limit] = headerMatch;
-          smallBlind = parseFloat(headerMatch[4]);
-          bigBlind = parseFloat(headerMatch[5]);
+          currencySymbol = headerMatch[4] || '$'; // Extract currency symbol (€, $, £)
+          smallBlind = parseFloat(headerMatch[5]);
+          bigBlind = parseFloat(headerMatch[6]);
+          currency = headerMatch[7] || 'USD'; // Extract currency code (EUR, USD, GBP)
+
           // Format stakes with proper decimal places (e.g., $0.25/$0.50 not $0.25/$0.5)
           const sbFormatted = smallBlind < 1 ? smallBlind.toFixed(2) : smallBlind.toString();
           const bbFormatted = bigBlind < 1 ? bigBlind.toFixed(2) : bigBlind.toString();
-          stakes = `$${sbFormatted}/$${bbFormatted}`;
+          stakes = `${currencySymbol}${sbFormatted}/${currencySymbol}${bbFormatted}`;
           isTournament = false;
         }
       }
@@ -220,11 +230,24 @@ export class HandParser {
 
       // NOVA: Detectar contexto do jogo (Tournament vs Cash)
       const detectionResult = this.detectGameContext(lines[0], 'PokerStars');
-      const { confidence, warnings: contextWarnings, ...gameContext } = detectionResult;
+      let { confidence, warnings: contextWarnings, ...gameContext } = detectionResult;
 
       // Add context warnings to main warnings array
       if (contextWarnings && contextWarnings.length > 0) {
         warnings.push(...contextWarnings);
+      }
+
+      // Override currencyUnit based on extracted currency (for cash games)
+      if (!isTournament) {
+        const currencyUnitMap: Record<string, 'dollars' | 'euros' | 'pounds'> = {
+          'USD': 'dollars',
+          'EUR': 'euros',
+          'GBP': 'pounds'
+        };
+        gameContext = {
+          ...gameContext,
+          currencyUnit: currencyUnitMap[currency] || 'dollars'
+        };
       }
 
 
@@ -233,8 +256,9 @@ export class HandParser {
 
       // Formato 1: Formato completo com Seat
       // "Seat 1: Hero ($100 in chips, $5 bounty)"
+      // "Seat 1: EuroPlayer1 (€50.00 in chips)"
       while (currentLine < lines.length && lines[currentLine]?.startsWith('Seat ')) {
-        const seatMatch = lines[currentLine].match(/Seat (\d+): (.+?) \(\$?([0-9.]+) in chips(?:, \$([0-9.]+) bounty)?\)(?:\s+(is sitting out))?/);
+        const seatMatch = lines[currentLine].match(/Seat (\d+): (.+?) \([€$£]?([0-9.]+) in chips(?:, [€$£]?([0-9.]+) bounty)?\)(?:\s+(is sitting out))?/);
         if (seatMatch) {
           const [, seat, playerName, stack, bounty, sittingOut] = seatMatch;
 
@@ -448,7 +472,7 @@ export class HandParser {
           preflop.push(action);
         } else {
           // Check for uncalled bet return
-          const uncalledMatch = line.match(/Uncalled bet \((\d+(?:\.\d+)?)\) returned to (.+)/);
+          const uncalledMatch = line.match(/Uncalled bet \([€$£]?(\d+(?:\.\d+)?)\) returned to (.+)/);
           if (uncalledMatch) {
             const [, amount, player] = uncalledMatch;
             preflop.push({
@@ -496,7 +520,7 @@ export class HandParser {
               flopData?.actions.push(action);
             } else {
               // Check for uncalled bet return
-              const uncalledMatch = lines[currentLine].match(/Uncalled bet \((\d+(?:\.\d+)?)\) returned to (.+)/);
+              const uncalledMatch = lines[currentLine].match(/Uncalled bet \([€$£]?(\d+(?:\.\d+)?)\) returned to (.+)/);
               if (uncalledMatch && flopData) {
                 const [, amount, player] = uncalledMatch;
                 flopData.actions.push({
@@ -530,7 +554,7 @@ export class HandParser {
               turnData?.actions.push(action);
             } else {
               // Check for uncalled bet return
-              const uncalledMatch = lines[currentLine].match(/Uncalled bet \((\d+(?:\.\d+)?)\) returned to (.+)/);
+              const uncalledMatch = lines[currentLine].match(/Uncalled bet \([€$£]?(\d+(?:\.\d+)?)\) returned to (.+)/);
               if (uncalledMatch && turnData) {
                 const [, amount, player] = uncalledMatch;
                 turnData.actions.push({
@@ -565,7 +589,7 @@ export class HandParser {
               riverData?.actions.push(action);
             } else {
               // Check for uncalled bet return
-              const uncalledMatch = lines[currentLine].match(/Uncalled bet \((\d+(?:\.\d+)?)\) returned to (.+)/);
+              const uncalledMatch = lines[currentLine].match(/Uncalled bet \([€$£]?(\d+(?:\.\d+)?)\) returned to (.+)/);
               if (uncalledMatch && riverData) {
                 const [, amount, player] = uncalledMatch;
                 riverData.actions.push({
@@ -700,7 +724,7 @@ export class HandParser {
 
             // Parse total pot and rake
             // Formats: "Total pot $58.50 | Rake $2.50", "Total pot 900 | Rake 0", "Total pot $2.50"
-            const potRakeMatch = summaryLine.match(/Total pot \$?([0-9.]+)(?:\s*\|\s*Rake\s+\$?([0-9.]+))?/);
+            const potRakeMatch = summaryLine.match(/Total pot [€$£]?([0-9.]+)(?:\s*\|\s*Rake\s+[€$£]?([0-9.]+))?/);
             if (potRakeMatch) {
               const [, potAmount, rake] = potRakeMatch;
               totalPotAmount = parseFloat(potAmount);
@@ -754,6 +778,20 @@ export class HandParser {
       }
 
 
+      // Build board array from flop, turn, river cards
+      const boardCards: string[] = [];
+      if (flopData && flopData.cards.length > 0) {
+        flopData.cards.forEach(card => {
+          boardCards.push(`${card.rank}${card.suit}`);
+        });
+      }
+      if (turnData && turnData.card) {
+        boardCards.push(`${turnData.card.rank}${turnData.card.suit}`);
+      }
+      if (riverData && riverData.card) {
+        boardCards.push(`${riverData.card.rank}${riverData.card.suit}`);
+      }
+
       const handHistory: HandHistory = {
         handId,
         site: 'PokerStars',
@@ -779,7 +817,8 @@ export class HandParser {
         showdown: showdownData || undefined,
         totalPot: totalPotAmount || 0, // Use parsed total pot
         rake: rakeAmount, // Include rake (can be 0)
-        currency: 'USD'
+        currency: currency, // Use extracted currency (EUR, USD, GBP)
+        board: boardCards.length > 0 ? boardCards : undefined // Community cards
       };
 
       // Validate HandHistory after parsing
@@ -1177,7 +1216,7 @@ export class HandParser {
             // GGPoker format: "Total pot 60,482 | Rake 0 | Jackpot 0 | Bingo 0 | Fortune 0 | Tax 0"
             // Also support: "Total pot 4500 Main pot 3000. Side pot 1500. | Rake 0"
             // Also support: "Total pot $58.50 | Rake $2.50" (with dollar signs)
-            const potRakeMatch = summaryLine.match(/Total pot \$?([0-9,]+(?:\.[0-9]+)?)(?:.+?)?\s*\|\s*Rake\s+\$?([0-9,]+(?:\.[0-9]+)?)/);
+            const potRakeMatch = summaryLine.match(/Total pot [€$£]?([0-9,]+(?:\.[0-9]+)?)(?:.+?)?\s*\|\s*Rake\s+[€$£]?([0-9,]+(?:\.[0-9]+)?)/);
             if (potRakeMatch) {
               // Remove commas from amounts
               const potStr = potRakeMatch[1].replace(/,/g, '');
@@ -1930,7 +1969,7 @@ export class HandParser {
       return { player: foldMatch[1], action: 'fold' };
     }
 
-    const callMatch = line.match(/^(.+?): calls \$?([0-9,\.]+)(.*)$/);
+    const callMatch = line.match(/^(.+?): calls [€$£]?([0-9,\.]+)(.*)$/);
     if (callMatch) {
       // Check if it's an all-in call
       const isAllIn = this.isAllInAction(callMatch[3]);
@@ -1963,7 +2002,7 @@ export class HandParser {
       };
     }
 
-    const betMatch = line.match(/^(.+?): bets \$?([0-9,\.]+)(.*)$/);
+    const betMatch = line.match(/^(.+?): bets [€$£]?([0-9,\.]+)(.*)$/);
     if (betMatch) {
       // Check if it's an all-in
       const isAllIn = this.isAllInAction(betMatch[3]);
@@ -1996,7 +2035,7 @@ export class HandParser {
     }
 
     // CRITICAL: Match "raises all-in X" format FIRST (before normal raises)
-    const raiseAllInMatch = line.match(/^(.+?): raises all-?in \$?([0-9,\.]+)$/i);
+    const raiseAllInMatch = line.match(/^(.+?): raises all-?in [€$£]?([0-9,\.]+)$/i);
     if (raiseAllInMatch) {
       const { amount, warnings: parseWarnings } = this.parseAmountWithContext(raiseAllInMatch[2], gameContext);
       return {
@@ -2008,7 +2047,7 @@ export class HandParser {
     }
 
     // Match normal raises "raises X to Y"
-    const raiseMatch = line.match(/^(.+?): raises \$?([0-9,\.]+) to \$?([0-9,\.]+)(.*)$/);
+    const raiseMatch = line.match(/^(.+?): raises [€$£]?([0-9,\.]+) to [€$£]?([0-9,\.]+)(.*)$/);
     if (raiseMatch) {
       // Check if it's an all-in
       const isAllIn = this.isAllInAction(raiseMatch[4]);
@@ -2271,7 +2310,7 @@ export class HandParser {
 
     } else {
       // Extract cash game details
-      const stakesMatch = headerLine.match(/\([\$]?([\d.]+)\/[\$]?([\d.]+)\s*(?:USD|EUR|GBP)?\)/i);
+      const stakesMatch = headerLine.match(/\([€$£]?([\d.]+)\/[€$£]?([\d.]+)\s*(?:USD|EUR|GBP)?\)/i);
 
       if (stakesMatch) {
         const smallBlind = parseFloat(stakesMatch[1]);
