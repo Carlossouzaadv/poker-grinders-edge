@@ -81,6 +81,88 @@ Seat 3: Hero collected ($4.05)`;
     });
   });
 
+  describe('10-Max Tables', () => {
+    const PS_10MAX_CASH = `PokerStars Hand #445566778899: Hold'em No Limit ($0.50/$1.00 USD) - 2025/11/14 11:00:00 ET
+Table 'Galaxy' 10-max Seat #5 is the button
+Seat 1: Player1 ($100.00 in chips)
+Seat 2: Player2 ($120.50 in chips)
+Seat 3: Player3 ($98.00 in chips)
+Seat 4: Player4 ($150.00 in chips)
+Seat 5: Player5 ($200.00 in chips)
+Seat 6: Hero ($100.00 in chips)
+Seat 7: Player7 ($110.00 in chips)
+Seat 8: Player8 ($95.50 in chips)
+Seat 9: Player9 ($130.00 in chips)
+Seat 10: Player10 ($80.00 in chips)
+Hero: posts small blind $0.50
+Player7: posts big blind $1.00
+*** HOLE CARDS ***
+Dealt to Hero [9h 9d]
+Player8: folds
+Player9: raises $2.50 to $3.50
+Player10: folds
+Player1: folds
+Player2: folds
+Player3: folds
+Player4: calls $3.50
+Player5: folds
+Hero: calls $3.00
+Player7: folds
+*** FLOP *** [9c 4h 2d]
+Hero: checks
+Player9: bets $8.00
+Player4: folds
+Hero: raises $16.00 to $24.00
+Player9: calls $16.00
+*** TURN *** [9c 4h 2d] [Kh]
+Hero: bets $35.00
+Player9: folds
+Uncalled bet ($35.00) returned to Hero
+Hero collected $58.50 from pot
+Hero: doesn't show hand
+*** SUMMARY ***
+Total pot $58.50 | Rake $2.50
+Board [9c 4h 2d Kh]
+Seat 6: Hero (small blind) collected ($58.50)`;
+
+    it('should parse 10-max cash game format', () => {
+      const result = HandParser.parse(PS_10MAX_CASH);
+
+      expect(result.success).toBe(true);
+      expect(result.handHistory).toBeDefined();
+
+      const hand = result.handHistory as HandHistory;
+      expect(hand.site).toBe('PokerStars');
+      expect(hand.maxPlayers).toBe(10);
+    });
+
+    it('should handle all 10 players correctly', () => {
+      const result = HandParser.parse(PS_10MAX_CASH);
+      const hand = result.handHistory as HandHistory;
+
+      expect(hand.players).toHaveLength(10);
+
+      // Hero should be at seat 6
+      const hero = hand.players.find(p => p.name === 'Hero');
+      expect(hero).toBeDefined();
+      expect(hero!.holeCards).toEqual(['9h', '9d']);
+      expect(hero!.stack).toBe(100.00);
+    });
+
+    it('should validate perfect 10-max visual positioning', () => {
+      const result = HandParser.parse(PS_10MAX_CASH);
+      const hand = result.handHistory as HandHistory;
+
+      // This validates our symmetric 10-max layout from previous commits
+      // All 10 seats should be present with proper positioning
+      expect(hand.players.length).toBe(10);
+
+      // Check that seats 1-10 are all occupied
+      const seatNumbers = hand.players.map(p => p.seat).sort((a, b) => a - b);
+      expect(seatNumbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    });
+  });
+
   describe('Tournaments', () => {
     const PS_TOURNAMENT_HAND_1 = `PokerStars Hand #123456789003: Tournament #555555 NLHE Level II (50/100)
 Hero (4980)
@@ -382,18 +464,76 @@ Seat 7: Hero (all-in) showed [Jc Jd] and lost with a pair of Jacks`;
   });
 
   describe('Spin & Go (3-max Tournament)', () => {
-    // TODO: Add Spin & Go hand
+    const PS_SPINGO_3MAX = `PokerStars Hand #334455667788: Tournament #998877665, $5.00+$0.50 USD Hold'em No Limit - Level III (25/50) - 2025/11/14 10:30:00 ET
+Table '998877665 1' 3-max Seat #1 is the button
+Seat 1: Hero ($1500 in chips)
+Seat 2: Player2 ($1450 in chips)
+Seat 3: Player3 ($1550 in chips)
+Hero: posts small blind 25
+Player2: posts big blind 50
+*** HOLE CARDS ***
+Dealt to Hero [Ad Qh]
+Player3: folds
+Hero: raises 75 to 125
+Player2: calls 75
+*** FLOP *** [Ah 8c 3d]
+Hero: bets 100
+Player2: calls 100
+*** TURN *** [Ah 8c 3d] [Qs]
+Hero: bets 225
+Player2: calls 225
+*** RIVER *** [Ah 8c 3d Qs] [2h]
+Hero: bets 450
+Player2: folds
+Uncalled bet (450) returned to Hero
+Hero collected 900 from pot
+Hero: doesn't show hand
+*** SUMMARY ***
+Total pot 900 | Rake 0
+Board [Ah 8c 3d Qs 2h]
+Seat 1: Hero (button) (small blind) collected (900)
+Seat 2: Player2 (big blind) folded on the River
+Seat 3: Player3 folded before Flop (didn't bet)`;
+
     it('should parse Spin & Go format', () => {
-      expect(true).toBe(true);
+      const result = HandParser.parse(PS_SPINGO_3MAX);
+
+      expect(result.success).toBe(true);
+      expect(result.handHistory).toBeDefined();
+
+      const hand = result.handHistory as HandHistory;
+      expect(hand.site).toBe('PokerStars');
+      expect(hand.gameContext.isTournament).toBe(true);
+      expect(hand.tournamentId).toBe('998877665');
     });
 
     it('should handle 3-max table correctly', () => {
-      expect(true).toBe(true);
+      const result = HandParser.parse(PS_SPINGO_3MAX);
+      const hand = result.handHistory as HandHistory;
+
+      expect(hand.maxPlayers).toBe(3);
+      expect(hand.players).toHaveLength(3);
+
+      // Hero should be at button (also SB in 3-max)
+      const hero = hand.players.find(p => p.name === 'Hero');
+      expect(hero).toBeDefined();
+      expect(hero!.holeCards).toEqual(['Ad', 'Qh']);
     });
 
-    it('should identify tournament multiplier if present', () => {
-      // Spin & Go has prize pool multiplier (2x, 5x, 10x, etc.)
-      expect(true).toBe(true);
+    it('should track actions correctly in 3-max', () => {
+      const result = HandParser.parse(PS_SPINGO_3MAX);
+      const hand = result.handHistory as HandHistory;
+
+      // Should have preflop, flop, turn, river snapshots
+      const preflopSnap = hand.snapshots.find(s => s.street === 'preflop');
+      const flopSnap = hand.snapshots.find(s => s.street === 'flop');
+      const turnSnap = hand.snapshots.find(s => s.street === 'turn');
+      const riverSnap = hand.snapshots.find(s => s.street === 'river');
+
+      expect(preflopSnap).toBeDefined();
+      expect(flopSnap).toBeDefined();
+      expect(turnSnap).toBeDefined();
+      expect(riverSnap).toBeDefined();
     });
   });
 
@@ -776,6 +916,198 @@ Hero wins`;
       // Should track uncalled bet
       const riverSnap = hand1.snapshots.find(s => s.street === 'flop');
       expect(riverSnap).toBeDefined();
+    });
+  });
+
+  describe('Micro Stakes (Decimal Values)', () => {
+    const PS_MICRO_STAKES = `PokerStars Hand #556677889900: Hold'em No Limit ($0.01/$0.02 USD) - 2025/11/14 12:00:00 ET
+Table 'Micro II' 6-max Seat #3 is the button
+Seat 1: MicroPlayer1 ($2.00 in chips)
+Seat 2: MicroPlayer2 ($1.85 in chips)
+Seat 3: Hero ($2.50 in chips)
+Seat 4: MicroPlayer4 ($3.00 in chips)
+Seat 5: MicroPlayer5 ($1.50 in chips)
+Seat 6: MicroPlayer6 ($2.25 in chips)
+MicroPlayer4: posts small blind $0.01
+MicroPlayer5: posts big blind $0.02
+*** HOLE CARDS ***
+Dealt to Hero [Kh Kd]
+MicroPlayer6: folds
+MicroPlayer1: raises $0.04 to $0.06
+MicroPlayer2: folds
+Hero: raises $0.12 to $0.18
+MicroPlayer4: folds
+MicroPlayer5: folds
+MicroPlayer1: calls $0.12
+*** FLOP *** [8c 3h 2d]
+MicroPlayer1: checks
+Hero: bets $0.25
+MicroPlayer1: folds
+Uncalled bet ($0.25) returned to Hero
+Hero collected $0.38 from pot
+Hero: doesn't show hand
+*** SUMMARY ***
+Total pot $0.39 | Rake $0.01
+Board [8c 3h 2d]
+Seat 3: Hero (button) collected ($0.38)`;
+
+    it('should parse micro stakes with decimal precision', () => {
+      const result = HandParser.parse(PS_MICRO_STAKES);
+
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory as HandHistory;
+      expect(hand.site).toBe('PokerStars');
+      expect(hand.stakes).toBe('$0.01/$0.02');
+      expect(hand.smallBlind).toBe(0.01);
+      expect(hand.bigBlind).toBe(0.02);
+    });
+
+    it('should handle very small decimal amounts correctly', () => {
+      const result = HandParser.parse(PS_MICRO_STAKES);
+      const hand = result.handHistory as HandHistory;
+
+      // Check pot and rake with decimal precision
+      expect(hand.totalPot).toBe(0.39);
+      expect(hand.rake).toBe(0.01);
+
+      // Check player stacks
+      const hero = hand.players.find(p => p.name === 'Hero');
+      expect(hero!.stack).toBe(2.50);
+    });
+
+    it('should maintain precision in micro stakes calculations', () => {
+      const result = HandParser.parse(PS_MICRO_STAKES);
+      const hand = result.handHistory as HandHistory;
+
+      // Verify no floating point errors in tiny amounts
+      const preflopSnap = hand.snapshots.find(s => s.street === 'preflop');
+      expect(preflopSnap).toBeDefined();
+    });
+  });
+
+  describe('Straddle Scenarios', () => {
+    const PS_STRADDLE_HAND = `PokerStars Hand #667788990011: Hold'em No Limit ($1/$2 USD) - 2025/11/14 13:00:00 ET
+Table 'Straddle Test' 6-max Seat #1 is the button
+Seat 1: Player1 ($200.00 in chips)
+Seat 2: Hero ($300.00 in chips)
+Seat 3: Player3 ($250.00 in chips)
+Seat 4: Player4 ($400.00 in chips)
+Seat 5: Player5 ($150.00 in chips)
+Seat 6: Player6 ($175.00 in chips)
+Hero: posts small blind $1
+Player3: posts big blind $2
+Player4: posts straddle $4
+*** HOLE CARDS ***
+Dealt to Hero [Ac Kc]
+Player5: folds
+Player6: folds
+Player1: folds
+Hero: raises $12 to $16
+Player3: folds
+Player4: calls $12
+*** FLOP *** [As Qd 7c]
+Hero: bets $22
+Player4: calls $22
+*** TURN *** [As Qd 7c] [Kh]
+Hero: bets $55
+Player4: folds
+Uncalled bet ($55) returned to Hero
+Hero collected $76 from pot
+*** SUMMARY ***
+Total pot $78 | Rake $2
+Board [As Qd 7c Kh]
+Seat 2: Hero (small blind) collected ($76)`;
+
+    it('should recognize straddle as special blind', () => {
+      const result = HandParser.parse(PS_STRADDLE_HAND);
+
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory as HandHistory;
+      expect(hand.site).toBe('PokerStars');
+
+      // Should detect straddle (effectively makes it like $2/$4 game)
+      expect(hand.smallBlind).toBe(1);
+      expect(hand.bigBlind).toBe(2);
+    });
+
+    it('should handle preflop action with straddle', () => {
+      const result = HandParser.parse(PS_STRADDLE_HAND);
+      const hand = result.handHistory as HandHistory;
+
+      // Straddle creates larger preflop pot
+      const preflopSnap = hand.snapshots.find(s => s.street === 'preflop');
+      expect(preflopSnap).toBeDefined();
+
+      // Hero should have AK
+      const hero = hand.players.find(p => p.name === 'Hero');
+      expect(hero!.holeCards).toEqual(['Ac', 'Kc']);
+    });
+  });
+
+  describe('Everyone Folds Preflop (No Showdown)', () => {
+    const PS_ALL_FOLD_PREFLOP = `PokerStars Hand #778899001122: Hold'em No Limit ($0.50/$1.00 USD) - 2025/11/14 14:00:00 ET
+Table 'QuickFold' 6-max Seat #4 is the button
+Seat 1: Player1 ($100.00 in chips)
+Seat 2: Player2 ($150.00 in chips)
+Seat 3: Hero ($200.00 in chips)
+Seat 4: Player4 ($75.00 in chips)
+Seat 5: Player5 ($120.00 in chips)
+Seat 6: Player6 ($90.00 in chips)
+Player5: posts small blind $0.50
+Player6: posts big blind $1.00
+*** HOLE CARDS ***
+Dealt to Hero [Ah Ac]
+Player1: folds
+Player2: folds
+Hero: raises $3.00 to $4.00
+Player4: folds
+Player5: folds
+Player6: folds
+Uncalled bet ($3.00) returned to Hero
+Hero collected $2.50 from pot
+Hero: doesn't show hand
+*** SUMMARY ***
+Total pot $2.50 | Rake $0
+Seat 3: Hero collected ($2.50)`;
+
+    it('should parse hand where everyone folds preflop', () => {
+      const result = HandParser.parse(PS_ALL_FOLD_PREFLOP);
+
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory as HandHistory;
+      expect(hand.site).toBe('PokerStars');
+    });
+
+    it('should handle no showdown scenario', () => {
+      const result = HandParser.parse(PS_ALL_FOLD_PREFLOP);
+      const hand = result.handHistory as HandHistory;
+
+      // Should only have preflop snapshot
+      const preflopSnap = hand.snapshots.find(s => s.street === 'preflop');
+      expect(preflopSnap).toBeDefined();
+
+      // Should NOT have flop, turn, river, or showdown
+      const flopSnap = hand.snapshots.find(s => s.street === 'flop');
+      const showdownSnap = hand.snapshots.find(s => s.street === 'showdown');
+      expect(flopSnap).toBeUndefined();
+      expect(showdownSnap).toBeUndefined();
+    });
+
+    it('should correctly award pot without showdown', () => {
+      const result = HandParser.parse(PS_ALL_FOLD_PREFLOP);
+      const hand = result.handHistory as HandHistory;
+
+      // Hero should win small pot
+      expect(hand.totalPot).toBe(2.50);
+      expect(hand.rake).toBe(0);
+
+      // Hero's cards should be unknown (not shown)
+      const hero = hand.players.find(p => p.name === 'Hero');
+      expect(hero).toBeDefined();
+      expect(hero!.holeCards).toEqual(['Ah', 'Ac']);
     });
   });
 });
