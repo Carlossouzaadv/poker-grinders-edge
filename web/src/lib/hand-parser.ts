@@ -68,8 +68,10 @@ export class HandParser {
   }
 
   private static detectSite(handText: string): string {
-    // PokerStars detection
-    if (handText.includes('PokerStars Hand #') || handText.includes('PokerStars Game #')) {
+    // PokerStars detection (includes Zoom poker)
+    if (handText.includes('PokerStars Hand #') ||
+        handText.includes('PokerStars Game #') ||
+        handText.includes('PokerStars Zoom Hand #')) {
       return 'PokerStars';
     }
 
