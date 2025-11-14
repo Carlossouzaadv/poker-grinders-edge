@@ -148,7 +148,10 @@ export class HandParser {
           [, handId, gameType, limit] = headerMatch;
           smallBlind = parseFloat(headerMatch[4]);
           bigBlind = parseFloat(headerMatch[5]);
-          stakes = `$${smallBlind}/$${bigBlind}`;
+          // Format stakes with proper decimal places (e.g., $0.25/$0.50 not $0.25/$0.5)
+          const sbFormatted = smallBlind < 1 ? smallBlind.toFixed(2) : smallBlind.toString();
+          const bbFormatted = bigBlind < 1 ? bigBlind.toFixed(2) : bigBlind.toString();
+          stakes = `$${sbFormatted}/$${bbFormatted}`;
           isTournament = false;
         }
       }
@@ -161,7 +164,10 @@ export class HandParser {
           [, handId, gameType, limit] = headerMatch;
           smallBlind = parseFloat(headerMatch[4]);
           bigBlind = parseFloat(headerMatch[5]);
-          stakes = `$${smallBlind}/$${bigBlind}`;
+          // Format stakes with proper decimal places (e.g., $0.25/$0.50 not $0.25/$0.5)
+          const sbFormatted = smallBlind < 1 ? smallBlind.toFixed(2) : smallBlind.toString();
+          const bbFormatted = bigBlind < 1 ? bigBlind.toFixed(2) : bigBlind.toString();
+          stakes = `$${sbFormatted}/$${bbFormatted}`;
           isTournament = false;
         }
       }
@@ -335,10 +341,12 @@ export class HandParser {
           const [, heroName, cardsStr] = heroMatch;
           const heroPlayerIndex = players.findIndex(p => p.name.trim() === heroName.trim());
           if (heroPlayerIndex !== -1) {
+            const parsedCards = this.parseCards(cardsStr);
             players[heroPlayerIndex] = {
               ...players[heroPlayerIndex],
               isHero: true,
-              cards: this.parseCards(cardsStr)
+              cards: parsedCards,
+              holeCards: parsedCards // Alias for backward compatibility
             };
           }
         }
@@ -540,7 +548,7 @@ export class HandParser {
                 // Encontrar o jogador e atribuir as cartas
                 const playerIndex = players.findIndex(p => p.name === playerName);
                 if (playerIndex !== -1 && cards.length === 2) {
-                  players[playerIndex] = { ...players[playerIndex], cards: cards };
+                  players[playerIndex] = { ...players[playerIndex], cards: cards, holeCards: cards };
                 }
               }
             }
@@ -618,7 +626,7 @@ export class HandParser {
               // Encontrar o jogador e adicionar suas cartas
               const playerIndex = players.findIndex(p => p.name === playerName);
               if (playerIndex !== -1) {
-                players[playerIndex] = { ...players[playerIndex], cards: muckedCards };
+                players[playerIndex] = { ...players[playerIndex], cards: muckedCards, holeCards: muckedCards };
               }
             }
 
@@ -631,7 +639,7 @@ export class HandParser {
               // Encontrar o jogador e garantir que suas cartas estejam definidas
               const playerIndex = players.findIndex(p => p.name === playerName);
               if (playerIndex !== -1 && !players[playerIndex].cards) {
-                players[playerIndex] = { ...players[playerIndex], cards: shownCards };
+                players[playerIndex] = { ...players[playerIndex], cards: shownCards, holeCards: shownCards };
               }
             }
 
@@ -657,6 +665,7 @@ export class HandParser {
         limit: limit as 'No Limit' | 'Pot Limit' | 'Fixed Limit',
         stakes: stakes, // Use the properly set stakes (tournament name or cash blinds)
         tableName, // Add table name
+        tournamentId: tournamentId || undefined, // Include tournament ID if present
         maxPlayers: parseInt(maxPlayers),
         buttonSeat: parseInt(buttonSeat),
         dealerSeat: parseInt(buttonSeat),
@@ -1034,7 +1043,7 @@ export class HandParser {
                 const cards = this.parseCards(cardsText);
                 const playerIndex = players.findIndex(p => p.name === playerName);
                 if (playerIndex !== -1 && cards.length === 2) {
-                  players[playerIndex] = { ...players[playerIndex], cards: cards };
+                  players[playerIndex] = { ...players[playerIndex], cards: cards, holeCards: cards };
                 }
               }
             }
@@ -1099,7 +1108,7 @@ export class HandParser {
               const muckedCards = this.parseCards(cardsStr);
               const playerIndex = players.findIndex(p => p.name === playerName);
               if (playerIndex !== -1) {
-                players[playerIndex] = { ...players[playerIndex], cards: muckedCards };
+                players[playerIndex] = { ...players[playerIndex], cards: muckedCards, holeCards: muckedCards };
               }
             }
 
@@ -1110,7 +1119,7 @@ export class HandParser {
               const shownCards = this.parseCards(cardsStr);
               const playerIndex = players.findIndex(p => p.name === playerName);
               if (playerIndex !== -1 && !players[playerIndex].cards) {
-                players[playerIndex] = { ...players[playerIndex], cards: shownCards };
+                players[playerIndex] = { ...players[playerIndex], cards: shownCards, holeCards: shownCards };
               }
             }
 
@@ -1158,6 +1167,7 @@ export class HandParser {
         limit: limit as 'No Limit' | 'Pot Limit' | 'Fixed Limit',
         stakes: tournamentName ?? 'Unknown',
         tableName, // Add table name
+        tournamentId: tourneyId || undefined, // Include tournament ID if present
         maxPlayers: parseInt(maxPlayers),
         buttonSeat: parseInt(buttonSeat),
         dealerSeat: parseInt(buttonSeat),
@@ -1316,10 +1326,12 @@ export class HandParser {
           const [, heroName, cardsStr] = heroMatch;
           const heroPlayerIndex = players.findIndex(p => p.name === heroName);
           if (heroPlayerIndex !== -1) {
+            const parsedCards = this.parseCards(cardsStr);
             players[heroPlayerIndex] = {
               ...players[heroPlayerIndex],
               isHero: true,
-              cards: this.parseCards(cardsStr)
+              cards: parsedCards,
+              holeCards: parsedCards // Alias for backward compatibility
             };
           }
         }
@@ -1416,7 +1428,7 @@ export class HandParser {
                 const cards = this.parseCards(cardsText);
                 const playerIndex = players.findIndex(p => p.name === playerName);
                 if (playerIndex !== -1 && cards.length === 2) {
-                  players[playerIndex] = { ...players[playerIndex], cards: cards };
+                  players[playerIndex] = { ...players[playerIndex], cards: cards, holeCards: cards };
                 }
               }
             }
@@ -1473,7 +1485,7 @@ export class HandParser {
               const muckedCards = this.parseCards(cardsStr);
               const playerIndex = players.findIndex(p => p.name === playerName);
               if (playerIndex !== -1) {
-                players[playerIndex] = { ...players[playerIndex], cards: muckedCards };
+                players[playerIndex] = { ...players[playerIndex], cards: muckedCards, holeCards: muckedCards };
               }
             }
 
@@ -1497,6 +1509,7 @@ export class HandParser {
         limit: limit as 'No Limit' | 'Pot Limit' | 'Fixed Limit',
         stakes: buyIn,
         tableName, // Add table name
+        tournamentId: tourneyId || undefined, // Include tournament ID if present
         maxPlayers: parseInt(maxPlayers),
         buttonSeat: parseInt(buttonSeat),
         dealerSeat: parseInt(buttonSeat),

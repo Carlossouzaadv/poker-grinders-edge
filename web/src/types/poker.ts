@@ -85,7 +85,8 @@ export type Player = {
   readonly name: string;
   readonly position: Position;
   readonly stack: number;
-  readonly cards?: readonly Card[];
+  readonly cards?: readonly Card[]; // Player's hole cards
+  readonly holeCards?: readonly Card[]; // Alias for cards (for backward compatibility)
   readonly isHero: boolean;
   readonly seat?: number; // Número do assento original
   readonly bounty?: number; // Tournament bounty amount
@@ -99,6 +100,7 @@ export type HandHistory = {
   readonly limit: 'No Limit' | 'Pot Limit' | 'Fixed Limit';
   readonly stakes: string; // e.g., "$0.25/$0.50"
   readonly tableName?: string; // Table name from hand history
+  readonly tournamentId?: string; // Tournament ID (only for tournament hands)
   readonly maxPlayers: number;
   readonly buttonSeat: number;
   readonly dealerSeat: number;

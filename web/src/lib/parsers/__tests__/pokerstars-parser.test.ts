@@ -145,7 +145,10 @@ Seat 6: Hero (small blind) collected ($58.50)`;
       // Hero should be at seat 6
       const hero = hand.players.find(p => p.name === 'Hero');
       expect(hero).toBeDefined();
-      expect(hero!.holeCards).toEqual(['9h', '9d']);
+      expect(hero!.holeCards).toEqual([
+        { rank: '9', suit: 'h' },
+        { rank: '9', suit: 'd' }
+      ]);
       expect(hero!.stack).toBe(100.00);
     });
 
@@ -402,7 +405,10 @@ Seat 7: Hero (all-in) showed [Jc Jd] and lost with a pair of Jacks`;
       // Hero has AA
       const hero = hand.players.find(p => p.name === 'Hero');
       expect(hero).toBeDefined();
-      expect(hero!.holeCards).toEqual(['Ac', 'As']);
+      expect(hero!.holeCards).toEqual([
+        { rank: 'A', suit: 'c' },
+        { rank: 'A', suit: 's' }
+      ]);
 
       // Should have showdown
       const showdownSnap = hand.snapshots.find(s => s.street === 'showdown');
@@ -517,7 +523,7 @@ Seat 3: Player3 folded before Flop (didn't bet)`;
       // Hero should be at button (also SB in 3-max)
       const hero = hand.players.find(p => p.name === 'Hero');
       expect(hero).toBeDefined();
-      expect(hero!.holeCards).toEqual(['Ad', 'Qh']);
+      expect(hero!.holeCards).toEqual([{ rank: 'A', suit: 'd' }, { rank: 'Q', suit: 'h' }]);
     });
 
     it('should track actions correctly in 3-max', () => {
@@ -718,7 +724,7 @@ Hero wins`;
       // Hero should have AK
       const hero = hand.players.find(p => p.name === 'Hero');
       expect(hero).toBeDefined();
-      expect(hero!.holeCards).toEqual(['As', 'Kd']);
+      expect(hero!.holeCards).toEqual([{ rank: 'A', suit: 's' }, { rank: 'K', suit: 'd' }]);
     });
 
     it('should track pot size correctly across all streets (Hand #1)', () => {
@@ -760,7 +766,7 @@ Hero wins`;
 
       // Hero has JJ
       const hero = hand.players.find(p => p.name === 'Hero');
-      expect(hero!.holeCards).toEqual(['Jc', 'Jh']);
+      expect(hero!.holeCards).toEqual([{ rank: 'J', suit: 'c' }, { rank: 'J', suit: 'h' }]);
     });
 
     it('should parse 9-max turn raise dynamics (Hand #10)', () => {
@@ -771,7 +777,7 @@ Hero wins`;
 
       // Hero has KQ
       const hero = hand.players.find(p => p.name === 'Hero');
-      expect(hero!.holeCards).toEqual(['Kd', 'Qs']);
+      expect(hero!.holeCards).toEqual([{ rank: 'K', suit: 'd' }, { rank: 'Q', suit: 's' }]);
     });
   });
 
@@ -859,7 +865,7 @@ Hero wins`;
 
       // Hero has TT
       const hero = hand.players.find(p => p.name === 'Hero');
-      expect(hero!.holeCards).toEqual(['Td', 'Ts']);
+      expect(hero!.holeCards).toEqual([{ rank: 'T', suit: 'd' }, { rank: 'T', suit: 's' }]);
 
       // Should have showdown
       const showdownSnap = hand.snapshots.find(s => s.street === 'showdown');
@@ -889,7 +895,7 @@ Hero wins`;
 
       // Hero has AKs clubs
       const hero = hand.players.find(p => p.name === 'Hero');
-      expect(hero!.holeCards).toEqual(['Ac', 'Kc']);
+      expect(hero!.holeCards).toEqual([{ rank: 'A', suit: 'c' }, { rank: 'K', suit: 'c' }]);
     });
 
     it('should parse quads flopping (Hand #9)', () => {
@@ -902,7 +908,7 @@ Hero wins`;
 
       // Hero has 55
       const hero = hand.players.find(p => p.name === 'Hero');
-      expect(hero!.holeCards).toEqual(['5c', '5s']);
+      expect(hero!.holeCards).toEqual([{ rank: '5', suit: 'c' }, { rank: '5', suit: 's' }]);
 
       // Board should have two 5s
       expect(hand.board).toContain('5d');
@@ -1042,7 +1048,7 @@ Seat 2: Hero (small blind) collected ($76)`;
 
       // Hero should have AK
       const hero = hand.players.find(p => p.name === 'Hero');
-      expect(hero!.holeCards).toEqual(['Ac', 'Kc']);
+      expect(hero!.holeCards).toEqual([{ rank: 'A', suit: 'c' }, { rank: 'K', suit: 'c' }]);
     });
   });
 
