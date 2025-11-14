@@ -584,14 +584,20 @@ export class HandParser {
           while (currentLine < lines.length && !lines[currentLine].includes('***')) {
             const showLine = lines[currentLine];
 
-            // Jogador mostra cartas: "draper24492: shows [As 4s] (high card Ace)"
-            if (showLine.includes(': shows [') && showLine.includes(']')) {
+            // Jogador mostra cartas: "draper24492: shows [As 4s]" ou "Hero shows [As 4s]" (simplified)
+            if ((showLine.includes(': shows [') || showLine.includes(' shows [')) && showLine.includes(']')) {
               showdownInfo += showLine + '\n';
 
-              // Extrair cartas e atribuir ao jogador
-              const showMatch = showLine.match(/(.+?): shows \[([^\]]+)\]/);
+              // Extrair cartas e atribuir ao jogador - standard format with colon
+              let showMatch = showLine.match(/(.+?): shows \[([^\]]+)\]/);
+
+              // Try simplified format without colon: "Hero shows [As 4s]"
+              if (!showMatch) {
+                showMatch = showLine.match(/^([A-Za-z0-9_\-\s]+) shows \[([^\]]+)\]/);
+              }
+
               if (showMatch) {
-                const playerName = showMatch[1];
+                const playerName = showMatch[1].trim();
                 const cardsText = showMatch[2];
                 const cards = this.parseCards(cardsText);
 
@@ -627,6 +633,16 @@ export class HandParser {
                 winners.push(winnerName);
               }
               potWon += parseFloat(collectedMatch[2]);
+              showdownInfo += showLine + '\n';
+            }
+
+            // Ultra-simplified: "Hero wins with trips" or "Hero wins"
+            const simpleWinMatch = showLine.match(/^([A-Za-z0-9_\-\s]+) wins(?:\s+with\s+.+)?$/);
+            if (simpleWinMatch) {
+              const winnerName = simpleWinMatch[1].trim();
+              if (!winners.includes(winnerName)) {
+                winners.push(winnerName);
+              }
               showdownInfo += showLine + '\n';
             }
 
