@@ -358,3 +358,122 @@ model HandHistoryHand {
   @@index([sessionId, handIndex]) // Optimize sequential navigation queries
   @@map("hand_history_hands")
 }
+
+// ==============================================================================
+// ANONYMIZED HANDS DATABASE - AI Training Data
+// ==============================================================================
+
+/// Categorization for cash game rake levels
+enum RakeTier {
+  MICRO    // $0.01-$0.10 rake
+  LOW      // $0.11-$0.50 rake
+  MEDIUM   // $0.51-$2.00 rake
+  HIGH     // $2.01+ rake
+}
+
+/// Categorization for tournament stakes
+enum StakesTier {
+  MICRO      // $0-$10 buy-in
+  LOW        // $11-$50 buy-in
+  MEDIUM     // $51-$200 buy-in
+  HIGH       // $201-$1000 buy-in
+  NOSEBLEED  // $1001+ buy-in
+}
+
+/// Stores anonymized poker hands for AI training
+/// All player names/IDs are replaced with generic identifiers (Player1, Player2, etc.)
+/// Preserves hand structure, actions, and outcomes for ML analysis
+model AnonymizedHand {
+  id String @id @default(cuid())
+
+  // Original hand metadata (for deduplication)
+  handId     String   @unique // Original hand ID from poker site
+  site       String // "PokerStars", "GGPoker", "PartyPoker"
+  playedAt   DateTime // When the hand was played
+
+  // Categorization for AI training
+  gameType GameType // CASH, TOURNAMENT, SIT_AND_GO
+
+  // Cash game specific categorization
+  rakeTier  RakeTier? // Only for CASH games
+  rakeAmount Decimal? @db.Decimal(10, 4) // Actual rake amount
+
+  // Tournament specific categorization
+  stakesTier StakesTier? // Only for TOURNAMENT/SIT_AND_GO
+  buyIn      Decimal?     @db.Decimal(10, 2)
+
+  // Game parameters
+  smallBlind Decimal @db.Decimal(10, 2)
+  bigBlind   Decimal @db.Decimal(10, 2)
+  ante       Decimal? @db.Decimal(10, 2)
+  maxPlayers Int // 2, 6, 8, 9, etc.
+
+  // Anonymized hand data (JSON format)
+  // Structure: {
+  //   players: [{position: "BTN", stack: 100, cards: "AhKd"}, ...],
+  //   actions: [{player: "Player1", action: "raise", amount: 3}, ...],
+  //   board: ["As", "Kh", "Qd", "Jc", "Tc"],
+  //   pots: [{amount: 100, winners: ["Player1"]}],
+  //   showdown: {...}
+  // }
+  anonymizedData Json
+
+  // Original hand text (anonymized)
+  anonymizedText String @db.Text
+
+  // AI Training metadata
+  features Json? // Extracted features for ML (pot odds, SPR, aggression metrics, etc.)
+  tags     String[] // ["all-in", "3-bet-pot", "multiway", "short-stack"]
+
+  // Processing metadata
+  processedAt DateTime @default(now())
+
+  // Indexes for efficient AI training queries
+  @@index([gameType, rakeTier]) // Query cash games by rake tier
+  @@index([gameType, stakesTier]) // Query tournaments by stakes tier
+  @@index([site, gameType]) // Query by site and game type
+  @@index([maxPlayers, gameType]) // Query by table size
+  @@index([tags]) // Query by specific scenarios
+  @@map("anonymized_hands")
+}
+
+/// Tracks anonymization job processing status
+/// Ensures idempotent processing and error handling
+model AnonymizationJob {
+  id String @id @default(cuid())
+
+  // Source reference
+  userId              String
+  handHistorySessionId String
+
+  // Job status
+  status      JobStatus @default(PENDING)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+
+  // Results
+  handsProcessed Int @default(0)
+  handsSkipped   Int @default(0) // Duplicates or invalid hands
+  handsFailed    Int @default(0)
+
+  // Error tracking
+  lastError    String?
+  lastErrorAt  DateTime?
+
+  // Timing
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([status, createdAt]) // Query pending/failed jobs
+  @@index([userId]) // Query user's jobs
+  @@map("anonymization_jobs")
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
