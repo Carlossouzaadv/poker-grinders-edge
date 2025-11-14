@@ -173,7 +173,7 @@ function generateMockHand(maxPlayers: number): { handHistory: HandHistory; snaps
 
   const handHistory: HandHistory = {
     handId: `TEST-${maxPlayers}MAX-12345678`,  // Fixed ID to prevent hydration mismatch
-    site: 'TestSite',
+    site: 'Other',
     gameType: "Hold'em",
     limit: 'No Limit',
     stakes: '$0.50/$1.00',
