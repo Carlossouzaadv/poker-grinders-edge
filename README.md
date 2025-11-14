@@ -330,6 +330,19 @@ npm install
 npx prisma generate
 ## =
  Roadmap
+### Infrastructure & Setup (TODO)
+- [ ] **Migrate PostgreSQL to Supabase**
+  - Create Supabase project (https://supabase.com)
+  - Update `DATABASE_URL` in `backend/.env`
+  - Run `npx prisma migrate deploy` to apply schema
+  - Move all data from current PostgreSQL instance
+  - Verify cron jobs still work with Supabase
+  - **Estimated time:** 2-3 hours
+  - **Cost:** Free tier (up to 500MB) → $25/month if exceeds
+  - **Benefits:** Zero-cost managed database, automatic backups, easy scaling
+
+  > **Why Supabase?** PostgreSQL is currently stored locally/external, but needs managed solution for production. Supabase provides free managed PostgreSQL perfect for MVP with data persistence guarantees.
+
 ### Phase 1: MVP Beta (Current)
 - [x] Hand History Parser (PokerStars, GGPoker, PartyPoker)
 - [x] Anonymization System

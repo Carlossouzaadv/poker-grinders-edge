@@ -21,52 +21,61 @@ const geoLocationDetector = {
     // Check if we're in the browser
     if (typeof window === 'undefined') return 'en';
 
-    // Check if already stored in localStorage
-    const stored = localStorage.getItem('i18nextLng');
-    if (stored) return stored;
+    try {
+      // Check if already stored in localStorage
+      const stored = localStorage.getItem('i18nextLng');
+      if (stored) return stored;
 
-    // Detect based on timezone (simple heuristic: Brazil uses Portuguese)
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      // Detect based on timezone (simple heuristic: Brazil uses Portuguese)
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    // Brazilian timezones
-    const brazilianTimezones = [
-      'America/Sao_Paulo',
-      'America/Rio_Branco',
-      'America/Belem',
-      'America/Fortaleza',
-      'America/Recife',
-      'America/Araguaina',
-      'America/Maceio',
-      'America/Bahia',
-      'America/Campo_Grande',
-      'America/Cuiaba',
-      'America/Santarem',
-      'America/Porto_Velho',
-      'America/Boa_Vista',
-      'America/Manaus',
-      'America/Eirunepe',
-      'America/Noronha'
-    ];
+      // Brazilian timezones
+      const brazilianTimezones = [
+        'America/Sao_Paulo',
+        'America/Rio_Branco',
+        'America/Belem',
+        'America/Fortaleza',
+        'America/Recife',
+        'America/Araguaina',
+        'America/Maceio',
+        'America/Bahia',
+        'America/Campo_Grande',
+        'America/Cuiaba',
+        'America/Santarem',
+        'America/Porto_Velho',
+        'America/Boa_Vista',
+        'America/Manaus',
+        'America/Eirunepe',
+        'America/Noronha'
+      ];
 
-    // Check if user is in Brazil based on timezone
-    if (brazilianTimezones.includes(timeZone)) {
-      return 'pt';
-    }
-
-    // Check browser language as fallback
-    if (typeof navigator !== 'undefined') {
-      const browserLang = navigator.language || (navigator as any).userLanguage;
-      if (browserLang?.startsWith('pt')) {
+      // Check if user is in Brazil based on timezone
+      if (brazilianTimezones.includes(timeZone)) {
         return 'pt';
       }
-    }
 
-    // Default to English for rest of the world
-    return 'en';
+      // Check browser language as fallback
+      if (typeof navigator !== 'undefined') {
+        const browserLang = navigator.language || (navigator as any).userLanguage;
+        if (browserLang?.startsWith('pt')) {
+          return 'pt';
+        }
+      }
+
+      // Default to English for rest of the world
+      return 'en';
+    } catch (error) {
+      console.warn('i18n language detection failed:', error);
+      return 'en';
+    }
   },
   cacheUserLanguage(lng: string) {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('i18nextLng', lng);
+      try {
+        localStorage.setItem('i18nextLng', lng);
+      } catch (error) {
+        console.warn('i18n cache failed:', error);
+      }
     }
   }
 };
@@ -75,21 +84,25 @@ const geoLocationDetector = {
 const languageDetector = new LanguageDetector();
 languageDetector.addDetector(geoLocationDetector);
 
-i18n
-  .use(languageDetector)
-  .use(initReactI18next)
-  .init({
-    resources,
-    fallbackLng: 'en',
-    debug: false,
-    interpolation: {
-      escapeValue: false,
-    },
-    detection: {
-      order: ['localStorage', 'geoLocation', 'navigator', 'htmlTag'],
-      lookupLocalStorage: 'i18nextLng',
-      caches: ['localStorage'],
-    },
-  });
+try {
+  i18n
+    .use(languageDetector)
+    .use(initReactI18next)
+    .init({
+      resources,
+      fallbackLng: 'en',
+      debug: false,
+      interpolation: {
+        escapeValue: false,
+      },
+      detection: {
+        order: ['localStorage', 'geoLocation', 'navigator', 'htmlTag'],
+        lookupLocalStorage: 'i18nextLng',
+        caches: ['localStorage'],
+      },
+    });
+} catch (error) {
+  console.error('Failed to initialize i18n:', error);
+}
 
 export default i18n;
