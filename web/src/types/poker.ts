@@ -7,7 +7,7 @@ export interface GameContext {
   readonly isTournament: boolean;
   readonly isCashGame?: boolean; // For cash games
   readonly isHighStakes: boolean;
-  readonly currencyUnit: 'chips' | 'dollars';
+  readonly currencyUnit: 'chips' | 'dollars' | 'euros' | 'pounds';
   readonly conversionNeeded: boolean;
   readonly buyIn?: string; // For tournaments: "$10+$1"
   readonly level?: string;  // For tournaments: "Level V"

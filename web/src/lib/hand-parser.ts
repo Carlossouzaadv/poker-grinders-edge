@@ -102,7 +102,7 @@ export class HandParser {
 
     try {
       // Linha 1: Header com ID da mão - múltiplos formatos suportados
-      let handId: string, gameType: string, limit: string, stakes: string, smallBlind: number, bigBlind: number, tournamentName: string | undefined;
+      let handId: string = '', gameType: string = "Hold'em", limit: string = 'No Limit', stakes: string = 'Unknown', smallBlind: number = 0, bigBlind: number = 0, tournamentName: string | undefined;
       let headerMatch: RegExpMatchArray | null = null;
       let isTournament = false;
       let tournamentId: string | undefined;
@@ -241,7 +241,7 @@ export class HandParser {
 
       // Override currencyUnit based on extracted currency (for cash games)
       if (!isTournament) {
-        const currencyUnitMap: Record<string, 'dollars' | 'euros' | 'pounds'> = {
+        const currencyUnitMap: Record<string, 'chips' | 'dollars' | 'euros' | 'pounds'> = {
           'USD': 'dollars',
           'EUR': 'euros',
           'GBP': 'pounds'
@@ -269,12 +269,16 @@ export class HandParser {
             status = 'sitting_out';
           }
 
+          const seatNumber = parseInt(seat);
+          const buttonNumber = parseInt(String(buttonSeat));
+          const playerPos = HandParser.getPosition(seatNumber, buttonNumber, maxPlayers as number);
+
           players.push({
             name: playerName,
-            position: this.getPosition(parseInt(seat), parseInt(buttonSeat), Number(maxPlayers)),
+            position: playerPos,
             stack: parseFloat(stack),
             isHero: false,
-            seat: parseInt(seat),
+            seat: seatNumber,
             bounty: bounty ? parseFloat(bounty) : undefined,
             status: status
           });
@@ -321,7 +325,7 @@ export class HandParser {
           maxPlayers = players.length;
           // Update positions now that we know maxPlayers
           players.forEach((player, idx) => {
-            player.position = this.getPosition(player.seat, Number(buttonSeat), Number(maxPlayers));
+            (player as any).position = this.getPosition(player.seat || 1, Number(buttonSeat), Number(maxPlayers));
           });
         }
       }
@@ -802,9 +806,9 @@ export class HandParser {
         stakes: stakes, // Use the properly set stakes (tournament name or cash blinds)
         tableName, // Add table name
         tournamentId: tournamentId || undefined, // Include tournament ID if present
-        maxPlayers: parseInt(maxPlayers),
-        buttonSeat: parseInt(buttonSeat),
-        dealerSeat: parseInt(buttonSeat),
+        maxPlayers: parseInt(String(maxPlayers)),
+        buttonSeat: parseInt(String(buttonSeat)),
+        dealerSeat: parseInt(String(buttonSeat)),
         smallBlind,
         bigBlind,
         gameContext, // Add game context to HandHistory
