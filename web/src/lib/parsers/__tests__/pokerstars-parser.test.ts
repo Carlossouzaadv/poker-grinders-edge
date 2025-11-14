@@ -221,6 +221,166 @@ Seat 3: Hero collected ($2.50)`;
     });
   });
 
+  describe('All-In Scenarios', () => {
+    const PS_ALLIN_ACES = `PokerStars Hand #2233445566: Hold'em No Limit ($0.50/$1.00 USD) - 2025/11/14 09:50:00 ET
+Table 'Urania' 6-max Seat #1 is the button
+Seat 1: PlayerA ($100.00 in chips)
+Seat 2: PlayerB ($120.50 in chips)
+Seat 3: PlayerC ($98.00 in chips)
+Seat 4: PlayerD ($205.00 in chips)
+Seat 5: Hero ($100.00 in chips)
+Seat 6: PlayerF ($75.00 in chips)
+PlayerB: posts small blind $0.50
+PlayerC: posts big blind $1.00
+*** HOLE CARDS ***
+Dealt to Hero [Ac As]
+PlayerD: folds
+Hero: raises $2.00 to $3.00
+PlayerF: folds
+PlayerA: folds
+PlayerB: folds
+PlayerC: raises $7.00 to $10.00
+Hero: raises $90.00 to $100.00 and is all-in
+PlayerC: calls $88.00 and is all-in
+Uncalled bet ($2.00) returned to Hero
+*** FLOP *** [Kd 8h 2s]
+*** TURN *** [Kd 8h 2s] [4c]
+*** RIVER *** [Kd 8h 2s 4c] [Js]
+*** SHOW DOWN ***
+PlayerC: shows [Qc Qh] (a pair of Queens)
+Hero: shows [Ac As] (a pair of Aces)
+Hero collected $197.50 from pot
+*** SUMMARY ***
+Total pot $197.50 | Rake $1.50
+Board [Kd 8h 2s 4c Js]
+Seat 1: PlayerA (button) folded before Flop (didn't bet)
+Seat 2: PlayerB (small blind) folded before Flop
+Seat 3: PlayerC (big blind) showed [Qc Qh] and lost with a pair of Queens
+Seat 4: PlayerD folded before Flop (didn't bet)
+Seat 5: Hero showed [Ac As] and won ($197.50) with a pair of Aces
+Seat 6: PlayerF folded before Flop (didn't bet)`;
+
+    const PS_MTT_SIDEPOT = `PokerStars Hand #2233445577: Tournament #123456789, $10+$1 USD Hold'em No Limit - Level IV (100/200) - 2025/11/14 09:55:00 ET
+Table 'Musca' 9-max Seat #3 is the button
+Seat 1: PlayerA ($1500 in chips)
+Seat 2: PlayerB ($5000 in chips)
+Seat 3: PlayerC (BTN) ($8000 in chips)
+Seat 4: PlayerD (SB) ($10000 in chips)
+Seat 5: PlayerE (BB) ($12000 in chips)
+Seat 6: PlayerF ($3000 in chips)
+Seat 7: Hero ($3000 in chips)
+Seat 8: PlayerH ($3000 in chips)
+Seat 9: PlayerI ($3000 in chips)
+PlayerD: posts small blind 100
+PlayerE: posts big blind 200
+*** HOLE CARDS ***
+Dealt to Hero [Jc Jd]
+PlayerF: folds
+Hero: raises 400 to 600
+PlayerH: folds
+PlayerI: folds
+PlayerA: raises 900 to 1500 and is all-in
+PlayerB: calls 1500
+PlayerC: folds
+PlayerD: folds
+PlayerE: folds
+Hero: raises 1500 to 3000 and is all-in
+PlayerB: calls 1500
+*** FLOP *** [Ah 9s 2c]
+*** TURN *** [Ah 9s 2c] [4d]
+*** RIVER *** [Ah 9s 2c 4d] [Kc]
+*** SHOW DOWN ***
+Hero: shows [Jc Jd] (a pair of Jacks)
+PlayerB: shows [Qc Qh] (a pair of Queens)
+PlayerB collected 3000 from side pot
+PlayerA: shows [Ts Tc] (a pair of Tens)
+PlayerB collected 4800 from main pot
+PlayerA finished the tournament in 9th place
+Hero finished the tournament in 8th place
+*** SUMMARY ***
+Total pot 7800 Main pot 4800. Side pot 3000. | Rake 0
+Board [Ah 9s 2c 4d Kc]
+Seat 1: PlayerA (all-in) showed [Ts Tc] and lost with a pair of Tens
+Seat 2: PlayerB showed [Qc Qh] and won (7800) with a pair of Queens
+Seat 3: PlayerC (button) folded before Flop (didn't bet)
+Seat 4: PlayerD (small blind) folded before Flop
+Seat 5: PlayerE (big blind) folded before Flop
+Seat 7: Hero (all-in) showed [Jc Jd] and lost with a pair of Jacks`;
+
+    it('should parse 4-bet all-in with AA vs QQ (Amostra 1)', () => {
+      const result = HandParser.parse(PS_ALLIN_ACES);
+
+      expect(result.success).toBe(true);
+      expect(result.handHistory).toBeDefined();
+
+      const hand = result.handHistory as HandHistory;
+      expect(hand.site).toBe('PokerStars');
+      expect(hand.maxPlayers).toBe(6);
+
+      // Hero has AA
+      const hero = hand.players.find(p => p.name === 'Hero');
+      expect(hero).toBeDefined();
+      expect(hero!.holeCards).toEqual(['Ac', 'As']);
+
+      // Should have showdown
+      const showdownSnap = hand.snapshots.find(s => s.street === 'showdown');
+      expect(showdownSnap).toBeDefined();
+    });
+
+    it('should handle uncalled bet returned to Hero (Amostra 1)', () => {
+      const result = HandParser.parse(PS_ALLIN_ACES);
+      const hand = result.handHistory as HandHistory;
+
+      // Hero should win with AA
+      const hero = hand.players.find(p => p.name === 'Hero');
+      expect(hero).toBeDefined();
+
+      // Total pot should be $197.50 with rake $1.50
+      expect(hand.totalPot).toBe(197.50);
+      expect(hand.rake).toBe(1.50);
+    });
+
+    it('should parse 9-max MTT with side pot (Amostra 2)', () => {
+      const result = HandParser.parse(PS_MTT_SIDEPOT);
+
+      expect(result.success).toBe(true);
+
+      const hand = result.handHistory as HandHistory;
+      expect(hand.site).toBe('PokerStars');
+      expect(hand.maxPlayers).toBe(9);
+      expect(hand.gameContext.isTournament).toBe(true);
+
+      // Tournament details
+      expect(hand.tournamentId).toBe('123456789');
+      expect(hand.smallBlind).toBe(100);
+      expect(hand.bigBlind).toBe(200);
+    });
+
+    it('should create main pot and side pot correctly (Amostra 2)', () => {
+      const result = HandParser.parse(PS_MTT_SIDEPOT);
+      const hand = result.handHistory as HandHistory;
+
+      // Should have showdown with side pots
+      const showdownSnap = hand.snapshots.find(s => s.street === 'showdown');
+      expect(showdownSnap).toBeDefined();
+
+      // Total pot should be 7800 (main: 4800, side: 3000)
+      expect(hand.totalPot).toBe(7800);
+    });
+
+    it('should track tournament eliminations (Amostra 2)', () => {
+      const result = HandParser.parse(PS_MTT_SIDEPOT);
+      const hand = result.handHistory as HandHistory;
+
+      // PlayerA and Hero should be marked as eliminated
+      const playerA = hand.players.find(p => p.name === 'PlayerA');
+      const hero = hand.players.find(p => p.name === 'Hero');
+
+      expect(playerA).toBeDefined();
+      expect(hero).toBeDefined();
+    });
+  });
+
   describe('Spin & Go (3-max Tournament)', () => {
     // TODO: Add Spin & Go hand
     it('should parse Spin & Go format', () => {
