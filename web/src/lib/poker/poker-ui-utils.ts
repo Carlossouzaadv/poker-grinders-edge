@@ -108,11 +108,11 @@ export class PokerUIUtils {
           { left: '50%', bottom: '-2%', transform: 'translateX(-50%)' }, // Player 1 (Hero) - bottom center
           { left: '18%', bottom: '10%', transform: 'none' },             // Player 2 - espelhado do P10 (mesma distância do hero)
           { left: '2%', bottom: '30%', transform: 'none' },              // Player 3 - espelhado do P9 (perfeito)
-          { left: '0%', bottom: '45%', transform: 'none' },              // Player 4 - subir mais
-          { left: '18%', top: '8%', transform: 'none' },                 // Player 5 - mais perto do P6
+          { left: '0%', bottom: '38%', transform: 'none' },              // Player 4 - SUBIR (diminuir bottom)
+          { left: '18%', top: '5%', transform: 'none' },                 // Player 5 - MAIS perto do P6
           { left: '50%', top: '-2%', transform: 'translateX(-50%)' },    // Player 6 - top center (espelhado do Hero)
-          { right: '18%', top: '8%', transform: 'none' },                // Player 7 - mais perto do P6 (espelhado do P5)
-          { right: '0%', bottom: '45%', transform: 'none' },             // Player 8 - subir mais (espelhado do P4)
+          { right: '18%', top: '5%', transform: 'none' },                // Player 7 - MAIS perto do P6 (espelhado do P5)
+          { right: '0%', bottom: '38%', transform: 'none' },             // Player 8 - SUBIR (espelhado do P4)
           { right: '2%', bottom: '30%', transform: 'none' },             // Player 9 - perfeito
           { right: '18%', bottom: '10%', transform: 'none' }             // Player 10 - perfeito
         ];
