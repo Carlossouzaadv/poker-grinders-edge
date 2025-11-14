@@ -426,7 +426,7 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
                   {/* Professional chip display without connecting lines like PokerStars */}
                   <ChipStack
                     valor={chipsToShow}
-                    size="small"
+                    size="medium"
                     showLabel={true}
                     enableRealisticStacking={true}
                   />
