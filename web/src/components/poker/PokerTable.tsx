@@ -216,12 +216,14 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
             {/* Pote Total Consolidado - Empilhamento realista como PokerStars */}
             {potTotal > 0 && snapshot.street !== 'showdown' && (
               <div className="flex flex-col items-center mb-4">
-                <ChipStack
-                  valor={potTotal}
-                  size="small"
-                  showLabel={false}
-                  enableRealisticStacking={true}
-                />
+                <div style={{ transform: 'scale(0.625)', transformOrigin: 'center' }}>
+                  <ChipStack
+                    valor={potTotal}
+                    size="medium"
+                    showLabel={false}
+                    enableRealisticStacking={true}
+                  />
+                </div>
                 <div className="mt-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold px-4 py-2 rounded-full shadow-xl border-2 border-yellow-400">
                   <div className="text-sm">Pote Total: {CurrencyUtils.formatValue(potTotal, handHistory.gameContext?.isTournament)}</div>
                 </div>
@@ -424,12 +426,14 @@ const PokerTable: React.FC<PokerTableProps> = React.memo(({
                   backgroundColor: 'transparent !important'
                 }}>
                   {/* Professional chip display without connecting lines like PokerStars */}
-                  <ChipStack
-                    valor={chipsToShow}
-                    size="small"
-                    showLabel={true}
-                    enableRealisticStacking={true}
-                  />
+                  <div style={{ transform: 'scale(0.625)', transformOrigin: 'center' }}>
+                    <ChipStack
+                      valor={chipsToShow}
+                      size="medium"
+                      showLabel={true}
+                      enableRealisticStacking={true}
+                    />
+                  </div>
                 </div>
               </div>
             );
