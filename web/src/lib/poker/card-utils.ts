@@ -78,4 +78,33 @@ export class CardUtils {
   static cardToString(rank: string, suit: string): string {
     return `${this.getRankDisplay(rank)}${this.getSuitSymbol(suit)}`;
   }
+
+  /**
+   * Converte string (ex: "Ah") para objeto Card
+   */
+  static stringToCard(cardStr: string): import('@/types/poker').Card | null {
+    if (cardStr.length !== 2) return null;
+    const rank = cardStr[0].toUpperCase();
+    const suit = cardStr[1].toLowerCase();
+
+    if (this.isValidRank(rank) && this.isValidSuit(suit)) {
+      return { rank, suit };
+    }
+    return null;
+  }
+
+  /**
+   * Converte string de mão (ex: "AhKs") para array de Cards
+   */
+  static parseCards(handStr: string): import('@/types/poker').Card[] {
+    const cards: import('@/types/poker').Card[] = [];
+    for (let i = 0; i < handStr.length; i += 2) {
+      const cardStr = handStr.slice(i, i + 2);
+      const card = this.stringToCard(cardStr);
+      if (card) {
+        cards.push(card);
+      }
+    }
+    return cards;
+  }
 }

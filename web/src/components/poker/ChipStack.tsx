@@ -6,15 +6,18 @@ interface ChipStackProps {
   size?: 'small' | 'medium' | 'large';
   showLabel?: boolean;
   enableRealisticStacking?: boolean; // Nova prop para empilhamento realista
+  formattedValue?: string; // Optional formatted value string (e.g. "10 BB")
 }
 
 const ChipStack: React.FC<ChipStackProps> = React.memo(({
   valor,
   size = 'medium',
   showLabel = true,
-  enableRealisticStacking = false
+  enableRealisticStacking = false,
+  formattedValue
 }) => {
   const formatarValor = (valor: number): string => {
+    if (formattedValue) return formattedValue;
     if (valor >= 1000) {
       return `${(valor / 1000).toFixed(1)}K`;
     }
@@ -210,7 +213,7 @@ const ChipStack: React.FC<ChipStackProps> = React.memo(({
         </div>
         {showLabel && (
           <div className={`money-label ${labelClass}`} style={{ marginTop: '6px' }}>
-            ${valor}
+            {formattedValue || `$${valor}`}
           </div>
         )}
       </div>
@@ -225,8 +228,8 @@ const ChipStack: React.FC<ChipStackProps> = React.memo(({
   // Professional $50 chip rendering (two stacked $25 chips like PokerStars)
   if (valor === 50) {
     const stackOffset = size === 'small' ? { top: '-1.5px', left: '1px' } :
-                       size === 'medium' ? { top: '-4px', left: '2px' } :
-                       { top: '-6px', left: '3px' };
+      size === 'medium' ? { top: '-4px', left: '2px' } :
+        { top: '-6px', left: '3px' };
 
     return (
       <div style={{
@@ -269,7 +272,7 @@ const ChipStack: React.FC<ChipStackProps> = React.memo(({
         </div>
         {showLabel && (
           <div className={`money-label ${labelClass}`}>
-            ${valor}
+            {formattedValue || `$${valor}`}
           </div>
         )}
       </div>
@@ -290,7 +293,7 @@ const ChipStack: React.FC<ChipStackProps> = React.memo(({
       />
       {showLabel && (
         <div className={`money-label ${labelClass}`}>
-          ${valor}
+          {formattedValue || `$${valor}`}
         </div>
       )}
     </div>

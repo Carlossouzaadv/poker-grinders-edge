@@ -1,0 +1,23 @@
+
+D:\PGE\poker-grinders-edge\web\app\hand-analyzer\new\page.tsx
+   66:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  139:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\PGE\poker-grinders-edge\web\src\components\PokerReplayer.tsx
+  31:11  warning  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\PGE\poker-grinders-edge\web\src\components\poker\PokerTable.tsx
+    3:31  warning  'CardType' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   21:47  error    Component definition is missing display name                                                                                                                                                                                                                                             react/display-name
+   35:24  error    React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                            react-hooks/rules-of-hooks
+   49:29  error    React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                            react-hooks/rules-of-hooks
+   98:35  error    React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                            react-hooks/rules-of-hooks
+   98:57  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  121:26  error    React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?                                                                                                react-hooks/rules-of-hooks
+  204:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  431:17  error    'betAmount' is never reassigned. Use 'const' instead                                                                                                                                                                                                                                     prefer-const
+
+Ô£û 13 problems (10 errors, 3 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

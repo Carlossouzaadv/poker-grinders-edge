@@ -323,4 +323,49 @@
       "copyright": "© 2025 PokerMastery. Todos os direitos reservados."
     }
   }
+,
+
+  "dashboard": {
+    "logout": "Sair",
+    "welcome": "Bem-vindo, {{name}}!",
+    "subtitle": "Pronto para elevar seu jogo? Comece analisando suas mãos.",
+    "availableTools": "Ferramentas Disponíveis",
+    "futureGame": "O Futuro do Seu Jogo",
+    "developmentFeatures": "Funcionalidades em desenvolvimento",
+    "accountInfo": "Informações da Conta",
+    "email": "Email",
+    "phone": "Telefone",
+    "plan": "Plano",
+    "type": "Tipo",
+    "handReplayer": {
+      "title": "Hand Replayer",
+      "available": "DISPONÍVEL",
+      "description": "Analise suas mãos de forma visual e interativa. Cole seu histórico de torneio e reveja cada decisão.",
+      "cta": "Começar Análise"
+    },
+    "sessionHistory": {
+      "title": "Histórico de Sessões",
+      "available": "DISPONÍVEL",
+      "description": "Veja suas sessões anteriores e análises salvas. Acompanhe sua evolução ao longo do tempo."
+    },
+    "comingSoon": {
+      "bankroll": {
+        "title": "Gestor de Bankroll",
+        "description": "Controle total das suas finanças"
+      },
+      "gto": {
+        "title": "Laboratório GTO",
+        "description": "Treine cenários e elimine leaks"
+      },
+      "teams": {
+        "title": "Gestão de Times",
+        "description": "Para coaches profissionais"
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "description": "Encontre coaches de elite"
+      }
+    }
+  }
+  }
 }

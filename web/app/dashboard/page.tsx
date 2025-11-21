@@ -2,19 +2,27 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { t } = useTranslation();
+  const { user, isAuthenticated, logout, _hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (_hasHydrated && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, _hasHydrated, router]);
+
+  if (!_hasHydrated) {
+    return <div className="min-h-screen bg-[#121212] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00FF8C]"></div>
+    </div>;
+  }
 
   if (!isAuthenticated || !user) {
     return null;
@@ -40,7 +48,7 @@ export default function DashboardPage() {
               onClick={handleLogout}
               className="px-4 py-2 bg-transparent border border-[#4C5FD5]/30 hover:border-[#00FF8C] text-[#E0E0E0] hover:text-[#00FF8C] rounded-lg transition-all duration-300 font-open-sans text-sm"
             >
-              Sair
+              {t('dashboard.logout')}
             </button>
           </div>
         </div>
@@ -50,17 +58,17 @@ export default function DashboardPage() {
         {/* Welcome Section */}
         <div className="mb-12">
           <h2 className="font-montserrat text-4xl font-bold text-white mb-2">
-            Bem-vindo, {user.firstName}!
+            {t('dashboard.welcome', { name: user.firstName })}
           </h2>
           <p className="font-open-sans text-lg text-[#E0E0E0]">
-            Pronto para elevar seu jogo? Comece analisando suas mãos.
+            {t('dashboard.subtitle')}
           </p>
         </div>
 
         {/* Quick Actions - Main Feature */}
         <div className="mb-12">
           <h3 className="font-montserrat text-2xl font-semibold text-white mb-6">
-            Ferramentas Disponíveis
+            {t('dashboard.availableTools')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Hand Analyzer Card - Active */}
@@ -77,18 +85,18 @@ export default function DashboardPage() {
                   </div>
                   <div className="ml-4">
                     <h4 className="font-montserrat text-2xl font-bold text-white mb-1">
-                      Hand Replayer
+                      {t('dashboard.handReplayer.title')}
                     </h4>
                     <span className="inline-block bg-[#00FF8C]/20 text-[#00FF8C] px-2 py-1 rounded-full font-montserrat text-xs font-bold">
-                      DISPONÍVEL
+                      {t('dashboard.handReplayer.available')}
                     </span>
                   </div>
                 </div>
                 <p className="font-open-sans text-[#E0E0E0] leading-relaxed mb-6">
-                  Analise suas mãos de forma visual e interativa. Cole seu histórico de torneio e reveja cada decisão.
+                  {t('dashboard.handReplayer.description')}
                 </p>
                 <div className="flex items-center text-[#00FF8C] font-open-sans font-semibold group-hover:translate-x-2 transition-transform">
-                  Começar Análise
+                  {t('dashboard.handReplayer.cta')}
                   <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -103,22 +111,22 @@ export default function DashboardPage() {
                   <div className="relative w-16 h-16">
                     <Image
                       src="/assets/images/nova id visual/icon-session-history.png"
-                      alt="Histórico de Sessões"
+                      alt={t('dashboard.sessionHistory.title')}
                       fill
                       className="object-contain"
                     />
                   </div>
                   <div className="ml-4">
                     <h4 className="font-montserrat text-2xl font-bold text-white mb-1 group-hover:text-[#4C5FD5] transition-colors">
-                      Histórico de Sessões
+                      {t('dashboard.sessionHistory.title')}
                     </h4>
                     <span className="inline-block bg-green-500/20 text-green-400 px-2 py-1 rounded-full font-montserrat text-xs font-bold">
-                      DISPONÍVEL
+                      {t('dashboard.sessionHistory.available')}
                     </span>
                   </div>
                 </div>
                 <p className="font-open-sans text-[#9E9E9E] leading-relaxed">
-                  Veja suas sessões anteriores e análises salvas. Acompanhe sua evolução ao longo do tempo.
+                  {t('dashboard.sessionHistory.description')}
                 </p>
               </div>
             </Link>
@@ -129,10 +137,10 @@ export default function DashboardPage() {
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-montserrat text-2xl font-semibold text-white">
-              O Futuro do Seu Jogo
+              {t('dashboard.futureGame')}
             </h3>
             <span className="font-open-sans text-sm text-[#9E9E9E]">
-              Funcionalidades em desenvolvimento
+              {t('dashboard.developmentFeatures')}
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -147,10 +155,10 @@ export default function DashboardPage() {
                 />
               </div>
               <h4 className="font-montserrat text-lg font-bold text-white text-center mb-2">
-                Gestor de Bankroll
+                {t('dashboard.comingSoon.bankroll.title')}
               </h4>
               <p className="font-open-sans text-xs text-[#9E9E9E] text-center">
-                Controle total das suas finanças
+                {t('dashboard.comingSoon.bankroll.description')}
               </p>
             </div>
 
@@ -165,10 +173,10 @@ export default function DashboardPage() {
                 />
               </div>
               <h4 className="font-montserrat text-lg font-bold text-white text-center mb-2">
-                Laboratório GTO
+                {t('dashboard.comingSoon.gto.title')}
               </h4>
               <p className="font-open-sans text-xs text-[#9E9E9E] text-center">
-                Treine cenários e elimine leaks
+                {t('dashboard.comingSoon.gto.description')}
               </p>
             </div>
 
@@ -183,10 +191,10 @@ export default function DashboardPage() {
                 />
               </div>
               <h4 className="font-montserrat text-lg font-bold text-white text-center mb-2">
-                Gestão de Times
+                {t('dashboard.comingSoon.teams.title')}
               </h4>
               <p className="font-open-sans text-xs text-[#9E9E9E] text-center">
-                Para coaches profissionais
+                {t('dashboard.comingSoon.teams.description')}
               </p>
             </div>
 
@@ -201,10 +209,10 @@ export default function DashboardPage() {
                 />
               </div>
               <h4 className="font-montserrat text-lg font-bold text-white text-center mb-2">
-                Marketplace
+                {t('dashboard.comingSoon.marketplace.title')}
               </h4>
               <p className="font-open-sans text-xs text-[#9E9E9E] text-center">
-                Encontre coaches de elite
+                {t('dashboard.comingSoon.marketplace.description')}
               </p>
             </div>
           </div>
@@ -213,25 +221,25 @@ export default function DashboardPage() {
         {/* Account Info */}
         <div className="rounded-2xl p-8 border border-[rgba(76,95,213,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
           <h3 className="font-montserrat text-2xl font-semibold text-white mb-6">
-            Informações da Conta
+            {t('dashboard.accountInfo')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="rounded-xl p-6 border border-[rgba(76,95,213,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
-              <p className="font-open-sans text-sm text-[#9E9E9E] mb-2">Email</p>
+              <p className="font-open-sans text-sm text-[#9E9E9E] mb-2">{t('dashboard.email')}</p>
               <p className="font-open-sans text-white font-semibold break-all">{user.email}</p>
             </div>
             {user.phone && (
               <div className="rounded-xl p-6 border border-[rgba(76,95,213,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
-                <p className="font-open-sans text-sm text-[#9E9E9E] mb-2">Telefone</p>
+                <p className="font-open-sans text-sm text-[#9E9E9E] mb-2">{t('dashboard.phone')}</p>
                 <p className="font-open-sans text-white font-semibold">{user.phone}</p>
               </div>
             )}
             <div className="rounded-xl p-6 border border-[rgba(76,95,213,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
-              <p className="font-open-sans text-sm text-[#9E9E9E] mb-2">Plano</p>
+              <p className="font-open-sans text-sm text-[#9E9E9E] mb-2">{t('dashboard.plan')}</p>
               <p className="font-montserrat text-xl text-[#00FF8C] font-bold">{user.plan || 'FREE'}</p>
             </div>
             <div className="rounded-xl p-6 border border-[rgba(76,95,213,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
-              <p className="font-open-sans text-sm text-[#9E9E9E] mb-2">Tipo</p>
+              <p className="font-open-sans text-sm text-[#9E9E9E] mb-2">{t('dashboard.type')}</p>
               <p className="font-open-sans text-white font-semibold">{user.userType || 'PLAYER'}</p>
             </div>
           </div>

@@ -14,6 +14,8 @@ interface PokerReplayerProps {
   currentHandIndex?: number;
   onPreviousHand?: () => void;
   onNextHand?: () => void;
+  onFirstHand?: () => void;
+  onLastHand?: () => void;
 }
 
 const PokerReplayer: React.FC<PokerReplayerProps> = ({
@@ -22,12 +24,15 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
   allHandsCount = 1,
   currentHandIndex = 0,
   onPreviousHand,
-  onNextHand
+  onNextHand,
+  onFirstHand,
+  onLastHand
 }) => {
   const { t } = useTranslation();
   const [currentSnapshotIndex, setCurrentSnapshotIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
+  const [displayMode, setDisplayMode] = useState<'chips' | 'bb'>('chips');
 
   // Generate snapshots when handHistory changes
   useEffect(() => {
@@ -133,7 +138,7 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
     };
   }, []);
 
-  const currentDescription = currentSnapshot ? currentSnapshot.description : 'Aguardando início da mão';
+  const currentDescription = currentSnapshot ? currentSnapshot.description : t('replayer.waitingStart', 'Aguardando início da mão');
 
   // Get final snapshot for HandSummary
   const finalSnapshot = snapshots[snapshots.length - 1] || currentSnapshot;
@@ -156,13 +161,14 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
       <div className="flex flex-col lg:flex-row gap-6">
 
         {/* Seção Esquerda: Mesa + Equity/Notas */}
-        <div className="w-full lg:flex-[3] space-y-6">
+        <div className="w-full lg:flex-[4] space-y-6">
           {/* Mesa de Poker */}
           {currentSnapshot && (
             <PokerTable
               handHistory={handHistory}
               snapshot={currentSnapshot}
               showAllCards={false}
+              displayMode={displayMode}
             />
           )}
 
@@ -173,9 +179,30 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
         {/* Seção Direita: Controles */}
         <div className="w-full lg:flex-1 lg:max-w-xs flex flex-col space-y-3 lg:sticky lg:top-4">
 
+          {/* Display Mode Toggle */}
+          <div className="bg-black/70 backdrop-blur-md rounded-xl p-3 border border-gray-600/50 shadow-xl flex justify-between items-center">
+            <span className="text-gray-300 text-sm font-medium">{t('displayMode', 'Display Mode')}</span>
+            <div className="flex bg-gray-800 rounded-lg p-1">
+              <button
+                onClick={() => setDisplayMode('chips')}
+                className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${displayMode === 'chips' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-white'
+                  }`}
+              >
+                {t('chips', 'Chips')}
+              </button>
+              <button
+                onClick={() => setDisplayMode('bb')}
+                className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${displayMode === 'bb' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-white'
+                  }`}
+              >
+                {t('bb', 'BB')}
+              </button>
+            </div>
+          </div>
+
           {/* Controles de Reprodução */}
           <div className="bg-black/70 backdrop-blur-md rounded-xl p-3 border border-gray-600/50 shadow-xl">
-            <h3 className="text-white font-bold mb-2 text-center text-sm">Controles</h3>
+            <h3 className="text-white font-bold mb-2 text-center text-sm">{t('controls', 'Controls')}</h3>
 
             {/* Botões de controle */}
             <div className="flex items-center justify-center space-x-2 mb-3">
@@ -183,7 +210,7 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
                 onClick={handlePrevious}
                 disabled={!canGoPrevious}
                 className="w-10 h-10 rounded-full bg-gray-700/80 hover:bg-gray-600 text-white disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
-                title="Anterior"
+                title={t('previous', 'Previous')}
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -192,12 +219,11 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
 
               <button
                 onClick={handlePlay}
-                className={`w-12 h-12 rounded-full text-white font-bold transition-all shadow-lg flex items-center justify-center ${
-                  isPlaying
+                className={`w-12 h-12 rounded-full text-white font-bold transition-all shadow-lg flex items-center justify-center ${isPlaying
                     ? 'bg-red-600 hover:bg-red-700 shadow-red-600/30'
                     : 'bg-green-600 hover:bg-green-700 shadow-green-600/30'
-                }`}
-                title={isPlaying ? 'Pausar' : 'Reproduzir'}
+                  }`}
+                title={isPlaying ? t('pause', 'Pause') : t('play', 'Play')}
               >
                 {isPlaying ? (
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -214,7 +240,7 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
                 onClick={handleNext}
                 disabled={!canGoNext}
                 className="w-10 h-10 rounded-full bg-gray-700/80 hover:bg-gray-600 text-white disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
-                title="Próximo"
+                title={t('next', 'Next')}
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -225,17 +251,17 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
             {/* Informações do progresso */}
             <div className="text-center">
               <div className="text-white font-semibold text-xs mb-0.5">
-                Snapshot {currentSnapshotIndex + 1} / {snapshots.length}
+                {t('snapshot', 'Snapshot')} {currentSnapshotIndex + 1} / {snapshots.length}
               </div>
               <div className="text-gray-400 text-[10px] capitalize">
-                {currentSnapshot?.street || 'preflop'}
+                {t(`streets.${currentSnapshot?.street || 'preflop'}`)}
               </div>
             </div>
           </div>
 
           {/* Street Navigation */}
           <div className="bg-black/60 backdrop-blur-md rounded-xl p-3 border border-gray-600/50 shadow-xl">
-            <h3 className="text-white font-bold mb-2 text-center text-sm">Navegação por Street</h3>
+            <h3 className="text-white font-bold mb-2 text-center text-sm">{t('streetNavigation', 'Street Navigation')}</h3>
             <div className="flex flex-col space-y-1.5">
               {(['preflop', 'flop', 'turn', 'river', 'showdown'] as const).map((street) => {
                 const isAvailable = street === 'preflop' ||
@@ -248,15 +274,14 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
                     key={street}
                     onClick={() => isAvailable && jumpToStreet(street)}
                     disabled={!isAvailable}
-                    className={`px-2 py-1.5 rounded-lg font-medium transition-all w-full text-xs capitalize ${
-                      isCurrentStreet
+                    className={`px-2 py-1.5 rounded-lg font-medium transition-all w-full text-xs capitalize ${isCurrentStreet
                         ? 'bg-green-600 text-white shadow-lg'
                         : isAvailable
                           ? 'bg-gray-700/70 text-gray-200 hover:bg-gray-600/70 hover:text-white cursor-pointer'
                           : 'bg-gray-800/50 text-gray-500 cursor-not-allowed opacity-50'
-                    }`}
+                      }`}
                   >
-                    {street}
+                    {t(`streets.${street}`)}
                   </button>
                 );
               })}
@@ -266,23 +291,29 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
           {/* Navegação entre Mãos (aparece apenas se há múltiplas mãos) */}
           {allHandsCount > 1 && (
             <div className="bg-black/60 backdrop-blur-md rounded-xl p-3 border border-gray-600/50 shadow-xl">
-              <h3 className="text-white font-bold mb-2 text-center text-sm">Navegação de Mãos</h3>
+              <h3 className="text-white font-bold mb-2 text-center text-sm">{t('handNavigation', 'Hand Navigation')}</h3>
 
-              <div className="flex items-center justify-center space-x-2 mb-2">
+              <div className="flex items-center justify-between space-x-1 mb-2">
+                <button
+                  onClick={onFirstHand}
+                  disabled={currentHandIndex === 0}
+                  className="p-2 rounded-lg bg-gray-700/80 hover:bg-gray-600 text-white disabled:opacity-50 text-xs"
+                  title={t('firstHand', 'First Hand')}
+                >
+                  |&lt;
+                </button>
                 <button
                   onClick={onPreviousHand}
                   disabled={currentHandIndex === 0}
-                  className="w-9 h-9 rounded-full bg-gray-700/80 hover:bg-gray-600 text-white disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
-                  title="Mão Anterior"
+                  className="p-2 rounded-lg bg-gray-700/80 hover:bg-gray-600 text-white disabled:opacity-50 text-xs"
+                  title={t('previousHand', 'Previous Hand')}
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z" />
-                  </svg>
+                  &lt;
                 </button>
 
                 <div className="text-center flex-1">
                   <div className="text-white font-semibold text-xs">
-                    Mão {currentHandIndex + 1}/{allHandsCount}
+                    {t('hand', 'Hand')} {currentHandIndex + 1}/{allHandsCount}
                   </div>
                   <div className="text-gray-400 text-[10px] truncate">
                     {handHistory?.handId}
@@ -292,24 +323,20 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
                 <button
                   onClick={onNextHand}
                   disabled={currentHandIndex === allHandsCount - 1}
-                  className="w-9 h-9 rounded-full bg-gray-700/80 hover:bg-gray-600 text-white disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
-                  title="Próxima Mão"
+                  className="p-2 rounded-lg bg-gray-700/80 hover:bg-gray-600 text-white disabled:opacity-50 text-xs"
+                  title={t('nextHand', 'Next Hand')}
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z" />
-                  </svg>
+                  &gt;
+                </button>
+                <button
+                  onClick={onLastHand}
+                  disabled={currentHandIndex === allHandsCount - 1}
+                  className="p-2 rounded-lg bg-gray-700/80 hover:bg-gray-600 text-white disabled:opacity-50 text-xs"
+                  title={t('lastHand', 'Last Hand')}
+                >
+                  &gt;|
                 </button>
               </div>
-            </div>
-          )}
-
-          {/* Hand Summary */}
-          {finalSnapshot && (
-            <div className="bg-black/60 backdrop-blur-md rounded-xl p-3 border border-gray-600/50 shadow-xl">
-              <HandSummary
-                handHistory={handHistory}
-                finalSnapshot={finalSnapshot}
-              />
             </div>
           )}
 
@@ -317,17 +344,26 @@ const PokerReplayer: React.FC<PokerReplayerProps> = ({
           {onNewHand && (
             <button
               onClick={onNewHand}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-2.5 px-3 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-2"
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-bold shadow-lg transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center space-x-2"
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+              <span>{t('newHand', 'New Hand')}</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              <span className="text-xs">Nova Mão</span>
             </button>
           )}
         </div>
-
       </div>
+
+      {/* Hand Summary (Resultados) */}
+      {finalSnapshot && (
+        <div className="mt-8">
+          <HandSummary
+            handHistory={handHistory}
+            finalSnapshot={finalSnapshot}
+          />
+        </div>
+      )}
     </div>
   );
 };

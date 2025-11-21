@@ -13,6 +13,8 @@ interface PlayerSeatProps {
   isShowdown?: boolean;
   lastAction?: string; // Add action display support
   isTournament?: boolean; // Add tournament detection
+  formattedStack?: string; // Optional formatted stack string (e.g. "25 BB")
+  formattedBounty?: string; // Optional formatted bounty string
 }
 
 const PlayerSeat: React.FC<PlayerSeatProps> = React.memo(({
@@ -24,31 +26,31 @@ const PlayerSeat: React.FC<PlayerSeatProps> = React.memo(({
   isWinner = false,
   isShowdown = false,
   lastAction,
-  isTournament = false
+  isTournament = false,
+  formattedStack,
+  formattedBounty
 }) => {
   return (
-    <div className={`seat-pod relative flex flex-col items-center transition-all duration-500 ${
-      hasFolded
+    <div className={`seat-pod relative flex flex-col items-center transition-all duration-500 ${hasFolded
         ? 'opacity-40 filter grayscale-[80%]'
         : isShowdown && !isWinner
-        ? 'opacity-60 filter grayscale-[50%] brightness-75'
-        : isShowdown && isWinner
-        ? 'opacity-100 filter drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]'
-        : 'opacity-100'
-    }`} style={{ fontFamily: 'Roboto, sans-serif' }}>
+          ? 'opacity-60 filter grayscale-[50%] brightness-75'
+          : isShowdown && isWinner
+            ? 'opacity-100 filter drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]'
+            : 'opacity-100'
+      }`} style={{ fontFamily: 'Roboto, sans-serif' }}>
 
       {/* Seat Chrome - CSS-only styling */}
       <div className="seat-chrome relative">
         <div
-          className={`relative rounded-xl shadow-lg transition-all duration-500 ${
-            isShowdown && isWinner
+          className={`relative rounded-xl shadow-lg transition-all duration-500 ${isShowdown && isWinner
               ? 'bg-gradient-to-b from-yellow-600/30 to-yellow-800/30 border-3 border-yellow-400 shadow-[0_0_20px_rgba(255,215,0,0.4)]'
               : isActive
-              ? 'bg-gradient-to-b from-yellow-600/20 to-yellow-800/20 border-2 border-yellow-400/50'
-              : player.isHero
-                ? 'bg-gradient-to-b from-blue-600/20 to-blue-800/20 border-2 border-blue-400/50'
-                : 'bg-gradient-to-b from-gray-700/80 to-gray-800/80 border-2 border-gray-600/50'
-          }`}
+                ? 'bg-gradient-to-b from-yellow-600/20 to-yellow-800/20 border-2 border-yellow-400/50'
+                : player.isHero
+                  ? 'bg-gradient-to-b from-blue-600/20 to-blue-800/20 border-2 border-blue-400/50'
+                  : 'bg-gradient-to-b from-gray-700/80 to-gray-800/80 border-2 border-gray-600/50'
+            }`}
           style={{
             width: '120px',
             minHeight: '80px',
@@ -65,14 +67,12 @@ const PlayerSeat: React.FC<PlayerSeatProps> = React.memo(({
           <div className="p-2 flex flex-col items-center">
             {/* Nome do jogador */}
             <div className="text-center mb-2">
-              <div className={`px-2 py-1 rounded-md backdrop-blur-sm ${
-                player.isHero
+              <div className={`px-2 py-1 rounded-md backdrop-blur-sm ${player.isHero
                   ? 'bg-blue-500/20 border border-blue-400/30'
                   : 'bg-gray-500/20 border border-gray-400/30'
-              }`}>
-                <div className={`font-medium text-xs tracking-wide ${
-                  player.isHero ? 'text-blue-200' : 'text-gray-100'
                 }`}>
+                <div className={`font-medium text-xs tracking-wide ${player.isHero ? 'text-blue-200' : 'text-gray-100'
+                  }`}>
                   {player.name}
                 </div>
                 {player.isHero && (
@@ -122,7 +122,7 @@ const PlayerSeat: React.FC<PlayerSeatProps> = React.memo(({
             <div className="text-center mb-1">
               <div className="px-2 py-1 rounded-md bg-green-500/20 border border-green-400/30 backdrop-blur-sm">
                 <div className="text-xs text-green-300 font-medium">
-                  {CurrencyUtils.formatValue(Math.round(player.stack), isTournament)}
+                  {formattedStack || CurrencyUtils.formatValue(Math.round(player.stack), isTournament)}
                 </div>
               </div>
             </div>
@@ -132,7 +132,7 @@ const PlayerSeat: React.FC<PlayerSeatProps> = React.memo(({
               <div className="text-center mb-1">
                 <div className="px-2 py-1 rounded-md bg-yellow-500/20 border border-yellow-400/30 backdrop-blur-sm">
                   <div className="text-xs text-yellow-300 font-medium">
-                    🎯 {CurrencyUtils.formatValue(Math.round(player.bounty), isTournament)}
+                    🎯 {formattedBounty || CurrencyUtils.formatValue(Math.round(player.bounty), isTournament)}
                   </div>
                 </div>
               </div>
