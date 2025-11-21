@@ -322,9 +322,7 @@
       "emailPlaceholder": "Seu e-mail",
       "copyright": "© 2025 PokerMastery. Todos os direitos reservados."
     }
-  }
-,
-
+  },
   "dashboard": {
     "logout": "Sair",
     "welcome": "Bem-vindo, {{name}}!",
@@ -366,6 +364,5 @@
         "description": "Encontre coaches de elite"
       }
     }
-  }
   }
 }
