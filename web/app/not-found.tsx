@@ -1,7 +1,12 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
 
 export default function NotFound() {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-[#121212] flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl w-full text-center">
