@@ -19,7 +19,7 @@ export const blogPosts: BlogPost[] = [
     date: '2025-09-30',
     category: 'Estratégia',
     readTime: '5 min',
-    author: 'Poker Grinder\'s Edge Team',
+    author: 'PokerMastery Team',
     content: `
 # Os 5 Maiores Leaks de Jogadores de Torneio
 
@@ -112,7 +112,7 @@ Revise todas as suas mãos com call no button vs SB. Filtre por tag "Button Defe
     date: '2025-09-25',
     category: 'Bankroll',
     readTime: '8 min',
-    author: 'Poker Grinder\'s Edge Team',
+    author: 'PokerMastery Team',
     content: `
 # Como Fazer uma Gestão de Bankroll Profissional
 
@@ -216,7 +216,7 @@ Isso se chama "Bankroll Fantasma". Se você não pode perder o dinheiro atual, n
 
 ## Prepare-se: Gestor de Bankroll Chegando
 
-Em breve, o **Poker Grinder's Edge** terá um módulo completo de Gestão de Bankroll com:
+Em breve, o **PokerMastery** terá um módulo completo de Gestão de Bankroll com:
 
 - 📊 **Tracking automático** de sessões
 - 📈 **Gráficos de crescimento** do bankroll
@@ -266,7 +266,7 @@ Profissionais respeitam o roll. Amadores vão broke.
     date: '2025-09-20',
     category: 'GTO',
     readTime: '6 min',
-    author: 'Poker Grinder\'s Edge Team',
+    author: 'PokerMastery Team',
     content: `
 # GTO vs Exploitativo: Qual Estratégia Usar?
 

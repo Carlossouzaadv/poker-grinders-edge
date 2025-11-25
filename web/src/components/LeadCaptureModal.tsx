@@ -50,7 +50,7 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose }) 
                 {t('leadCapture.title')}
               </h3>
               <p className="text-lg text-gray-700 leading-relaxed">
-                {t('leadCapture.subtitle')} <span className="font-bold text-purple-600">Poker Grinder's Edge</span> completo.
+                {t('leadCapture.subtitle')} <span className="font-bold text-purple-600">PokerMastery</span> completo.
                 <br />
                 <span className="text-green-600 font-semibold">{t('leadCapture.description')}</span>
               </p>

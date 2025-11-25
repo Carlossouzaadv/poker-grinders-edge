@@ -60,7 +60,7 @@ export const ProfileScreen: React.FC = () => {
               🚀 Upgrade para PRO
             </Text>
             <Text className="text-poker-gray-300 text-sm mb-3">
-              Desbloqueie todos os recursos do Poker Grinder's Edge
+              Desbloqueie todos os recursos do PokerMastery
             </Text>
 
             <Button

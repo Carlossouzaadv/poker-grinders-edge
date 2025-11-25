@@ -378,6 +378,11 @@
       "registerButton": "Create Account",
       "alreadyHaveAccount": "Already have an account?",
       "loginLink": "Sign in here",
+      "firstNamePlaceholder": "John",
+      "lastNamePlaceholder": "Smith",
+      "emailPlaceholder": "your@email.com",
+      "phonePlaceholder": "+1 555-123-4567",
+      "passwordPlaceholder": "Create a strong password",
       "validation": {
         "firstNameRequired": "First name must be at least 2 characters",
         "lastNameRequired": "Last name must be at least 2 characters",
@@ -386,17 +391,22 @@
         "passwordStrength": "Password must contain uppercase, lowercase, number and special character (@$!%*?&)",
         "errorCreatingAccount": "Error creating account. Please try again."
       },
-      "success": "Account created successfully!"
+      "success": "Account created successfully!",
+      "loading": "Loading..."
     },
     "login": {
       "title": "Sign In",
       "subtitle": "Welcome back! Continue analyzing your hands.",
       "email": "Email",
       "password": "Password",
+      "rememberMe": "Keep me signed in",
+      "emailPlaceholder": "your@email.com",
+      "passwordPlaceholder": "Your password",
       "loginButton": "Sign In",
       "forgotPassword": "Forgot password?",
       "noAccount": "Don't have an account?",
       "registerLink": "Sign up here",
+      "loading": "Loading...",
       "validation": {
         "emailInvalid": "Invalid email",
         "passwordRequired": "Password is required",
@@ -405,6 +415,17 @@
     }
   },
   "pages": {
+    "register": {
+      "title": "The Future of Your Performance",
+      "subtitle": "Create your account and start your journey to transform your data into mastery.",
+      "brandTitle": "PokerMastery",
+      "benefits": [
+        "Make decisions with GTO precision",
+        "Manage your bankroll like an elite professional",
+        "Find your leaks before they cost money",
+        "Get the edge others don't see"
+      ]
+    },
     "login": {
       "title": "Sign In to Your Account",
       "subtitle": "Sign in to your account and continue your journey to transform your data into mastery.",

@@ -30,7 +30,7 @@ export const LoginScreen: React.FC = () => {
     <View className="flex-1 bg-white px-6 justify-center">
       <View className="mb-8">
         <Text className="text-3xl font-bold text-center text-gray-900 mb-2">
-          Poker Grinder's Edge
+          PokerMastery
         </Text>
         <Text className="text-center text-gray-600">
           Seu companheiro definitivo no poker

@@ -1,6 +1,6 @@
-# API Reference - Poker Grinder's Edge
+# API Reference - PokerMastery
 
-Complete API documentation for the Poker Grinder's Edge NestJS backend. This RESTful API provides endpoints for authentication, session management, hand history analysis, and more.
+Complete API documentation for the PokerMastery NestJS backend. This RESTful API provides endpoints for authentication, session management, hand history analysis, and more.
 
 ## Table of Contents
 

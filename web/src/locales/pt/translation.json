@@ -378,6 +378,11 @@
       "registerButton": "Criar Conta",
       "alreadyHaveAccount": "Já tem uma conta?",
       "loginLink": "Entre aqui",
+      "firstNamePlaceholder": "João",
+      "lastNamePlaceholder": "Silva",
+      "emailPlaceholder": "seu@email.com",
+      "phonePlaceholder": "+55 11 98765-4321",
+      "passwordPlaceholder": "Crie uma senha forte",
       "validation": {
         "firstNameRequired": "Nome deve ter pelo menos 2 caracteres",
         "lastNameRequired": "Sobrenome deve ter pelo menos 2 caracteres",
@@ -386,17 +391,22 @@
         "passwordStrength": "Senha deve conter maiúscula, minúscula, número e caractere especial (@$!%*?&)",
         "errorCreatingAccount": "Erro ao criar conta. Tente novamente."
       },
-      "success": "Conta criada com sucesso!"
+      "success": "Conta criada com sucesso!",
+      "loading": "Carregando..."
     },
     "login": {
       "title": "Fazer Login",
       "subtitle": "Bem-vindo de volta! Continue analisando suas mãos.",
       "email": "Email",
       "password": "Senha",
+      "rememberMe": "Manter-me conectado",
+      "emailPlaceholder": "seu@email.com",
+      "passwordPlaceholder": "Sua senha",
       "loginButton": "Entrar",
       "forgotPassword": "Esqueceu a senha?",
       "noAccount": "Não tem uma conta?",
       "registerLink": "Cadastre-se aqui",
+      "loading": "Carregando...",
       "validation": {
         "emailInvalid": "Email inválido",
         "passwordRequired": "Senha é obrigatória",
@@ -405,6 +415,17 @@
     }
   },
   "pages": {
+    "register": {
+      "title": "O Futuro da Sua Performance",
+      "subtitle": "Crie sua conta e comece a jornada para transformar seus dados em domínio.",
+      "brandTitle": "PokerMastery",
+      "benefits": [
+        "Tome decisões com a precisão do GTO",
+        "Gerencie seu bankroll como um profissional de elite",
+        "Encontre seus leaks antes que eles custem dinheiro",
+        "Acesse a vantagem que os outros não veem"
+      ]
+    },
     "login": {
       "title": "Entrar na Sua Conta",
       "subtitle": "Entre na sua conta e continue a jornada para transformar seus dados em domínio.",

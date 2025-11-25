@@ -10,7 +10,7 @@
 
 ### **PHASE 1: COMPLETE REBRANDING** ✅
 
-All instances of "Poker Grinder's Edge" have been updated to "PokerMastery":
+All instances of "PokerMastery" have been updated to "PokerMastery":
 
 #### Translation Files ✅
 - ✅ `/web/src/locales/pt/translation.json` - Updated (8 instances)

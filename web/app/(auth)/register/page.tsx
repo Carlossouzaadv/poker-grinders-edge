@@ -80,56 +80,28 @@ export default function RegisterPage() {
         <div className="relative z-10 flex flex-col justify-center px-12 py-12">
           <Link href="/" className="mb-8">
             <h1 className="font-montserrat text-4xl font-bold text-white">
-              Poker Grinder's Edge
+              PokerMastery
             </h1>
           </Link>
           <h2 className="font-montserrat text-3xl font-bold text-white mb-4">
-            O Futuro da Sua Performance.
+            {t('pages.register.title')}
           </h2>
           <p className="font-open-sans text-lg text-[#E0E0E0] leading-relaxed mb-8">
-            Crie sua conta e comece a jornada para transformar seus dados em domínio.
+            {t('pages.register.subtitle')}
           </p>
           <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-[#00FF8C]/20 flex items-center justify-center flex-shrink-0 mt-1">
-                <svg className="w-4 h-4 text-[#00FF8C]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+            {(t('pages.register.benefits', { returnObjects: true }) as string[]).map((benefit: string, idx: number) => (
+              <div key={idx} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-[#00FF8C]/20 flex items-center justify-center flex-shrink-0 mt-1">
+                  <svg className="w-4 h-4 text-[#00FF8C]" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <p className="font-open-sans text-[#E0E0E0]">
+                  {benefit}
+                </p>
               </div>
-              <p className="font-open-sans text-[#E0E0E0]">
-                Tome decisões com a precisão do GTO.
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-[#00FF8C]/20 flex items-center justify-center flex-shrink-0 mt-1">
-                <svg className="w-4 h-4 text-[#00FF8C]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <p className="font-open-sans text-[#E0E0E0]">
-                Gerencie seu bankroll como um profissional de elite.
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-[#00FF8C]/20 flex items-center justify-center flex-shrink-0 mt-1">
-                <svg className="w-4 h-4 text-[#00FF8C]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <p className="font-open-sans text-[#E0E0E0]">
-                Encontre seus leaks antes que eles custem dinheiro.
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-[#00FF8C]/20 flex items-center justify-center flex-shrink-0 mt-1">
-                <svg className="w-4 h-4 text-[#00FF8C]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <p className="font-open-sans text-[#E0E0E0]">
-                Acesse a vantagem que os outros não veem.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -141,7 +113,7 @@ export default function RegisterPage() {
           <div className="lg:hidden text-center mb-8">
             <Link href="/">
               <h1 className="font-montserrat text-3xl font-bold text-white">
-                Poker Grinder's Edge
+                PokerMastery
               </h1>
             </Link>
           </div>
@@ -183,7 +155,7 @@ export default function RegisterPage() {
                     {...register('firstName')}
                     type="text"
                     className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-[#4C5FD5]/30 placeholder-[#9E9E9E] text-white bg-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all sm:text-sm"
-                    placeholder="João"
+                    placeholder={t('auth.register.firstNamePlaceholder')}
                   />
                   {errors.firstName && (
                     <p className="mt-2 font-open-sans text-sm text-red-400">
@@ -200,7 +172,7 @@ export default function RegisterPage() {
                     {...register('lastName')}
                     type="text"
                     className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-[#4C5FD5]/30 placeholder-[#9E9E9E] text-white bg-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all sm:text-sm"
-                    placeholder="Silva"
+                    placeholder={t('auth.register.lastNamePlaceholder')}
                   />
                   {errors.lastName && (
                     <p className="mt-2 font-open-sans text-sm text-red-400">
@@ -219,7 +191,7 @@ export default function RegisterPage() {
                   type="email"
                   autoComplete="email"
                   className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-[#4C5FD5]/30 placeholder-[#9E9E9E] text-white bg-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all sm:text-sm"
-                  placeholder="seu@email.com"
+                  placeholder={t('auth.register.emailPlaceholder')}
                 />
                 {errors.email && (
                   <p className="mt-2 font-open-sans text-sm text-red-400">
@@ -236,7 +208,7 @@ export default function RegisterPage() {
                   {...register('phone')}
                   type="tel"
                   className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-[#4C5FD5]/30 placeholder-[#9E9E9E] text-white bg-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all sm:text-sm"
-                  placeholder="+55 11 98765-4321"
+                  placeholder={t('auth.register.phonePlaceholder')}
                 />
                 {errors.phone && (
                   <p className="mt-2 font-open-sans text-sm text-red-400">
@@ -254,7 +226,7 @@ export default function RegisterPage() {
                   type="password"
                   autoComplete="new-password"
                   className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-[#4C5FD5]/30 placeholder-[#9E9E9E] text-white bg-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all sm:text-sm"
-                  placeholder="Crie uma senha forte"
+                  placeholder={t('auth.register.passwordPlaceholder')}
                 />
                 {errors.password && (
                   <p className="mt-2 font-open-sans text-sm text-red-400">
@@ -279,7 +251,7 @@ export default function RegisterPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Loading...
+                    {t('auth.register.loading')}
                   </span>
                 ) : (
                   t('auth.register.registerButton')

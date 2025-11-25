@@ -156,7 +156,7 @@ poker-grinders-edge/
 │   └── package.json
 │
 └── Docs/                     # Documentation
-    ├── PRD - Poker Grinder's Edge.md
+    ├── PRD - PokerMastery.md
     ├── ARCHITECTURE.md
     ├── TROUBLESHOOTING.md
     ├── TESTING_STRATEGY.md
@@ -172,7 +172,7 @@ poker-grinders-edge/
 
 **Always check these documents first:**
 
-1. **PRD** (`Docs/PRD - Poker Grinder's Edge.md`) - Feature requirements
+1. **PRD** (`Docs/PRD - PokerMastery.md`) - Feature requirements
 2. **ARCHITECTURE.md** - System design and patterns
 3. **DATABASE_SCHEMA.md** - Database structure
 
@@ -728,7 +728,7 @@ Covers cash games, tournaments, and edge cases.
 
 ## Contact & Resources
 
-- **PRD**: `Docs/PRD - Poker Grinder's Edge.md`
+- **PRD**: `Docs/PRD - PokerMastery.md`
 - **Architecture**: `ARCHITECTURE.md`
 - **Troubleshooting**: `Docs/TROUBLESHOOTING.md`
 - **API Docs**: `Docs/API_REFERENCE.md`

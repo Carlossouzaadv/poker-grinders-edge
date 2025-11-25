@@ -1,7 +1,7 @@
 # Known Issues - Test Coverage
 
 **Last Updated**: 2025-10-03
-**Project**: Poker Grinder's Edge - Hand Replayer
+**Project**: PokerMastery - Hand Replayer
 
 ---
 

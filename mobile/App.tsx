@@ -1,5 +1,5 @@
 /**
- * Poker Grinder's Edge - Main App Component
+ * PokerMastery - Main App Component
  * @format
  */
 

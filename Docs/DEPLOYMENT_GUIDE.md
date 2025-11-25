@@ -1,6 +1,6 @@
 # 🚀 Deployment Guide - Vercel + Supabase
 
-**Poker Grinder's Edge - Production Deployment**
+**PokerMastery - Production Deployment**
 
 ---
 

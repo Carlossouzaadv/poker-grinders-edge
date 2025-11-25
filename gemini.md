@@ -15,7 +15,7 @@ The project is currently in the **MVP Release** phase, focusing on the **Hand Re
 **Blocking Items:** Dashboard improvements, Hand Calculator polish.
 
 ### Key Achievements
-- **Rebranding:** Complete rebranding from "Poker Grinder's Edge" to "PokerMastery".
+- **Rebranding:** Complete rebranding from "PokerMastery" to "PokerMastery".
 - **Parsers:** GGPoker parser ~90% coverage.
 - **Testing:** Comprehensive test suite framework created.
 - **Visuals:** Player positioning layout implemented and validated.
@@ -100,7 +100,7 @@ poker-grinders-edge/
 │   │   └── locales/        # i18n translation files
 │
 └── Docs/                     # Documentation
-    ├── PRD - Poker Grinder's Edge.md
+    ├── PRD - PokerMastery.md
     ├── ARCHITECTURE.md
     ├── TROUBLESHOOTING.md
     ├── TESTING_STRATEGY.md

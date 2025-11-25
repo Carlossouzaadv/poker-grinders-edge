@@ -1,6 +1,6 @@
-# Troubleshooting Guide - Poker Grinder's Edge
+# Troubleshooting Guide - PokerMastery
 
-This comprehensive troubleshooting guide covers common issues, debugging strategies, and solutions for the Poker Grinder's Edge application. Use this guide to diagnose and resolve problems efficiently.
+This comprehensive troubleshooting guide covers common issues, debugging strategies, and solutions for the PokerMastery application. Use this guide to diagnose and resolve problems efficiently.
 
 ## Table of Contents
 

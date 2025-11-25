@@ -1,4 +1,4 @@
-# PokerMastery (formerly Poker Grinder's Edge)
+# PokerMastery (formerly PokerMastery)
 > Comprehensive ecosystem for poker players and teams - bankroll management, GTO study, hand analysis, and coaching platform.
 ## <
  Project Vision
@@ -58,7 +58,7 @@ poker-grinders-edge/
  app/api/cron/                    # NEW: Vercel Cron endpoints
  Docs/                    # Documentation
     
- PRD - Poker Grinder's Edge.md
+ PRD - PokerMastery.md
     
  ARCHITECTURE.md
     

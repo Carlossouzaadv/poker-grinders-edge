@@ -41,7 +41,7 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center">
             <Link href="/">
               <h1 className="font-montserrat text-2xl font-bold text-white hover:text-[#00FF8C] transition-colors cursor-pointer">
-                Poker Grinder's Edge
+                PokerMastery
               </h1>
             </Link>
             <button

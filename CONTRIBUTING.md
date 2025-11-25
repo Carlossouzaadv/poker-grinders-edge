@@ -1,6 +1,6 @@
 # Guia de Contribuição
 
-Obrigado por considerar contribuir com o **Poker Grinder's Edge**! Este guia ajudará você a configurar o ambiente de desenvolvimento e entender nossos padrões de código.
+Obrigado por considerar contribuir com o **PokerMastery**! Este guia ajudará você a configurar o ambiente de desenvolvimento e entender nossos padrões de código.
 
 ## 📋 Índice
 
@@ -613,4 +613,4 @@ Espere feedback de mantenedores. Esteja aberto a:
 
 **Obrigado por contribuir!** 🎉
 
-Toda contribuição, grande ou pequena, é muito apreciada e ajuda a tornar o Poker Grinder's Edge melhor para toda a comunidade.
+Toda contribuição, grande ou pequena, é muito apreciada e ajuda a tornar o PokerMastery melhor para toda a comunidade.

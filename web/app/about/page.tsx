@@ -35,7 +35,7 @@ export default function AboutPage() {
           </h2>
           <div className="space-y-6 font-open-sans text-lg text-[#E0E0E0] leading-relaxed">
             <p>
-              O <strong className="text-white">Poker Grinder's Edge</strong> foi criado por jogadores profissionais que entendiam na pele as dificuldades de evoluir no poker moderno. Horas analisando mãos manualmente, dificuldade em identificar padrões, ferramentas caras e complexas que não entregavam o que prometiam.
+              O <strong className="text-white">PokerMastery</strong> foi criado por jogadores profissionais que entendiam na pele as dificuldades de evoluir no poker moderno. Horas analisando mãos manualmente, dificuldade em identificar padrões, ferramentas caras e complexas que não entregavam o que prometiam.
             </p>
             <p>
               Começamos com uma pergunta simples: <em className="text-[#00FF8C]">"E se existisse uma ferramenta que realmente entendesse as necessidades de um grinder?"</em>

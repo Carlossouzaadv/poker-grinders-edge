@@ -1,6 +1,6 @@
-# Testing Strategy - Poker Grinder's Edge
+# Testing Strategy - PokerMastery
 
-This document outlines the comprehensive testing strategy for the Poker Grinder's Edge application. Testing is critical for ensuring the accuracy of financial calculations, hand history parsing, and overall system reliability.
+This document outlines the comprehensive testing strategy for the PokerMastery application. Testing is critical for ensuring the accuracy of financial calculations, hand history parsing, and overall system reliability.
 
 ## Table of Contents
 

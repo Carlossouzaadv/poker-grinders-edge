@@ -52,7 +52,7 @@ export const LoginScreen: React.FC = () => {
         {/* Logo/Title */}
         <View className="items-center mb-8">
           <Text className="text-4xl font-bold text-white mb-2">
-            Poker Grinder's Edge
+            PokerMastery
           </Text>
           <Text className="text-poker-gray-400 text-center">
             Sua ferramenta completa para o poker

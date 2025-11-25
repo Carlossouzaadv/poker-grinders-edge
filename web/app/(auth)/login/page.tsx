@@ -73,7 +73,7 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col justify-center px-12 py-12">
           <Link href="/" className="mb-8">
             <h1 className="font-montserrat text-4xl font-bold text-white">
-              Poker Grinder's Edge
+              PokerMastery
             </h1>
           </Link>
           <h2 className="font-montserrat text-3xl font-bold text-white mb-4">
@@ -106,7 +106,7 @@ export default function LoginPage() {
           <div className="lg:hidden text-center mb-8">
             <Link href="/">
               <h1 className="font-montserrat text-3xl font-bold text-white">
-                Poker Grinder's Edge
+                PokerMastery
               </h1>
             </Link>
           </div>
@@ -141,14 +141,14 @@ export default function LoginPage() {
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block font-open-sans text-sm font-medium text-[#E0E0E0] mb-2">
-                  Email
+                  {t('auth.login.email')}
                 </label>
                 <input
                   {...register('email')}
                   type="email"
                   autoComplete="email"
                   className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-[#4C5FD5]/30 placeholder-[#9E9E9E] text-white bg-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all sm:text-sm"
-                  placeholder="seu@email.com"
+                  placeholder={t('auth.login.emailPlaceholder')}
                 />
                 {errors.email && (
                   <p className="mt-2 font-open-sans text-sm text-red-400">
@@ -159,14 +159,14 @@ export default function LoginPage() {
 
               <div>
                 <label htmlFor="password" className="block font-open-sans text-sm font-medium text-[#E0E0E0] mb-2">
-                  Senha
+                  {t('auth.login.password')}
                 </label>
                 <input
                   {...register('password')}
                   type="password"
                   autoComplete="current-password"
                   className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-[#4C5FD5]/30 placeholder-[#9E9E9E] text-white bg-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all sm:text-sm"
-                  placeholder="Sua senha"
+                  placeholder={t('auth.login.passwordPlaceholder')}
                 />
                 {errors.password && (
                   <p className="mt-2 font-open-sans text-sm text-red-400">
@@ -184,7 +184,7 @@ export default function LoginPage() {
                   className="h-4 w-4 rounded border-[#4C5FD5]/30 bg-[#1a1a1a] text-[#00FF8C] focus:ring-[#00FF8C] focus:ring-offset-[#121212] cursor-pointer"
                 />
                 <label htmlFor="remember-me" className="ml-2 block font-open-sans text-sm text-[#E0E0E0] cursor-pointer">
-                  Manter-me conectado
+                  {t('auth.login.rememberMe')}
                 </label>
               </div>
             </div>
@@ -201,7 +201,7 @@ export default function LoginPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Loading...
+                    {t('auth.login.loading')}
                   </span>
                 ) : (
                   t('auth.login.loginButton')

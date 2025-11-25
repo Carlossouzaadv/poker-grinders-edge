@@ -30,7 +30,7 @@ export const DashboardScreen: React.FC = () => {
           Olá, {user?.name || 'Jogador'}!
         </Text>
         <Text className="text-gray-600 mb-6">
-          Bem-vindo ao Poker Grinder's Edge
+          Bem-vindo ao PokerMastery
         </Text>
 
         {/* Stats Cards */}

@@ -4,6 +4,7 @@ import "./globals.css";
 import "./globals.css";
 import I18nProvider from '@/components/I18nProvider';
 import DevAuth from '@/components/DevAuth';
+import Header from '@/components/Header';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -49,6 +50,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${poppins.variable} ${montserrat.variable} ${openSans.variable} font-sans antialiased`}>
         <I18nProvider>
+          <Header />
           {children}
           <DevAuth />
         </I18nProvider>
