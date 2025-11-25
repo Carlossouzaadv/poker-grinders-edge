@@ -5,31 +5,34 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '@/lib/auth-api';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import Image from 'next/image';
 
-const registerSchema = z.object({
-  firstName: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  lastName: z.string().min(2, 'Sobrenome deve ter pelo menos 2 caracteres'),
-  email: z.string().email('Email inválido'),
-  phone: z.string().optional().or(z.literal('')),
-  password: z
-    .string()
-    .min(8, 'Senha deve ter pelo menos 8 caracteres')
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
-      'Senha deve conter maiúscula, minúscula, número e caractere especial'
-    ),
-});
-
-type RegisterFormData = z.infer<typeof registerSchema>;
-
 export default function RegisterPage() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
+
+  // Create schema dynamically with translations
+  const registerSchema = z.object({
+    firstName: z.string().min(2, t('auth.register.validation.firstNameRequired')),
+    lastName: z.string().min(2, t('auth.register.validation.lastNameRequired')),
+    email: z.string().email(t('auth.register.validation.emailInvalid')),
+    phone: z.string().optional().or(z.literal('')),
+    password: z
+      .string()
+      .min(8, t('auth.register.validation.passwordMinLength'))
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
+        t('auth.register.validation.passwordStrength')
+      ),
+  });
+
+  type RegisterFormData = z.infer<typeof registerSchema>;
 
   const {
     register,
@@ -55,7 +58,7 @@ export default function RegisterPage() {
       router.push('/dashboard');
     } catch (err: any) {
       setError(
-        err.response?.data?.message || 'Erro ao criar conta. Tente novamente.'
+        err.response?.data?.message || t('auth.register.validation.errorCreatingAccount')
       );
     }
   };
@@ -145,15 +148,15 @@ export default function RegisterPage() {
 
           <div>
             <h2 className="font-montserrat text-3xl font-bold text-white">
-              Criar sua conta
+              {t('auth.register.title')}
             </h2>
             <p className="mt-2 font-open-sans text-sm text-[#E0E0E0]">
-              Já tem uma conta?{' '}
+              {t('auth.register.alreadyHaveAccount')}{' '}
               <Link
                 href="/login"
                 className="font-semibold text-[#00FF8C] hover:text-[#00DD7A] transition-colors"
               >
-                Faça login
+                {t('auth.register.loginLink')}
               </Link>
             </p>
           </div>
@@ -174,7 +177,7 @@ export default function RegisterPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="firstName" className="block font-open-sans text-sm font-medium text-[#E0E0E0] mb-2">
-                    Nome
+                    {t('auth.register.firstName')}
                   </label>
                   <input
                     {...register('firstName')}
@@ -191,7 +194,7 @@ export default function RegisterPage() {
 
                 <div>
                   <label htmlFor="lastName" className="block font-open-sans text-sm font-medium text-[#E0E0E0] mb-2">
-                    Sobrenome
+                    {t('auth.register.lastName')}
                   </label>
                   <input
                     {...register('lastName')}
@@ -209,7 +212,7 @@ export default function RegisterPage() {
 
               <div>
                 <label htmlFor="email" className="block font-open-sans text-sm font-medium text-[#E0E0E0] mb-2">
-                  Email
+                  {t('auth.register.email')}
                 </label>
                 <input
                   {...register('email')}
@@ -227,7 +230,7 @@ export default function RegisterPage() {
 
               <div>
                 <label htmlFor="phone" className="block font-open-sans text-sm font-medium text-[#E0E0E0] mb-2">
-                  Celular <span className="text-[#9E9E9E]">(opcional)</span>
+                  {t('auth.register.phone')}
                 </label>
                 <input
                   {...register('phone')}
@@ -244,7 +247,7 @@ export default function RegisterPage() {
 
               <div>
                 <label htmlFor="password" className="block font-open-sans text-sm font-medium text-[#E0E0E0] mb-2">
-                  Senha
+                  {t('auth.register.password')}
                 </label>
                 <input
                   {...register('password')}
@@ -259,7 +262,7 @@ export default function RegisterPage() {
                   </p>
                 )}
                 <p className="mt-2 font-open-sans text-xs text-[#9E9E9E]">
-                  Mínimo 8 caracteres com maiúscula, minúscula, número e caractere especial (@$!%*?&)
+                  {t('auth.register.passwordHint')}
                 </p>
               </div>
             </div>
@@ -276,10 +279,10 @@ export default function RegisterPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Criando conta...
+                    Loading...
                   </span>
                 ) : (
-                  'Criar Conta Gratuita'
+                  t('auth.register.registerButton')
                 )}
               </button>
             </div>
@@ -289,7 +292,7 @@ export default function RegisterPage() {
                 href="/"
                 className="font-open-sans text-sm text-[#E0E0E0] hover:text-[#00FF8C] transition-colors"
               >
-                ← Voltar para a página inicial
+                ← Back to home
               </Link>
             </div>
           </form>

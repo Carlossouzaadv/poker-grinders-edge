@@ -364,5 +364,44 @@
         "description": "Encontre coaches de elite"
       }
     }
+  },
+  "auth": {
+    "register": {
+      "title": "Crie Sua Conta",
+      "subtitle": "Junte-se à revolução do poker. Comece a analisar suas mãos hoje.",
+      "firstName": "Nome",
+      "lastName": "Sobrenome",
+      "email": "Email",
+      "phone": "Telefone (Opcional)",
+      "password": "Senha",
+      "passwordHint": "Deve conter maiúscula, minúscula, número e caractere especial (@$!%*?&)",
+      "registerButton": "Criar Conta",
+      "alreadyHaveAccount": "Já tem uma conta?",
+      "loginLink": "Entre aqui",
+      "validation": {
+        "firstNameRequired": "Nome deve ter pelo menos 2 caracteres",
+        "lastNameRequired": "Sobrenome deve ter pelo menos 2 caracteres",
+        "emailInvalid": "Email inválido",
+        "passwordMinLength": "Senha deve ter pelo menos 8 caracteres",
+        "passwordStrength": "Senha deve conter maiúscula, minúscula, número e caractere especial (@$!%*?&)",
+        "errorCreatingAccount": "Erro ao criar conta. Tente novamente."
+      },
+      "success": "Conta criada com sucesso!"
+    },
+    "login": {
+      "title": "Fazer Login",
+      "subtitle": "Bem-vindo de volta! Continue analisando suas mãos.",
+      "email": "Email",
+      "password": "Senha",
+      "loginButton": "Entrar",
+      "forgotPassword": "Esqueceu a senha?",
+      "noAccount": "Não tem uma conta?",
+      "registerLink": "Cadastre-se aqui",
+      "validation": {
+        "emailInvalid": "Email inválido",
+        "passwordRequired": "Senha é obrigatória",
+        "invalidCredentials": "Email ou senha inválidos"
+      }
+    }
   }
 }

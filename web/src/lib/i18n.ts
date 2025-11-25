@@ -96,7 +96,7 @@ try {
         escapeValue: false,
       },
       detection: {
-        order: ['localStorage', 'navigator', 'htmlTag'],
+        order: ['localStorage'],
         lookupLocalStorage: 'i18nextLng',
         caches: ['localStorage'],
       },

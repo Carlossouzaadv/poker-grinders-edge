@@ -364,5 +364,44 @@
         "description": "Find elite coaches"
       }
     }
+  },
+  "auth": {
+    "register": {
+      "title": "Create Your Account",
+      "subtitle": "Join the poker revolution. Start analyzing your hands today.",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "phone": "Phone (Optional)",
+      "password": "Password",
+      "passwordHint": "Must contain uppercase, lowercase, number and special character (@$!%*?&)",
+      "registerButton": "Create Account",
+      "alreadyHaveAccount": "Already have an account?",
+      "loginLink": "Sign in here",
+      "validation": {
+        "firstNameRequired": "First name must be at least 2 characters",
+        "lastNameRequired": "Last name must be at least 2 characters",
+        "emailInvalid": "Invalid email",
+        "passwordMinLength": "Password must be at least 8 characters",
+        "passwordStrength": "Password must contain uppercase, lowercase, number and special character (@$!%*?&)",
+        "errorCreatingAccount": "Error creating account. Please try again."
+      },
+      "success": "Account created successfully!"
+    },
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Welcome back! Continue analyzing your hands.",
+      "email": "Email",
+      "password": "Password",
+      "loginButton": "Sign In",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Sign up here",
+      "validation": {
+        "emailInvalid": "Invalid email",
+        "passwordRequired": "Password is required",
+        "invalidCredentials": "Invalid email or password"
+      }
+    }
   }
 }
