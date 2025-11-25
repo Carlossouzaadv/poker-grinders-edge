@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { HandParser } from '@/lib/hand-parser';
 import { splitHandHistories } from '@/lib/poker/hand-splitter';
@@ -12,6 +13,7 @@ import { addHandsToSession } from '@/lib/hand-history-api';
 
 export default function HandAnalyzerInputPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuthStore();
   const [handHistoryText, setHandHistoryText] = useState('');
   const [allHands, setAllHands] = useState<HandHistory[]>([]);
@@ -73,7 +75,7 @@ export default function HandAnalyzerInputPage() {
 
   const handleAnalyze = () => {
     if (!handHistoryText.trim()) {
-      alert('Por favor, cole o histórico da mão antes de analisar.');
+      alert(t('pages.handAnalyzer.pleaseInsertHistory'));
       return;
     }
 
@@ -235,7 +237,7 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                <span className="font-open-sans">Voltar ao Dashboard</span>
+                <span className="font-open-sans">{t('pages.handAnalyzer.backToDashboard')}</span>
               </button>
             </Link>
             <h1 className="font-montserrat text-2xl font-bold text-white">
@@ -249,10 +251,10 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h2 className="font-montserrat text-4xl font-bold text-white mb-4">
-            Analise Suas Mãos
+            {t('pages.handAnalyzer.analyzeTitle')}
           </h2>
           <p className="font-open-sans text-lg text-[#E0E0E0] max-w-2xl mx-auto">
-            Cole o histórico do seu torneio e reveja cada decisão de forma visual e interativa.
+            {t('pages.handAnalyzer.analyzeSubtitle')}
           </p>
         </div>
 
@@ -261,19 +263,19 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
           {/* Input Section */}
           <div className="rounded-2xl p-8 border border-[rgba(76,95,213,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
             <h3 className="font-montserrat text-2xl font-semibold text-white mb-6">
-              Histórico de Mãos
+              {t('pages.handAnalyzer.historyTitle')}
             </h3>
             <textarea
               value={handHistoryText}
               onChange={(e) => setHandHistoryText(e.target.value)}
-              placeholder="Cole aqui o histórico do PokerStars, GGPoker ou PartyPoker..."
+              placeholder={t('pages.handAnalyzer.historyPlaceholder')}
               className="w-full h-96 px-4 py-3 bg-[#0a0a0a] border border-[rgba(76,95,213,0.3)] rounded-lg text-white placeholder-[#9E9E9E] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all resize-none font-mono text-sm"
             />
             {error && (
               <div className="mt-4 p-4 bg-red-900/30 border border-red-500/30 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xl">⚠️</span>
-                  <span className="font-open-sans font-semibold text-red-200">Erro ao processar</span>
+                  <span className="font-open-sans font-semibold text-red-200">{t('pages.handAnalyzer.errorTitle')}</span>
                 </div>
                 <p className="font-open-sans text-sm text-red-200">{error}</p>
               </div>
@@ -284,13 +286,13 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
                 disabled={!handHistoryText.trim()}
                 className="flex-1 bg-[#00FF8C] hover:bg-[#00DD7A] text-[#121212] py-4 rounded-lg font-open-sans font-semibold transition-all duration-300 shadow-lg hover:shadow-[0_8px_24px_rgba(0,255,140,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Analisar Mãos
+                {t('pages.handAnalyzer.analyzeButton')}
               </button>
               <button
                 onClick={handleUseExample}
                 className="px-6 py-4 bg-transparent border-2 border-[#00FF8C] text-[#00FF8C] hover:bg-[rgba(0,255,140,0.1)] rounded-lg font-open-sans font-semibold transition-all duration-300"
               >
-                Exemplo
+                {t('pages.handAnalyzer.exampleButton')}
               </button>
             </div>
           </div>
@@ -298,7 +300,7 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
           {/* Preview/Info Section */}
           <div className="rounded-2xl p-8 border border-[rgba(76,95,213,0.2)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
             <h3 className="font-montserrat text-2xl font-semibold text-white mb-6">
-              Como Funciona
+              {t('pages.handAnalyzer.howItWorks')}
             </h3>
             <div className="space-y-6">
               <div className="flex items-start gap-4">
@@ -307,10 +309,10 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
                 </div>
                 <div>
                   <h4 className="font-open-sans font-semibold text-white mb-1">
-                    Copie o Histórico
+                    {t('pages.handAnalyzer.step1Title')}
                   </h4>
                   <p className="font-open-sans text-sm text-[#E0E0E0]">
-                    Abra sua sala de poker e copie o histórico completo do torneio ou mão.
+                    {t('pages.handAnalyzer.step1Desc')}
                   </p>
                 </div>
               </div>
@@ -321,10 +323,10 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
                 </div>
                 <div>
                   <h4 className="font-open-sans font-semibold text-white mb-1">
-                    Cole no Campo
+                    {t('pages.handAnalyzer.step2Title')}
                   </h4>
                   <p className="font-open-sans text-sm text-[#E0E0E0]">
-                    Cole o texto no campo ao lado. O sistema detecta automaticamente o formato.
+                    {t('pages.handAnalyzer.step2Desc')}
                   </p>
                 </div>
               </div>
@@ -335,17 +337,17 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
                 </div>
                 <div>
                   <h4 className="font-open-sans font-semibold text-white mb-1">
-                    Analise Visualmente
+                    {t('pages.handAnalyzer.step3Title')}
                   </h4>
                   <p className="font-open-sans text-sm text-[#E0E0E0]">
-                    Reveja cada street, cada decisão, com visualização clara e interativa.
+                    {t('pages.handAnalyzer.step3Desc')}
                   </p>
                 </div>
               </div>
 
               <div className="mt-8 p-6 bg-[#00FF8C]/10 border border-[#00FF8C]/30 rounded-lg">
                 <h4 className="font-montserrat font-bold text-[#00FF8C] mb-2">
-                  Formatos Suportados
+                  {t('pages.handAnalyzer.supportedFormats')}
                 </h4>
                 <ul className="font-open-sans text-sm text-[#E0E0E0] space-y-1">
                   <li>• PokerStars</li>

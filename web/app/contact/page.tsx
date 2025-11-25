@@ -142,10 +142,10 @@ export default function ContactPage() {
           <div className="space-y-8">
             <div>
               <h2 className="font-montserrat text-3xl font-bold text-white mb-6">
-                Outras Formas de Contato
+                {t('pages.contact.otherWays')}
               </h2>
               <p className="font-open-sans text-[#E0E0E0] leading-relaxed mb-8">
-                Prefere outro canal? Você pode nos encontrar nas redes sociais ou enviar um email direto.
+                {t('pages.contact.otherWaysDesc')}
               </p>
             </div>
 
@@ -209,14 +209,14 @@ export default function ContactPage() {
             {/* FAQ Link */}
             <div className="bg-gradient-to-br from-[#1a1a1a] to-[#121212] p-6 rounded-xl border border-[#4C5FD5]/30">
               <h3 className="font-montserrat text-xl font-bold text-white mb-2">
-                Dúvidas Frequentes?
+                {t('pages.contact.faqTitle')}
               </h3>
               <p className="font-open-sans text-[#E0E0E0] mb-4">
-                Confira nossa página de preços para ver as perguntas mais comuns.
+                {t('pages.contact.faqDesc')}
               </p>
               <Link href="/pricing">
                 <button className="text-[#00FF8C] hover:text-[#00DD7A] font-open-sans font-semibold transition-colors inline-flex items-center gap-2">
-                  Ver FAQ
+                  {t('pages.contact.faqButton')}
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>

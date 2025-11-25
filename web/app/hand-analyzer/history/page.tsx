@@ -132,16 +132,16 @@ export default function HandHistoryPage() {
                 />
               </div>
               <h2 className="font-montserrat text-3xl font-bold text-white mb-3">
-                Nenhuma sessão ainda
+                {t('pages.handAnalyzer.history.noSessions')}
               </h2>
               <p className="font-open-sans text-[#E0E0E0] mb-8 max-w-md mx-auto">
-                Analise suas primeiras mãos para começar seu histórico!
+                {t('pages.handAnalyzer.history.noSessionsDesc')}
               </p>
               <Link
                 href="/hand-analyzer/new"
                 className="inline-block font-open-sans bg-[#00FF8C] hover:bg-[#00DD7A] text-[#121212] px-10 py-4 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-[0_8px_24px_rgba(0,255,140,0.4)] hover:scale-105 transform"
               >
-                Analisar Primeira Mão
+                {t('pages.handAnalyzer.history.analyzeFirstHand')}
               </Link>
             </div>
           ) : (
@@ -164,7 +164,7 @@ export default function HandHistoryPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[#00FF8C]">◆</span>
-                          <span>{session.totalHands} mão{session.totalHands !== 1 ? 's' : ''}</span>
+                          <span>{session.totalHands} {t('pages.handAnalyzer.history.hand', { count: session.totalHands })}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[#00FF8C]">◆</span>
@@ -184,7 +184,7 @@ export default function HandHistoryPage() {
                         href={`/hand-analyzer/session/${session.id}`}
                         className="font-open-sans bg-[#00FF8C] hover:bg-[#00DD7A] text-[#121212] px-6 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-[0_8px_24px_rgba(0,255,140,0.4)] hover:scale-105 transform"
                       >
-                        Ver Mãos
+                        {t('pages.handAnalyzer.history.viewHands')}
                       </Link>
                       <button
                         onClick={() => handleDelete(session.id, session.name)}

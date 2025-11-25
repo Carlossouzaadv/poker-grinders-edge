@@ -473,12 +473,75 @@
     },
     "about": {
       "title": "About PokerMastery",
+      "backToHome": "← Back to home",
+      "ourStory": "Our Story",
+      "introduction": "We were born from the need of players and managers seeking a smarter way to study and manage the game.",
+      "storyContent": "PokerMastery was created by professional players who understood firsthand the difficulties of evolving in modern poker. Hours analyzing hands manually, difficulty identifying patterns, expensive and complex tools that didn't deliver on their promises.",
+      "storyQuestion": "What if there was a tool that really understood the needs of a grinder?",
+      "storyAnswer": "The answer was the Hand Replayer — our first tool, free and powerful. A simple and visual way to review your hands, understand your decisions and share analyses with coaches and teams.",
+      "storyFuture": "But we didn't stop there. The Hand Replayer is just the entry point to a complete ecosystem we're building: intelligent bankroll management, gamified GTO laboratory, platform for coaches and a marketplace that connects players to the best professionals in the market.",
+      "ourMission": "Our Mission",
+      "missionText": "Provide advanced tools and resources for poker players seeking to improve their skills and achieve superior results through data and technology.",
+      "ourVision": "Our Vision",
+      "visionText": "Be the leading and indispensable platform in poker analysis and study, recognized for innovation, accuracy and being the secret weapon of the most dedicated players.",
+      "ourValues": "Our Values",
+      "valuesList": ["Analytical Precision", "Continuous Innovation", "Performance Focus", "Exceptional Design"],
+      "joinOurStory": "Be Part of Our Story",
+      "joinDescription": "We're just getting started. Join us and get early access to everything we're building.",
+      "createFreAccount": "Create Free Account",
+      "contactUs": "Contact Us"
+    },
+    "pricing": {
+      "title": "Plans and Pricing",
+      "subtitle": "Start free with Hand Replayer. More features coming soon.",
+      "free": "Free",
+      "pro": "Pro",
+      "coach": "Coach",
+      "availableNow": "AVAILABLE NOW",
+      "comingSoon": "COMING SOON",
+      "forever": "Forever",
+      "perMonth": "per month",
+      "handReplayerComplete": "Complete Hand Replayer",
+      "unlimitedHandAnalysis": "Unlimited hand analysis",
+      "sessionHistory": "Session history",
+      "shareAnalyses": "Share analyses",
+      "allFreeFeatures": "Everything from Free +",
+      "bankrollManager": "Bankroll Manager",
+      "gtoLab": "GTO Laboratory",
+      "aiLeakDetection": "AI Leak Detection",
+      "allProFeatures": "Everything from Pro +",
+      "teamManagement": "Team Management",
+      "aggregatedDashboard": "Aggregated dashboard",
+      "marketplaceProfile": "Marketplace profile",
+      "startFree": "Start Free",
+      "comingSoonButton": "Coming Soon",
+      "faq": "Frequently Asked Questions",
+      "faq1Question": "Is the Free plan really free forever?",
+      "faq1Answer": "Yes! The Hand Replayer will always be free. When we launch premium features, you'll be able to continue using the Hand Replayer at no cost.",
+      "faq2Question": "When will paid plans be launched?",
+      "faq2Answer": "We're working hard on the complete ecosystem. Sign up now to be notified when we launch and get early access with special discount.",
+      "faq3Question": "Can I cancel anytime?",
+      "faq3Answer": "Yes! When paid plans are launched, you can cancel anytime without penalties or additional fees.",
+      "expandIcon": "Expand",
       "backToHome": "← Back to home"
     },
     "blog": {
       "title": "Blog",
       "backToHome": "← Back to home",
-      "backToBlog": "Back to Blog"
+      "backToBlog": "Back to Blog",
+      "articleNotFound": "Article Not Found",
+      "readMoreArticles": "Read More Articles"
+    },
+    "handAnalyzer": {
+      "pleaseInsertHistory": "Please paste the hand history before analyzing."
+    },
+    "navigation": {
+      "about": "About Us",
+      "pricing": "Pricing",
+      "blog": "Blog",
+      "contact": "Contact",
+      "backToHome": "Back to Home",
+      "newAnalysis": "New Analysis"
     }
   }
 }

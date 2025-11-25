@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import HandReplayer from '@/components/HandReplayer';
 
 export default function HandAnalyzerPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuthStore();
   const [initialHandHistory, setInitialHandHistory] = useState<string>('');
 
@@ -44,7 +46,7 @@ export default function HandAnalyzerPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                <span className="font-open-sans">Nova Análise</span>
+                <span className="font-open-sans">{t('pages.handAnalyzer.newAnalysis')}</span>
               </button>
             </Link>
             <Link href="/dashboard">

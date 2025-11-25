@@ -473,12 +473,75 @@
     },
     "about": {
       "title": "Sobre PokerMastery",
+      "backToHome": "← Voltar para a página inicial",
+      "ourStory": "Nossa História",
+      "introduction": "Nascemos da necessidade de jogadores e managers que buscavam uma forma mais inteligente de estudar e gerir o jogo.",
+      "storyContent": "O PokerMastery foi criado por jogadores profissionais que entendiam na pele as dificuldades de evoluir no poker moderno. Horas analisando mãos manualmente, dificuldade em identificar padrões, ferramentas caras e complexas que não entregavam o que prometiam.",
+      "storyQuestion": "E se existisse uma ferramenta que realmente entendesse as necessidades de um grinder?",
+      "storyAnswer": "A resposta foi o Hand Replayer — nossa primeira ferramenta, gratuita e poderosa. Uma forma simples e visual de revisar suas mãos, entender suas decisões e compartilhar análises com coaches e times.",
+      "storyFuture": "Mas não paramos por aí. O Hand Replayer é apenas a porta de entrada para um ecossistema completo que estamos construindo: gestão de bankroll inteligente, laboratório GTO gamificado, plataforma para coaches e um marketplace que conecta jogadores aos melhores profissionais do mercado.",
+      "ourMission": "Nossa Missão",
+      "missionText": "Fornecer ferramentas e recursos avançados para jogadores de poker que buscam aprimorar suas habilidades e alcançar resultados superiores através de dados e tecnologia.",
+      "ourVision": "Nossa Visão",
+      "visionText": "Ser a plataforma líder e indispensável em análise e estudo de poker, reconhecida pela inovação, precisão e por ser a arma secreta dos jogadores mais dedicados.",
+      "ourValues": "Nossos Valores",
+      "valuesList": ["Precisão Analítica", "Inovação Contínua", "Foco no Desempenho", "Design Excepcional"],
+      "joinOurStory": "Faça Parte da Nossa História",
+      "joinDescription": "Estamos apenas começando. Junte-se a nós e tenha acesso antecipado a tudo que estamos construindo.",
+      "createFreAccount": "Criar Conta Gratuita",
+      "contactUs": "Fale Conosco"
+    },
+    "pricing": {
+      "title": "Planos e Preços",
+      "subtitle": "Comece gratuitamente com o Hand Replayer. Mais funcionalidades em breve.",
+      "free": "Free",
+      "pro": "Pro",
+      "coach": "Coach",
+      "availableNow": "DISPONÍVEL AGORA",
+      "comingSoon": "EM BREVE",
+      "forever": "Para sempre",
+      "perMonth": "por mês",
+      "handReplayerComplete": "Hand Replayer completo",
+      "unlimitedHandAnalysis": "Análise de mãos ilimitadas",
+      "sessionHistory": "Histórico de sessões",
+      "shareAnalyses": "Compartilhamento de análises",
+      "allFreeFeatures": "Tudo do Free +",
+      "bankrollManager": "Gestor de Bankroll",
+      "gtoLab": "Laboratório GTO",
+      "aiLeakDetection": "Detecção de Leaks por IA",
+      "allProFeatures": "Tudo do Pro +",
+      "teamManagement": "Gestão de Times",
+      "aggregatedDashboard": "Dashboard agregado",
+      "marketplaceProfile": "Perfil no Marketplace",
+      "startFree": "Começar Grátis",
+      "comingSoonButton": "Em Breve",
+      "faq": "Perguntas Frequentes",
+      "faq1Question": "O plano Free é realmente gratuito para sempre?",
+      "faq1Answer": "Sim! O Hand Replayer sempre será gratuito. Quando lançarmos as funcionalidades premium, você poderá continuar usando o Hand Replayer sem pagar nada.",
+      "faq2Question": "Quando os planos pagos serão lançados?",
+      "faq2Answer": "Estamos trabalhando duro no ecossistema completo. Cadastre-se agora para ser notificado quando lançarmos e ter acesso antecipado com desconto especial.",
+      "faq3Question": "Posso cancelar a qualquer momento?",
+      "faq3Answer": "Sim! Quando os planos pagos forem lançados, você poderá cancelar a qualquer momento sem multas ou taxas adicionais.",
+      "expandIcon": "Expandir",
       "backToHome": "← Voltar para a página inicial"
     },
     "blog": {
       "title": "Blog",
       "backToHome": "← Voltar para a página inicial",
-      "backToBlog": "Voltar ao Blog"
+      "backToBlog": "Voltar ao Blog",
+      "articleNotFound": "Artigo Não Encontrado",
+      "readMoreArticles": "Ler Mais Artigos"
+    },
+    "handAnalyzer": {
+      "pleaseInsertHistory": "Por favor, cole o histórico da mão antes de analisar."
+    },
+    "navigation": {
+      "about": "Sobre Nós",
+      "pricing": "Preços",
+      "blog": "Blog",
+      "contact": "Contato",
+      "backToHome": "Voltar para Home",
+      "newAnalysis": "Nova Análise"
     }
   }
 }
