@@ -6,7 +6,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Enable CORS for frontend
-  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || ['*'];
+  const defaultOrigins = [
+    'https://www.pokermastery.net',
+    'https://pokermastery.net',
+    'http://localhost:3000'
+  ];
+  const envOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || [];
+  const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
 
   app.enableCors({
     origin: process.env.NODE_ENV === 'production' ? allowedOrigins : true,

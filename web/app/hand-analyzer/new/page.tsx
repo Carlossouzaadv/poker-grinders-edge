@@ -63,8 +63,9 @@ export default function HandAnalyzerInputPage() {
       } else {
         console.log(`✅ Mãos adicionadas à sessão existente: ${result.name} (total: ${result.totalHands} mãos)`);
       }
-    } catch (error: any) {
-      console.error('❌ Erro ao salvar mãos:', error?.response?.data || error?.message);
+    } catch (error: unknown) {
+      const err = error as any;
+      console.error('❌ Erro ao salvar mãos:', err?.response?.data || err?.message);
       // Não mostrar erro para o usuário, apenas logar
       // O replayer continua funcionando normalmente mesmo se o salvamento falhar
     }
@@ -106,8 +107,9 @@ export default function HandAnalyzerInputPage() {
           } else {
             parseErrors.push(`Mão ${i + 1}: ${result.error}`);
           }
-        } catch (err: any) {
-          parseErrors.push(`Mão ${i + 1}: ${err?.message}`);
+        } catch (err: unknown) {
+          const error = err as Error;
+          parseErrors.push(`Mão ${i + 1}: ${error?.message}`);
         }
       }
 
@@ -136,9 +138,10 @@ export default function HandAnalyzerInputPage() {
         });
       }, 100);
 
-    } catch (err: any) {
-      console.error('❌ Error parsing hand:', err);
-      setError(err?.message || 'Erro ao processar o histórico da mão');
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('❌ Error parsing hand:', error);
+      setError(error?.message || 'Erro ao processar o histórico da mão');
       setAllHands([]);
       setCurrentHandIndex(0);
     }
@@ -152,6 +155,14 @@ export default function HandAnalyzerInputPage() {
 
     // Scroll suave de volta ao topo
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleFirstHand = () => {
+    setCurrentHandIndex(0);
+  };
+
+  const handleLastHand = () => {
+    setCurrentHandIndex(allHands.length - 1);
   };
 
   const handlePreviousHand = () => {
@@ -356,6 +367,8 @@ Seat 6: Player 6 folded before Flop (didn't bet)`;
               currentHandIndex={currentHandIndex}
               onPreviousHand={handlePreviousHand}
               onNextHand={handleNextHand}
+              onFirstHand={handleFirstHand}
+              onLastHand={handleLastHand}
             />
           </div>
         )}

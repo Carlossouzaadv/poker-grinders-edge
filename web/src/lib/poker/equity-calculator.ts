@@ -39,7 +39,7 @@ function parseCard(cardStr: string): PokerCard | null {
 /**
  * Parse a hand string (e.g., "AhKs") into an array of PokerCards
  */
-function parseHand(handStr: string): PokerCard[] | null {
+export function parseHand(handStr: string): PokerCard[] | null {
   const normalized = handStr.trim().replace(/\s+/g, '');
 
   if (normalized.length !== 4) return null;
@@ -60,7 +60,7 @@ function parseHand(handStr: string): PokerCard[] | null {
 /**
  * Parse board cards (e.g., "AhKs2c")
  */
-function parseBoard(boardStr: string): PokerCard[] | null {
+export function parseBoard(boardStr: string): PokerCard[] | null {
   const normalized = boardStr.trim().replace(/\s+/g, '');
 
   if (normalized.length === 0) return [];
@@ -146,8 +146,8 @@ function evaluateHand(cards: PokerCard[]): number {
   // Check straight
   const rankValues = cards.map(c => RANKS.indexOf(c.rank)).sort((a, b) => a - b);
   const isStraight = rankValues.every((val, idx) => idx === 0 || val === rankValues[idx - 1] + 1) ||
-                     (rankValues[0] === 0 && rankValues[1] === 1 && rankValues[2] === 2 &&
-                      rankValues[3] === 3 && rankValues[4] === 12); // Wheel (A2345)
+    (rankValues[0] === 0 && rankValues[1] === 1 && rankValues[2] === 2 &&
+      rankValues[3] === 3 && rankValues[4] === 12); // Wheel (A2345)
 
   // Score hand (simplified)
   if (isFlush && isStraight) return 8000000; // Straight flush
@@ -194,11 +194,31 @@ function getBestHand(sevenCards: PokerCard[]): number {
 /**
  * Run Monte Carlo simulation to calculate equity
  */
+/**
+ * Get human-readable hand rank description
+ */
+export function getHandRankDescription(cards: PokerCard[]): string {
+  const score = evaluateHand(cards);
+
+  if (score >= 8000000) return "Straight Flush";
+  if (score >= 7000000) return "Quadra";
+  if (score >= 6000000) return "Full House";
+  if (score >= 5000000) return "Flush";
+  if (score >= 4000000) return "Sequência";
+  if (score >= 3000000) return "Trinca";
+  if (score >= 2000000) return "Dois Pares";
+  if (score >= 1000000) return "Um Par";
+  return "Carta Alta";
+}
+
+/**
+ * Run Monte Carlo simulation to calculate equity
+ */
 export function calculateEquity(
   heroHandStr: string,
   villainHandStr: string,
   boardStr: string = '',
-  iterations: number = 10000
+  iterations: number = 5000 // Reduced for performance
 ): EquityResult | null {
   // Parse inputs
   const heroHand = parseHand(heroHandStr);
@@ -209,6 +229,80 @@ export function calculateEquity(
     return null;
   }
 
+  return runSimulation(heroHand, villainHand, board, iterations, heroHandStr, villainHandStr, boardStr);
+}
+
+/**
+ * Calculate Equity vs Random Hand
+ */
+export function calculateEquityVsRandom(
+  heroHandStr: string,
+  boardStr: string = '',
+  iterations: number = 1000 // Lower iterations for speed
+): EquityResult | null {
+  const heroHand = parseHand(heroHandStr);
+  const board = parseBoard(boardStr);
+
+  if (!heroHand || board === null) return null;
+
+  let totalHeroEquity = 0;
+
+  // Run multiple simulations against random hands
+  // We simulate 'iterations' times, picking a new random villain hand each time
+
+  const allCards = [...heroHand, ...board];
+  let deck = createDeck();
+  deck = removeUsedCards(deck, allCards);
+
+  let heroWins = 0;
+  let ties = 0;
+
+  for (let i = 0; i < iterations; i++) {
+    const shuffledDeck = shuffle(deck);
+
+    // Pick random villain hand
+    const villainHand = [shuffledDeck[0], shuffledDeck[1]];
+    const remainingDeck = shuffledDeck.slice(2);
+
+    // Complete board
+    const simulatedBoard = [...board];
+    let cardIndex = 0;
+    while (simulatedBoard.length < 5) {
+      simulatedBoard.push(remainingDeck[cardIndex++]);
+    }
+
+    const heroSevenCards = [...heroHand, ...simulatedBoard];
+    const villainSevenCards = [...villainHand, ...simulatedBoard];
+
+    const heroScore = getBestHand(heroSevenCards);
+    const villainScore = getBestHand(villainSevenCards);
+
+    if (heroScore > villainScore) heroWins++;
+    else if (heroScore === villainScore) ties++;
+  }
+
+  const heroEquity = ((heroWins + ties / 2) / iterations) * 100;
+
+  return {
+    heroEquity: Math.round(heroEquity * 100) / 100,
+    villainEquity: Math.round((100 - heroEquity) * 100) / 100,
+    tieEquity: 0, // Simplified
+    heroHand: heroHandStr,
+    villainRange: "Random",
+    board: boardStr,
+    street: board.length === 0 ? 'preflop' : board.length === 3 ? 'flop' : board.length === 4 ? 'turn' : 'river'
+  };
+}
+
+function runSimulation(
+  heroHand: PokerCard[],
+  villainHand: PokerCard[],
+  board: PokerCard[],
+  iterations: number,
+  heroHandStr: string,
+  villainHandStr: string,
+  boardStr: string
+): EquityResult | null {
   // Check for duplicate cards
   const allCards = [...heroHand, ...villainHand, ...board];
   const seen = new Set<string>();

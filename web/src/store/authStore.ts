@@ -22,12 +22,15 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
 
   // Actions
   login: (tokens: { access_token: string; refresh_token: string }, user: User) => void;
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
+  devLogin: () => void;
 }
 
 /**
@@ -41,6 +44,8 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
+      _hasHydrated: false,
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
 
       /**
        * Login action - stores tokens and user data
@@ -84,6 +89,25 @@ export const useAuthStore = create<AuthState>()(
           refreshToken,
         });
       },
+
+      /**
+       * Dev login for localhost testing
+       */
+      devLogin: () => {
+        set({
+          user: {
+            id: 'dev-user',
+            email: 'dev@example.com',
+            firstName: 'Dev',
+            lastName: 'User',
+            userType: 'PLAYER',
+            plan: 'PREMIUM',
+          },
+          accessToken: 'dev-token',
+          refreshToken: 'dev-refresh-token',
+          isAuthenticated: true,
+        });
+      },
     }),
     {
       name: 'auth-storage', // LocalStorage key
@@ -93,6 +117,9 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

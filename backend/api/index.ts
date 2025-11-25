@@ -23,7 +23,13 @@ async function bootstrap() {
     app = await NestFactory.create(AppModule);
 
     // Enable CORS for frontend
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || ['*'];
+    const defaultOrigins = [
+      'https://www.pokermastery.net',
+      'https://pokermastery.net',
+      'http://localhost:3000'
+    ];
+    const envOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || [];
+    const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
 
     console.log('🌐 CORS Configuration:', {
       NODE_ENV: process.env.NODE_ENV,
@@ -56,7 +62,13 @@ async function bootstrap() {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Add CORS headers manually (belt and suspenders approach)
-  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || ['*'];
+  const defaultOrigins = [
+    'https://www.pokermastery.net',
+    'https://pokermastery.net',
+    'http://localhost:3000'
+  ];
+  const envOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [];
+  const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
   const origin = req.headers.origin || '';
 
   console.log('🔍 CORS Check:', {

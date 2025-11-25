@@ -322,5 +322,47 @@
       "emailPlaceholder": "Your email",
       "copyright": "© 2025 PokerMastery. All rights reserved."
     }
+  },
+  "dashboard": {
+    "logout": "Logout",
+    "welcome": "Welcome, {{name}}!",
+    "subtitle": "Ready to elevate your game? Start analyzing your hands.",
+    "availableTools": "Available Tools",
+    "futureGame": "The Future of Your Game",
+    "developmentFeatures": "Features in development",
+    "accountInfo": "Account Information",
+    "email": "Email",
+    "phone": "Phone",
+    "plan": "Plan",
+    "type": "Type",
+    "handReplayer": {
+      "title": "Hand Replayer",
+      "available": "AVAILABLE",
+      "description": "Analyze your hands visually and interactively. Paste your tournament history and review each decision.",
+      "cta": "Start Analysis"
+    },
+    "sessionHistory": {
+      "title": "Session History",
+      "available": "AVAILABLE",
+      "description": "View your previous sessions and saved analyses. Track your evolution over time."
+    },
+    "comingSoon": {
+      "bankroll": {
+        "title": "Bankroll Manager",
+        "description": "Complete control of your finances"
+      },
+      "gto": {
+        "title": "GTO Laboratory",
+        "description": "Train scenarios and eliminate leaks"
+      },
+      "teams": {
+        "title": "Team Management",
+        "description": "For professional coaches"
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "description": "Find elite coaches"
+      }
+    }
   }
 }
