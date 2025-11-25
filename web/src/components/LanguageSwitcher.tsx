@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 const LanguageSwitcher: React.FC = () => {
   const { i18n } = useTranslation();
   const [isClient, setIsClient] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState<string>('pt');
+  const [currentLanguage, setCurrentLanguage] = useState<string>('en');
 
   // Prevenir erro de hidratação
   useEffect(() => {

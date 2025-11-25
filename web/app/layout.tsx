@@ -27,13 +27,13 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "PokerMastery | Estude suas mãos de Poker de Graça",
-  description: "A ferramenta de estudo que faltava para os grinders. Visualize suas mãos de poker de forma interativa e gratuita. Suporte para PokerStars, GGPoker e mais.",
-  keywords: "poker, hand replayer, estudo poker, PokerStars, GGPoker, grinder, análise mãos, PokerMastery",
+  title: "PokerMastery | Free Poker Hand Analysis & Study Tool",
+  description: "Advanced hand history replayer for serious poker grinders. Analyze your poker hands interactively for free. Support for PokerStars, GGPoker, and more.",
+  keywords: "poker, hand replayer, poker study, PokerStars, GGPoker, grinder, hand analysis, PokerMastery",
   authors: [{ name: "PokerMastery" }],
   openGraph: {
-    title: "PokerMastery - Estude de Graça",
-    description: "A ferramenta de estudo que faltava para os grinders",
+    title: "PokerMastery - Free Poker Hand Analysis",
+    description: "Professional poker hand history analysis and replay tool",
     type: "website"
   }
 };
@@ -44,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${poppins.variable} ${montserrat.variable} ${openSans.variable} font-sans antialiased`}>
         <I18nProvider>
           {children}
