@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function ContactPage() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,7 +22,7 @@ export default function ContactPage() {
 
     // Simulate form submission
     setTimeout(() => {
-      setSubmitMessage('Mensagem enviada com sucesso! Entraremos em contato em breve.');
+      setSubmitMessage(t('pages.contact.successMessage'));
       setIsSubmitting(false);
       setFormData({ name: '', email: '', subject: '', message: '' });
     }, 1500);
@@ -32,10 +34,10 @@ export default function ContactPage() {
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="font-montserrat text-5xl sm:text-6xl font-bold text-white mb-6">
-            Entre em Contato
+            {t('pages.contact.title')}
           </h1>
           <p className="font-open-sans text-xl text-[#E0E0E0]">
-            Tem alguma dúvida, sugestão ou feedback? Adoraríamos ouvir você.
+            {t('pages.contact.subtitle')}
           </p>
         </div>
       </section>
@@ -46,7 +48,7 @@ export default function ContactPage() {
           {/* Contact Form */}
           <div className="bg-gradient-to-br from-[#1a1a1a] to-[#121212] p-8 rounded-2xl border border-[#4C5FD5]/30">
             <h2 className="font-montserrat text-3xl font-bold text-white mb-6">
-              Envie uma Mensagem
+              {t('pages.contact.formTitle')}
             </h2>
 
             {submitMessage && (
@@ -58,7 +60,7 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block font-open-sans text-sm font-medium text-[#E0E0E0] mb-2">
-                  Nome
+                  {t('pages.contact.name')}
                 </label>
                 <input
                   type="text"
@@ -67,13 +69,13 @@ export default function ContactPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#4C5FD5]/30 rounded-lg text-white placeholder-[#9E9E9E] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all"
-                  placeholder="Seu nome"
+                  placeholder={t('pages.contact.namePlaceholder')}
                 />
               </div>
 
               <div>
                 <label htmlFor="email" className="block font-open-sans text-sm font-medium text-[#E0E0E0] mb-2">
-                  Email
+                  {t('pages.contact.email')}
                 </label>
                 <input
                   type="email"
@@ -82,13 +84,13 @@ export default function ContactPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#4C5FD5]/30 rounded-lg text-white placeholder-[#9E9E9E] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all"
-                  placeholder="seu@email.com"
+                  placeholder={t('pages.contact.emailPlaceholder')}
                 />
               </div>
 
               <div>
                 <label htmlFor="subject" className="block font-open-sans text-sm font-medium text-[#E0E0E0] mb-2">
-                  Assunto
+                  {t('pages.contact.subject')}
                 </label>
                 <input
                   type="text"
@@ -97,13 +99,13 @@ export default function ContactPage() {
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                   className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#4C5FD5]/30 rounded-lg text-white placeholder-[#9E9E9E] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all"
-                  placeholder="Como podemos ajudar?"
+                  placeholder={t('pages.contact.subjectPlaceholder')}
                 />
               </div>
 
               <div>
                 <label htmlFor="message" className="block font-open-sans text-sm font-medium text-[#E0E0E0] mb-2">
-                  Mensagem
+                  {t('pages.contact.message')}
                 </label>
                 <textarea
                   id="message"
@@ -112,7 +114,7 @@ export default function ContactPage() {
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#4C5FD5]/30 rounded-lg text-white placeholder-[#9E9E9E] focus:outline-none focus:ring-2 focus:ring-[#00FF8C] focus:border-transparent transition-all resize-none"
-                  placeholder="Conte-nos mais detalhes..."
+                  placeholder={t('pages.contact.messagePlaceholder')}
                 />
               </div>
 
@@ -127,10 +129,10 @@ export default function ContactPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Enviando...
+                    Loading...
                   </span>
                 ) : (
-                  'Enviar Mensagem'
+                  t('pages.contact.sendButton')
                 )}
               </button>
             </form>
@@ -234,7 +236,7 @@ export default function ContactPage() {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Voltar para a página inicial
+          {t('pages.contact.backToHome')}
         </Link>
       </div>
     </div>

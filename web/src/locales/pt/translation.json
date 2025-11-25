@@ -403,5 +403,61 @@
         "invalidCredentials": "Email ou senha inválidos"
       }
     }
+  },
+  "pages": {
+    "login": {
+      "title": "Entrar na Sua Conta",
+      "subtitle": "Entre na sua conta e continue a jornada para transformar seus dados em domínio.",
+      "brandTitle": "PokerMastery",
+      "benefits": [
+        "Tome decisões com a precisão do GTO",
+        "Gerencie seu bankroll como um profissional de elite",
+        "Encontre seus leaks antes que eles custem dinheiro",
+        "Acesse a vantagem que os outros não veem"
+      ],
+      "noAccount": "Não tem uma conta?",
+      "registerLink": "Cadastre-se aqui",
+      "backToHome": "← Voltar para a página inicial"
+    },
+    "contact": {
+      "title": "Entre em Contato",
+      "subtitle": "Tem alguma dúvida, sugestão ou feedback? Adoraríamos ouvir você.",
+      "formTitle": "Envie uma Mensagem",
+      "name": "Nome",
+      "email": "Email",
+      "subject": "Assunto",
+      "message": "Mensagem",
+      "namePlaceholder": "Seu nome",
+      "emailPlaceholder": "seu@email.com",
+      "subjectPlaceholder": "Como podemos ajudar?",
+      "messagePlaceholder": "Nos conte o que está em sua mente",
+      "sendButton": "Enviar Mensagem",
+      "successMessage": "Mensagem enviada com sucesso! Entraremos em contato em breve.",
+      "faqTitle": "FAQ",
+      "faqSubtitle": "Confira nossa página de preços para ver as perguntas mais comuns.",
+      "backToHome": "← Voltar para a página inicial"
+    },
+    "handAnalyzer": {
+      "history": {
+        "title": "Histórico de Sessões",
+        "subtitle": "Suas análises anteriores agrupadas por torneio e data",
+        "newAnalysis": "+ Nova Análise",
+        "loading": "Carregando histórico...",
+        "error": "Erro ao carregar histórico. Tente novamente.",
+        "confirmDelete": "Tem certeza que deseja deletar \"{{name}}\"?",
+        "deleteError": "Erro ao deletar sessão",
+        "deleteButton": "Deletar sessão",
+        "backToDashboard": "Voltar para Dashboard"
+      }
+    },
+    "about": {
+      "title": "Sobre PokerMastery",
+      "backToHome": "← Voltar para a página inicial"
+    },
+    "blog": {
+      "title": "Blog",
+      "backToHome": "← Voltar para a página inicial",
+      "backToBlog": "Voltar ao Blog"
+    }
   }
 }

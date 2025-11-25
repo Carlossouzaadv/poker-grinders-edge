@@ -403,5 +403,61 @@
         "invalidCredentials": "Invalid email or password"
       }
     }
+  },
+  "pages": {
+    "login": {
+      "title": "Sign In to Your Account",
+      "subtitle": "Sign in to your account and continue your journey to transform your data into mastery.",
+      "brandTitle": "PokerMastery",
+      "benefits": [
+        "Make decisions with GTO precision",
+        "Manage your bankroll like an elite professional",
+        "Find your leaks before they cost money",
+        "Get the edge others don't see"
+      ],
+      "noAccount": "Don't have an account?",
+      "registerLink": "Sign up here",
+      "backToHome": "← Back to home"
+    },
+    "contact": {
+      "title": "Get In Touch",
+      "subtitle": "Have any questions, suggestions or feedback? We'd love to hear from you.",
+      "formTitle": "Send a Message",
+      "name": "Name",
+      "email": "Email",
+      "subject": "Subject",
+      "message": "Message",
+      "namePlaceholder": "Your name",
+      "emailPlaceholder": "your@email.com",
+      "subjectPlaceholder": "How can we help?",
+      "messagePlaceholder": "Tell us what's on your mind",
+      "sendButton": "Send Message",
+      "successMessage": "Message sent successfully! We'll be in touch soon.",
+      "faqTitle": "FAQ",
+      "faqSubtitle": "Check our pricing page for the most common questions.",
+      "backToHome": "← Back to home"
+    },
+    "handAnalyzer": {
+      "history": {
+        "title": "Session History",
+        "subtitle": "Your previous analyses grouped by tournament and date",
+        "newAnalysis": "+ New Analysis",
+        "loading": "Loading history...",
+        "error": "Error loading history. Try again.",
+        "confirmDelete": "Are you sure you want to delete \"{{name}}\"?",
+        "deleteError": "Error deleting session",
+        "deleteButton": "Delete session",
+        "backToDashboard": "Back to Dashboard"
+      }
+    },
+    "about": {
+      "title": "About PokerMastery",
+      "backToHome": "← Back to home"
+    },
+    "blog": {
+      "title": "Blog",
+      "backToHome": "← Back to home",
+      "backToBlog": "Back to Blog"
+    }
   }
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -13,6 +14,7 @@ import {
 
 export default function HandHistoryPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuthStore();
   const [sessions, setSessions] = useState<HandHistorySession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,14 +37,14 @@ export default function HandHistoryPage() {
       setError('');
     } catch (err: any) {
       console.error('Error loading sessions:', err);
-      setError('Erro ao carregar histórico. Tente novamente.');
+      setError(t('pages.handAnalyzer.history.error'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (sessionId: string, sessionName: string) => {
-    if (!confirm(`Tem certeza que deseja deletar "${sessionName}"?`)) {
+    if (!confirm(t('pages.handAnalyzer.history.confirmDelete', { name: sessionName }))) {
       return;
     }
 
@@ -50,7 +52,7 @@ export default function HandHistoryPage() {
       await deleteSession(sessionId);
       setSessions(sessions.filter((s) => s.id !== sessionId));
     } catch (err) {
-      alert('Erro ao deletar sessão');
+      alert(t('pages.handAnalyzer.history.deleteError'));
       console.error(err);
     }
   };
@@ -62,7 +64,7 @@ export default function HandHistoryPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#121212] flex items-center justify-center">
-        <div className="text-white text-xl font-open-sans">Carregando histórico...</div>
+        <div className="text-white text-xl font-open-sans">{t('pages.handAnalyzer.history.loading')}</div>
       </div>
     );
   }
@@ -86,17 +88,17 @@ export default function HandHistoryPage() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="font-montserrat text-4xl sm:text-5xl font-bold text-white mb-3">
-                  Histórico de Sessões
+                  {t('pages.handAnalyzer.history.title')}
                 </h1>
                 <p className="font-open-sans text-lg text-[#E0E0E0]">
-                  Suas análises anteriores agrupadas por torneio e data
+                  {t('pages.handAnalyzer.history.subtitle')}
                 </p>
               </div>
               <Link
                 href="/hand-analyzer/new"
                 className="font-open-sans bg-[#00FF8C] hover:bg-[#00DD7A] text-[#121212] px-8 py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-[0_8px_24px_rgba(0,255,140,0.4)] hover:scale-105 transform"
               >
-                + Nova Análise
+                {t('pages.handAnalyzer.history.newAnalysis')}
               </Link>
             </div>
 
@@ -187,7 +189,7 @@ export default function HandHistoryPage() {
                       <button
                         onClick={() => handleDelete(session.id, session.name)}
                         className="font-open-sans bg-transparent border border-red-500/30 hover:border-red-500 hover:bg-red-500/10 text-red-400 hover:text-red-300 px-4 py-3 rounded-lg transition-all duration-300"
-                        title="Deletar sessão"
+                        title={t('pages.handAnalyzer.history.deleteButton')}
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -209,7 +211,7 @@ export default function HandHistoryPage() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Voltar para Dashboard
+              {t('pages.handAnalyzer.history.backToDashboard')}
             </Link>
           </div>
         </div>

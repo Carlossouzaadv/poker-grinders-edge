@@ -5,23 +5,25 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '@/lib/auth-api';
 import { useAuthStore } from '@/store/authStore';
 import Link from 'next/link';
 import Image from 'next/image';
 
-const loginSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(1, 'Senha é obrigatória'),
-  rememberMe: z.boolean().optional(),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
-
 export default function LoginPage() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
+
+  const loginSchema = z.object({
+    email: z.string().email(t('auth.login.validation.emailInvalid')),
+    password: z.string().min(1, t('auth.login.validation.passwordRequired')),
+    rememberMe: z.boolean().optional(),
+  });
+
+  type LoginFormData = z.infer<typeof loginSchema>;
 
   const {
     register,
@@ -49,7 +51,7 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (err: any) {
       setError(
-        err.response?.data?.message || 'Email ou senha incorretos. Tente novamente.'
+        err.response?.data?.message || t('auth.login.validation.invalidCredentials')
       );
     }
   };
@@ -75,52 +77,24 @@ export default function LoginPage() {
             </h1>
           </Link>
           <h2 className="font-montserrat text-3xl font-bold text-white mb-4">
-            O Futuro da Sua Performance.
+            {t('pages.login.title')}
           </h2>
           <p className="font-open-sans text-lg text-[#E0E0E0] leading-relaxed mb-8">
-            Entre na sua conta e continue a jornada para transformar seus dados em domínio.
+            {t('pages.login.subtitle')}
           </p>
           <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-[#00FF8C]/20 flex items-center justify-center flex-shrink-0 mt-1">
-                <svg className="w-4 h-4 text-[#00FF8C]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+            {(t('pages.login.benefits', { returnObjects: true }) as string[]).map((benefit: string, idx: number) => (
+              <div key={idx} className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-[#00FF8C]/20 flex items-center justify-center flex-shrink-0 mt-1">
+                  <svg className="w-4 h-4 text-[#00FF8C]" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <p className="font-open-sans text-[#E0E0E0]">
+                  {benefit}
+                </p>
               </div>
-              <p className="font-open-sans text-[#E0E0E0]">
-                Tome decisões com a precisão do GTO.
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-[#00FF8C]/20 flex items-center justify-center flex-shrink-0 mt-1">
-                <svg className="w-4 h-4 text-[#00FF8C]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <p className="font-open-sans text-[#E0E0E0]">
-                Gerencie seu bankroll como um profissional de elite.
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-[#00FF8C]/20 flex items-center justify-center flex-shrink-0 mt-1">
-                <svg className="w-4 h-4 text-[#00FF8C]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <p className="font-open-sans text-[#E0E0E0]">
-                Encontre seus leaks antes que eles custem dinheiro.
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-[#00FF8C]/20 flex items-center justify-center flex-shrink-0 mt-1">
-                <svg className="w-4 h-4 text-[#00FF8C]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <p className="font-open-sans text-[#E0E0E0]">
-                Acesse a vantagem que os outros não veem.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -139,15 +113,15 @@ export default function LoginPage() {
 
           <div>
             <h2 className="font-montserrat text-3xl font-bold text-white">
-              Entrar na sua conta
+              {t('auth.login.title')}
             </h2>
             <p className="mt-2 font-open-sans text-sm text-[#E0E0E0]">
-              Ainda não tem conta?{' '}
+              {t('pages.login.noAccount')}{' '}
               <Link
                 href="/register"
                 className="font-semibold text-[#00FF8C] hover:text-[#00DD7A] transition-colors"
               >
-                Criar conta gratuita
+                {t('pages.login.registerLink')}
               </Link>
             </p>
           </div>
@@ -227,10 +201,10 @@ export default function LoginPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Entrando...
+                    Loading...
                   </span>
                 ) : (
-                  'Entrar'
+                  t('auth.login.loginButton')
                 )}
               </button>
             </div>
@@ -240,7 +214,7 @@ export default function LoginPage() {
                 href="/"
                 className="font-open-sans text-sm text-[#E0E0E0] hover:text-[#00FF8C] transition-colors"
               >
-                ← Voltar para a página inicial
+                {t('pages.login.backToHome')}
               </Link>
             </div>
           </form>
