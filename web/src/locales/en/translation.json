@@ -533,7 +533,23 @@
       "readMoreArticles": "Read More Articles"
     },
     "handAnalyzer": {
-      "pleaseInsertHistory": "Please paste the hand history before analyzing."
+      "pleaseInsertHistory": "Please paste the hand history before analyzing.",
+      "backToDashboard": "← Back to Dashboard",
+      "analyzeTitle": "Analyze Your Hands",
+      "analyzeSubtitle": "Paste your tournament or cash game history and see each action visually and in detail.",
+      "historyTitle": "Hand History",
+      "historyPlaceholder": "Paste your hand history text here...",
+      "analyzeButton": "🎯 Analyze Hand",
+      "exampleButton": "⚡ Test with Example",
+      "howItWorks": "How It Works",
+      "step1Title": "Paste the History",
+      "step1Desc": "Paste the complete history of your hand from PokerStars, GGPoker, or another poker site.",
+      "step2Title": "Visualize the Action",
+      "step2Desc": "Watch each street and decision on an interactive table with realistic animations.",
+      "step3Title": "Analyze and Learn",
+      "step3Desc": "Use the tools to identify leaks and improve your decisions in the future.",
+      "supportedFormats": "Supported Formats",
+      "errorTitle": "Error Processing"
     },
     "navigation": {
       "about": "About Us",

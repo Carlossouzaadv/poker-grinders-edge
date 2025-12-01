@@ -533,7 +533,23 @@
       "readMoreArticles": "Ler Mais Artigos"
     },
     "handAnalyzer": {
-      "pleaseInsertHistory": "Por favor, cole o histórico da mão antes de analisar."
+      "pleaseInsertHistory": "Por favor, cole o histórico da mão antes de analisar.",
+      "backToDashboard": "← Voltar para Dashboard",
+      "analyzeTitle": "Analise Suas Mãos",
+      "analyzeSubtitle": "Cole o histórico do seu torneio ou cash game e veja cada ação de forma visual e detalhada.",
+      "historyTitle": "Histórico da Mão",
+      "historyPlaceholder": "Cole aqui o texto do histórico da sua mão...",
+      "analyzeButton": "🎯 Analisar Mão",
+      "exampleButton": "⚡ Testar com Exemplo",
+      "howItWorks": "Como Funciona",
+      "step1Title": "Cole o Histórico",
+      "step1Desc": "Cole o histórico completo da sua mão do PokerStars, GGPoker ou outro site de poker.",
+      "step2Title": "Visualize a Ação",
+      "step2Desc": "Veja cada street e decisão em uma mesa interativa com animações realistas.",
+      "step3Title": "Analise e Aprenda",
+      "step3Desc": "Use as ferramentas para identificar leaks e melhorar suas decisões no futuro.",
+      "supportedFormats": "Formatos Suportados",
+      "errorTitle": "Erro ao Processar"
     },
     "navigation": {
       "about": "Sobre Nós",
