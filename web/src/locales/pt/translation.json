@@ -473,23 +473,21 @@
     },
     "about": {
       "title": "Sobre PokerMastery",
+      "subtitle": "Nascemos da necessidade de jogadores e managers que buscavam uma forma mais inteligente de estudar e gerir o jogo.",
       "backToHome": "← Voltar para a página inicial",
-      "ourStory": "Nossa História",
-      "introduction": "Nascemos da necessidade de jogadores e managers que buscavam uma forma mais inteligente de estudar e gerir o jogo.",
-      "storyContent": "O PokerMastery foi criado por jogadores profissionais que entendiam na pele as dificuldades de evoluir no poker moderno. Horas analisando mãos manualmente, dificuldade em identificar padrões, ferramentas caras e complexas que não entregavam o que prometiam.",
-      "storyQuestion": "E se existisse uma ferramenta que realmente entendesse as necessidades de um grinder?",
-      "storyAnswer": "A resposta foi o Hand Replayer — nossa primeira ferramenta, gratuita e poderosa. Uma forma simples e visual de revisar suas mãos, entender suas decisões e compartilhar análises com coaches e times.",
-      "storyFuture": "Mas não paramos por aí. O Hand Replayer é apenas a porta de entrada para um ecossistema completo que estamos construindo: gestão de bankroll inteligente, laboratório GTO gamificado, plataforma para coaches e um marketplace que conecta jogadores aos melhores profissionais do mercado.",
-      "ourMission": "Nossa Missão",
+      "storyTitle": "Nossa História",
+      "storyP1": "O PokerMastery foi criado por jogadores profissionais que entendiam na pele as dificuldades de evoluir no poker moderno. Horas analisando mãos manualmente, dificuldade em identificar padrões, ferramentas caras e complexas que não entregavam o que prometiam.",
+      "storyP2": "E se existisse uma ferramenta que realmente entendesse as necessidades de um grinder?",
+      "storyP3": "A resposta foi o Hand Replayer — nossa primeira ferramenta, gratuita e poderosa. Uma forma simples e visual de revisar suas mãos, entender suas decisões e compartilhar análises com coaches e times.",
+      "storyP4": "Mas não paramos por aí. O Hand Replayer é apenas a porta de entrada para um ecossistema completo que estamos construindo: gestão de bankroll inteligente, laboratório GTO gamificado, plataforma para coaches e um marketplace que conecta jogadores aos melhores profissionais do mercado.",
+      "missionLabel": "Nossa Missão",
       "missionText": "Fornecer ferramentas e recursos avançados para jogadores de poker que buscam aprimorar suas habilidades e alcançar resultados superiores através de dados e tecnologia.",
-      "ourVision": "Nossa Visão",
+      "visionLabel": "Nossa Visão",
       "visionText": "Ser a plataforma líder e indispensável em análise e estudo de poker, reconhecida pela inovação, precisão e por ser a arma secreta dos jogadores mais dedicados.",
-      "ourValues": "Nossos Valores",
-      "valuesList": ["Precisão Analítica", "Inovação Contínua", "Foco no Desempenho", "Design Excepcional"],
-      "joinOurStory": "Faça Parte da Nossa História",
-      "joinDescription": "Estamos apenas começando. Junte-se a nós e tenha acesso antecipado a tudo que estamos construindo.",
-      "createFreAccount": "Criar Conta Gratuita",
-      "contactUs": "Fale Conosco"
+      "valuesLabel": "Nossos Valores",
+      "valuesList": "<li>Precisão Analítica</li><li>Inovação Contínua</li><li>Foco no Desempenho</li><li>Design Excepcional</li>",
+      "ctaTitle": "Faça Parte da Nossa História",
+      "ctaSubtitle": "Estamos apenas começando. Junte-se a nós e tenha acesso antecipado a tudo que estamos construindo."
     },
     "pricing": {
       "title": "Planos e Preços",
@@ -607,7 +605,9 @@
       "blog": "Blog",
       "contact": "Contato",
       "backToHome": "Voltar para Home",
-      "newAnalysis": "Nova Análise"
+      "newAnalysis": "Nova Análise",
+      "createAccount": "Criar Conta Gratuita",
+      "contactUs": "Fale Conosco"
     }
   }
 }
