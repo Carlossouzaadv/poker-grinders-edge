@@ -549,7 +549,57 @@
       "step3Title": "Analise e Aprenda",
       "step3Desc": "Use as ferramentas para identificar leaks e melhorar suas decisões no futuro.",
       "supportedFormats": "Formatos Suportados",
-      "errorTitle": "Erro ao Processar"
+      "errorTitle": "Erro ao Processar",
+      "analysis": {
+        "title": "Análise Estratégica da Mão",
+        "selectHandPrompt": "Selecione uma mão para ver a análise detalhada.",
+        "preflop": {
+          "title": "1. Análise Preflop",
+          "yourHand": "Sua Mão:",
+          "position": "Posição:",
+          "heroNotIdentified": "Hero não identificado nesta mão.",
+          "equityVsRandom": "Sua equidade contra uma mão aleatória é de **{{equity}}%**.",
+          "strongRaise": "Com essa força de mão, o raise é obrigatório para extrair valor.",
+          "aggressiveRaise": "Raise agressivo, tentando roubar os blinds ou isolar.",
+          "speculativeCall": "Call especulativo. Cuidado para não ser dominado.",
+          "conservativeFold": "Fold conservador. Essa mão geralmente tem valor para jogar.",
+          "correctFold": "Fold correto. Mão marginal fora de posição."
+        },
+        "flop": {
+          "title": "2. Análise do Flop",
+          "board": "Board:"
+        },
+        "turn": {
+          "title": "3. Análise do Turn",
+          "card": "Turn Card:"
+        },
+        "river": {
+          "title": "4. Análise do River",
+          "card": "River Card:"
+        },
+        "verdict": {
+          "title": "Veredito Final",
+          "playingPosition": "Você está jogando da posição **{{position}}** com **{{hand}}**.",
+          "streetAnalysis": "No {{street}}, você tem **{{handRank}}**.",
+          "equityEstimated": "Sua equidade estimada (vs range aleatório) é de **{{equity}}%**.",
+          "facedbBet": "Você enfrentou uma aposta de {{amount}}.",
+          "potOdds": "Pot Odds: **{{potOdds}}%**.",
+          "callEVPlus": "✅ **Call EV+**. Sua equidade é maior que as pot odds, justificando o call matemático.",
+          "callEVMinus": "⚠️ **Call EV-**. Matematicamente, você não tem equidade suficiente para pagar, a menos que espere extrair muito valor futuro (Implied Odds).",
+          "valueBet": "Aposta por **Valor**. Você tem uma mão muito forte e está extraindo fichas.",
+          "bluff": "Aposta por **Blefe**. Você está tentando fazer mãos melhores foldarem.",
+          "protectionBet": "Aposta por **Proteção/Valor Fino**.",
+          "slowplay": "Slowplay? Com essa força, considerar apostar pode ser melhor.",
+          "checkDefault": "Check padrão para controle de pote.",
+          "disciplinedFold": "🛡️ **Fold Disciplinado.** Você evitou se envolver em uma situação marginal fora de posição. A preservação de fichas é tão importante quanto ganhá-las.",
+          "goodRead": "🛑 **Boa Leitura.** Saber a hora de parar é uma habilidade essencial. Você identificou o perigo e economizou fichas importantes para spots melhores.",
+          "solidVictory": "🏆 **Vitória Sólida.** Você jogou sua mão de forma a maximizar o valor. Revise se houve alguma street onde poderia ter extraído ainda mais.",
+          "learning": "📉 **Aprendizado.** O resultado não foi favorável. Verifique a análise street-by-street acima para ver se houve algum call EV- ou oportunidade de fold que passou despercebida.",
+          "splitPot": "😐 **Pote Dividido/Sem Showdown.** Mão disputada. O importante é que a linha de raciocínio tenha sido matematicamente correta.",
+          "heroNotIdentifiedOrNoCards": "Hero não identificado ou sem cartas.",
+          "unknown": "Desconhecido"
+        }
+      }
     },
     "navigation": {
       "about": "Sobre Nós",

@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { HandHistory, Card as CardType } from '@/types/poker';
 import Card from '@/components/poker/Card';
 
@@ -7,6 +8,7 @@ interface HandAnalysisReportProps {
 }
 
 const HandAnalysisReport: React.FC<HandAnalysisReportProps> = ({ handHistory }) => {
+    const { t } = useTranslation();
     const analysis = useMemo(() => {
         if (!handHistory) return null;
 
@@ -27,18 +29,18 @@ const HandAnalysisReport: React.FC<HandAnalysisReportProps> = ({ handHistory }) 
             hero,
             heroHand,
             board,
-            preflopSummary: generatePreflopAnalysis(handHistory, hero),
-            flopSummary: generateStreetAnalysis(handHistory, 'flop'),
-            turnSummary: generateStreetAnalysis(handHistory, 'turn'),
-            riverSummary: generateStreetAnalysis(handHistory, 'river'),
-            finalVerdict: generateVerdict(handHistory, hero)
+            preflopSummary: generatePreflopAnalysis(handHistory, hero, t),
+            flopSummary: generateStreetAnalysis(handHistory, 'flop', t),
+            turnSummary: generateStreetAnalysis(handHistory, 'turn', t),
+            riverSummary: generateStreetAnalysis(handHistory, 'river', t),
+            finalVerdict: generateVerdict(handHistory, hero, t)
         };
-    }, [handHistory]);
+    }, [handHistory, t]);
 
     if (!handHistory || !analysis) {
         return (
             <div className="bg-[#1a1a1a] rounded-xl p-8 text-center border border-gray-800">
-                <p className="text-gray-400 font-open-sans">Selecione uma mão para ver a análise detalhada.</p>
+                <p className="text-gray-400 font-open-sans">{t('pages.handAnalyzer.analysis.selectHandPrompt')}</p>
             </div>
         );
     }
@@ -50,7 +52,7 @@ const HandAnalysisReport: React.FC<HandAnalysisReportProps> = ({ handHistory }) 
                 <div className="flex items-center gap-3">
                     <span className="text-2xl">🤖</span>
                     <h2 className="text-white font-montserrat font-bold text-lg">
-                        Análise Estratégica da Mão
+                        {t('pages.handAnalyzer.analysis.title')}
                     </h2>
                 </div>
                 <div className="text-xs text-gray-400 font-mono">
@@ -63,12 +65,12 @@ const HandAnalysisReport: React.FC<HandAnalysisReportProps> = ({ handHistory }) 
                 <section>
                     <div className="flex items-center gap-2 mb-3">
                         <span className="text-[#00FF8C] text-xl">📌</span>
-                        <h3 className="text-white font-bold text-lg">1. Análise Preflop</h3>
+                        <h3 className="text-white font-bold text-lg">{t('pages.handAnalyzer.analysis.preflop.title')}</h3>
                     </div>
 
                     <div className="bg-[#121212] rounded-lg p-4 border border-[#333]">
                         <div className="flex items-center gap-4 mb-4">
-                            <div className="text-gray-300">Sua Mão:</div>
+                            <div className="text-gray-300">{t('pages.handAnalyzer.analysis.preflop.yourHand')}</div>
                             <div className="flex gap-2">
                                 {analysis.heroHand.map((card, i) => (
                                     <div key={i} className="w-10">
@@ -77,7 +79,7 @@ const HandAnalysisReport: React.FC<HandAnalysisReportProps> = ({ handHistory }) 
                                 ))}
                             </div>
                             <div className="text-gray-300 ml-4">
-                                Posição: <span className="text-white font-bold">{analysis.hero?.position || 'Unknown'}</span>
+                                {t('pages.handAnalyzer.analysis.preflop.position')}: <span className="text-white font-bold">{analysis.hero?.position || t('pages.handAnalyzer.analysis.verdict.unknown')}</span>
                             </div>
                         </div>
 
@@ -92,12 +94,12 @@ const HandAnalysisReport: React.FC<HandAnalysisReportProps> = ({ handHistory }) 
                     <section>
                         <div className="flex items-center gap-2 mb-3">
                             <span className="text-[#00FF8C] text-xl">📌</span>
-                            <h3 className="text-white font-bold text-lg">2. Análise do Flop</h3>
+                            <h3 className="text-white font-bold text-lg">{t('pages.handAnalyzer.analysis.flop.title')}</h3>
                         </div>
 
                         <div className="bg-[#121212] rounded-lg p-4 border border-[#333]">
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="text-gray-300">Board:</div>
+                                <div className="text-gray-300">{t('pages.handAnalyzer.analysis.flop.board')}</div>
                                 <div className="flex gap-2">
                                     {handHistory.flop.cards.map((card, i) => (
                                         <div key={i} className="w-10">
@@ -119,12 +121,12 @@ const HandAnalysisReport: React.FC<HandAnalysisReportProps> = ({ handHistory }) 
                     <section>
                         <div className="flex items-center gap-2 mb-3">
                             <span className="text-[#00FF8C] text-xl">📌</span>
-                            <h3 className="text-white font-bold text-lg">3. Análise do Turn</h3>
+                            <h3 className="text-white font-bold text-lg">{t('pages.handAnalyzer.analysis.turn.title')}</h3>
                         </div>
 
                         <div className="bg-[#121212] rounded-lg p-4 border border-[#333]">
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="text-gray-300">Turn Card:</div>
+                                <div className="text-gray-300">{t('pages.handAnalyzer.analysis.turn.card')}</div>
                                 <div className="w-10">
                                     {handHistory.turn.card && <Card card={handHistory.turn.card} />}
                                 </div>
@@ -142,12 +144,12 @@ const HandAnalysisReport: React.FC<HandAnalysisReportProps> = ({ handHistory }) 
                     <section>
                         <div className="flex items-center gap-2 mb-3">
                             <span className="text-[#00FF8C] text-xl">📌</span>
-                            <h3 className="text-white font-bold text-lg">4. Análise do River</h3>
+                            <h3 className="text-white font-bold text-lg">{t('pages.handAnalyzer.analysis.river.title')}</h3>
                         </div>
 
                         <div className="bg-[#121212] rounded-lg p-4 border border-[#333]">
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="text-gray-300">River Card:</div>
+                                <div className="text-gray-300">{t('pages.handAnalyzer.analysis.river.card')}</div>
                                 <div className="w-10">
                                     {handHistory.river.card && <Card card={handHistory.river.card} />}
                                 </div>
@@ -164,7 +166,7 @@ const HandAnalysisReport: React.FC<HandAnalysisReportProps> = ({ handHistory }) 
                 <section className="mt-8 pt-6 border-t border-[#333]">
                     <div className="flex items-center gap-2 mb-4">
                         <span className="text-2xl">🧠</span>
-                        <h3 className="text-white font-bold text-lg">Veredito Final</h3>
+                        <h3 className="text-white font-bold text-lg">{t('pages.handAnalyzer.analysis.verdict.title')}</h3>
                     </div>
 
                     <div className="bg-gradient-to-r from-[#1a1a1a] to-[#252525] rounded-lg p-6 border-l-4 border-[#00FF8C]">
@@ -192,33 +194,33 @@ function didHeroFold(hand: HandHistory, street: 'preflop' | 'flop' | 'turn' | 'r
     return actions?.some(a => a.player === heroName && a.action === 'fold') || false;
 }
 
-function generatePreflopAnalysis(hand: HandHistory, hero: any): string {
-    if (!hero) return "Hero não identificado nesta mão.";
+function generatePreflopAnalysis(hand: HandHistory, hero: any, t: any): string {
+    if (!hero) return t('pages.handAnalyzer.analysis.preflop.heroNotIdentified');
 
-    const position = hero.position || "Unknown";
+    const position = hero.position || t('pages.handAnalyzer.analysis.verdict.unknown');
     const action = hand.preflop?.find(a => a.player === hero.name)?.action;
     const heroHandStr = hero.cards.map((c: any) => `${c.rank}${c.suit}`).join('');
 
     // Simple preflop strength check (can be improved with ranges)
     const equity = calculateEquityVsRandom(heroHandStr, '', 1000)?.heroEquity || 0;
 
-    let analysis = `Você está jogando da posição **${position}** com **${heroHandStr}**. `;
-    analysis += `Sua equidade contra uma mão aleatória é de **${equity}%**. `;
+    let analysis = t('pages.handAnalyzer.analysis.verdict.playingPosition', { position, hand: heroHandStr }) + ' ';
+    analysis += t('pages.handAnalyzer.analysis.preflop.equityVsRandom', { equity: Math.round(equity) }) + ' ';
 
     if (action === 'raise') {
-        if (equity > 60) analysis += "Com essa força de mão, o raise é obrigatório para extrair valor. ";
-        else analysis += "Raise agressivo, tentando roubar os blinds ou isolar. ";
+        if (equity > 60) analysis += t('pages.handAnalyzer.analysis.preflop.strongRaise') + ' ';
+        else analysis += t('pages.handAnalyzer.analysis.preflop.aggressiveRaise') + ' ';
     } else if (action === 'call') {
-        analysis += "Call especulativo. Cuidado para não ser dominado. ";
+        analysis += t('pages.handAnalyzer.analysis.preflop.speculativeCall') + ' ';
     } else if (action === 'fold') {
-        if (equity > 60) analysis += "Fold conservador. Essa mão geralmente tem valor para jogar. ";
-        else analysis += "Fold correto. Mão marginal fora de posição. ";
+        if (equity > 60) analysis += t('pages.handAnalyzer.analysis.preflop.conservativeFold') + ' ';
+        else analysis += t('pages.handAnalyzer.analysis.preflop.correctFold') + ' ';
     }
 
     return analysis;
 }
 
-function generateStreetAnalysis(hand: HandHistory, street: 'flop' | 'turn' | 'river'): string {
+function generateStreetAnalysis(hand: HandHistory, street: 'flop' | 'turn' | 'river', t: any): string {
     const streetData = hand[street];
     if (!streetData) return "";
 
@@ -227,7 +229,7 @@ function generateStreetAnalysis(hand: HandHistory, street: 'flop' | 'turn' | 'ri
 
     const heroHandStr = hero.cards ? hero.cards.map((c: any) => `${c.rank}${c.suit}`).join('') : '';
 
-    if (!heroHandStr) return "Hero não identificado ou sem cartas.";
+    if (!heroHandStr) return t('pages.handAnalyzer.analysis.verdict.heroNotIdentifiedOrNoCards');
 
     // Build board string up to this street
     let boardCards = [...(hand.flop?.cards || [])];
@@ -239,7 +241,7 @@ function generateStreetAnalysis(hand: HandHistory, street: 'flop' | 'turn' | 'ri
     // Calculate Hand Strength
     const parsedHand = parseHand(heroHandStr);
     const parsedBoard = parseBoard(boardStr);
-    let handRank = "Desconhecido";
+    let handRank = t('pages.handAnalyzer.analysis.verdict.unknown');
 
     if (parsedHand && parsedBoard) {
         handRank = getHandRankDescription([...parsedHand, ...parsedBoard]);
@@ -254,8 +256,8 @@ function generateStreetAnalysis(hand: HandHistory, street: 'flop' | 'turn' | 'ri
     const heroAction = actions.find(a => a.player === hero.name);
     const lastBet = actions.slice().reverse().find(a => a.action === 'bet' || a.action === 'raise' && a.player !== hero.name);
 
-    let text = `No ${street}, você tem **${handRank}**. `;
-    text += `Sua equidade estimada (vs range aleatório) é de **${equity}%**. `;
+    let text = t('pages.handAnalyzer.analysis.verdict.streetAnalysis', { street, handRank }) + ' ';
+    text += t('pages.handAnalyzer.analysis.verdict.equityEstimated', { equity: Math.round(equity) }) + ' ';
 
     if (lastBet && heroAction?.action === 'call') {
         // Calculate Pot Odds (Simplified)
@@ -264,44 +266,44 @@ function generateStreetAnalysis(hand: HandHistory, street: 'flop' | 'turn' | 'ri
         const totalPot = potBeforeBet + betAmount + betAmount; // Pot + Bet + Call
         const potOdds = (betAmount / totalPot) * 100;
 
-        text += `Você enfrentou uma aposta de ${betAmount}. `;
-        text += `Pot Odds: **${Math.round(potOdds)}%**. `;
+        text += t('pages.handAnalyzer.analysis.verdict.facedbBet', { amount: betAmount }) + ' ';
+        text += t('pages.handAnalyzer.analysis.verdict.potOdds', { potOdds: Math.round(potOdds) }) + ' ';
 
         if (equity > potOdds) {
-            text += "✅ **Call EV+**. Sua equidade é maior que as pot odds, justificando o call matemático. ";
+            text += t('pages.handAnalyzer.analysis.verdict.callEVPlus') + ' ';
         } else {
-            text += "⚠️ **Call EV-**. Matematicamente, você não tem equidade suficiente para pagar, a menos que espere extrair muito valor futuro (Implied Odds). ";
+            text += t('pages.handAnalyzer.analysis.verdict.callEVMinus') + ' ';
         }
     } else if (heroAction?.action === 'bet' || heroAction?.action === 'raise') {
-        if (equity > 70) text += "Aposta por **Valor**. Você tem uma mão muito forte e está extraindo fichas. ";
-        else if (equity < 40) text += "Aposta por **Blefe**. Você está tentando fazer mãos melhores foldarem. ";
-        else text += "Aposta por **Proteção/Valor Fino**. ";
+        if (equity > 70) text += t('pages.handAnalyzer.analysis.verdict.valueBet') + ' ';
+        else if (equity < 40) text += t('pages.handAnalyzer.analysis.verdict.bluff') + ' ';
+        else text += t('pages.handAnalyzer.analysis.verdict.protectionBet') + ' ';
     } else if (heroAction?.action === 'check') {
-        if (equity > 80) text += "Slowplay? Com essa força, considerar apostar pode ser melhor. ";
-        else text += "Check padrão para controle de pote. ";
+        if (equity > 80) text += t('pages.handAnalyzer.analysis.verdict.slowplay') + ' ';
+        else text += t('pages.handAnalyzer.analysis.verdict.checkDefault') + ' ';
     }
 
     return text;
 }
 
-function generateVerdict(hand: HandHistory, hero: any): string {
+function generateVerdict(hand: HandHistory, hero: any, t: any): string {
     const winner = hand.showdown?.winners[0];
     const isHeroWinner = winner === hero?.name;
 
     // Check if Hero folded at any point
     if (didHeroFold(hand, 'preflop')) {
-        return "🛡️ **Fold Disciplinado.** Você evitou se envolver em uma situação marginal fora de posição. A preservação de fichas é tão importante quanto ganhá-las.";
+        return t('pages.handAnalyzer.analysis.verdict.disciplinedFold');
     }
     if (didHeroFold(hand, 'flop') || didHeroFold(hand, 'turn') || didHeroFold(hand, 'river')) {
-        return "🛑 **Boa Leitura.** Saber a hora de parar é uma habilidade essencial. Você identificou o perigo e economizou fichas importantes para spots melhores.";
+        return t('pages.handAnalyzer.analysis.verdict.goodRead');
     }
 
     if (isHeroWinner) {
-        return "🏆 **Vitória Sólida.** Você jogou sua mão de forma a maximizar o valor. Revise se houve alguma street onde poderia ter extraído ainda mais.";
+        return t('pages.handAnalyzer.analysis.verdict.solidVictory');
     } else if (winner) {
-        return "📉 **Aprendizado.** O resultado não foi favorável. Verifique a análise street-by-street acima para ver se houve algum call EV- ou oportunidade de fold que passou despercebida.";
+        return t('pages.handAnalyzer.analysis.verdict.learning');
     } else {
-        return "😐 **Pote Dividido/Sem Showdown.** Mão disputada. O importante é que a linha de raciocínio tenha sido matematicamente correta.";
+        return t('pages.handAnalyzer.analysis.verdict.splitPot');
     }
 }
 

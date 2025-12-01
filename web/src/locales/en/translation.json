@@ -549,7 +549,57 @@
       "step3Title": "Analyze and Learn",
       "step3Desc": "Use the tools to identify leaks and improve your decisions in the future.",
       "supportedFormats": "Supported Formats",
-      "errorTitle": "Error Processing"
+      "errorTitle": "Error Processing",
+      "analysis": {
+        "title": "Strategic Hand Analysis",
+        "selectHandPrompt": "Select a hand to see detailed analysis.",
+        "preflop": {
+          "title": "1. Preflop Analysis",
+          "yourHand": "Your Hand:",
+          "position": "Position:",
+          "heroNotIdentified": "Hero not identified in this hand.",
+          "equityVsRandom": "Your equity vs a random hand is **{{equity}}%**.",
+          "strongRaise": "With this hand strength, raising is mandatory to extract value.",
+          "aggressiveRaise": "Aggressive raise, attempting to steal blinds or isolate.",
+          "speculativeCall": "Speculative call. Be careful not to be dominated.",
+          "conservativeFold": "Conservative fold. This hand usually has value to play.",
+          "correctFold": "Correct fold. Marginal hand out of position."
+        },
+        "flop": {
+          "title": "2. Flop Analysis",
+          "board": "Board:"
+        },
+        "turn": {
+          "title": "3. Turn Analysis",
+          "card": "Turn Card:"
+        },
+        "river": {
+          "title": "4. River Analysis",
+          "card": "River Card:"
+        },
+        "verdict": {
+          "title": "Final Verdict",
+          "playingPosition": "You're playing from **{{position}}** with **{{hand}}**.",
+          "streetAnalysis": "On the {{street}}, you have **{{handRank}}**.",
+          "equityEstimated": "Your estimated equity (vs random range) is **{{equity}}%**.",
+          "facedbBet": "You faced a bet of {{amount}}.",
+          "potOdds": "Pot Odds: **{{potOdds}}%**.",
+          "callEVPlus": "✅ **Call EV+**. Your equity exceeds pot odds, justifying the mathematical call.",
+          "callEVMinus": "⚠️ **Call EV-**. Mathematically, you don't have enough equity to call, unless you expect to extract significant future value (Implied Odds).",
+          "valueBet": "Betting for **Value**. You have a strong hand and are extracting chips.",
+          "bluff": "Betting as a **Bluff**. You're trying to get better hands to fold.",
+          "protectionBet": "Betting for **Protection/Thin Value**.",
+          "slowplay": "Slowplay? With this strength, betting might be better.",
+          "checkDefault": "Standard check for pot control.",
+          "disciplinedFold": "🛡️ **Disciplined Fold.** You avoided getting involved in a marginal situation out of position. Preserving chips is as important as winning them.",
+          "goodRead": "🛑 **Good Read.** Knowing when to quit is an essential skill. You identified the danger and saved important chips for better spots.",
+          "solidVictory": "🏆 **Solid Victory.** You played your hand to maximize value. Review if there was any street where you could have extracted even more.",
+          "learning": "📉 **Learning.** The result wasn't favorable. Check the street-by-street analysis above to see if there was an EV- call or fold opportunity you missed.",
+          "splitPot": "😐 **Split Pot/No Showdown.** Disputed hand. What matters is that your reasoning was mathematically correct.",
+          "heroNotIdentifiedOrNoCards": "Hero not identified or has no cards.",
+          "unknown": "Unknown"
+        }
+      }
     },
     "navigation": {
       "about": "About Us",
