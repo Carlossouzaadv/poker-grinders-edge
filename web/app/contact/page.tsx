@@ -156,15 +156,34 @@ export default function ContactPage() {
                   <div className="relative w-12 h-12 flex-shrink-0">
                     <Image
                       src="/assets/images/nova id visual/icon-email.png"
-                      alt="Email"
+                      alt="Support Email"
                       fill
                       className="object-contain"
                     />
                   </div>
                   <div>
-                    <h3 className="font-montserrat font-bold text-white mb-1">Email</h3>
-                    <a href="mailto:pokergrindersedge@gmail.com" className="font-open-sans text-[#00FF8C] hover:text-[#00DD7A] transition-colors">
-                      pokergrindersedge@gmail.com
+                    <h3 className="font-montserrat font-bold text-white mb-1">Support</h3>
+                    <a href="mailto:support@pokermastery.net" className="font-open-sans text-[#00FF8C] hover:text-[#00DD7A] transition-colors">
+                      support@pokermastery.net
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 rounded-xl border border-[rgba(76,95,213,0.2)] transition-all duration-300 hover:border-[rgba(0,255,140,0.5)] hover:shadow-[0_8px_24px_rgba(0,255,140,0.15)]" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #121212 100%)' }}>
+                <div className="flex items-center gap-4">
+                  <div className="relative w-12 h-12 flex-shrink-0">
+                    <Image
+                      src="/assets/images/nova id visual/icon-email.png"
+                      alt="Team Email"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-montserrat font-bold text-white mb-1">Team</h3>
+                    <a href="mailto:team@pokermastery.net" className="font-open-sans text-[#00FF8C] hover:text-[#00DD7A] transition-colors">
+                      team@pokermastery.net
                     </a>
                   </div>
                 </div>

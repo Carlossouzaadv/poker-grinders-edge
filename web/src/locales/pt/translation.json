@@ -454,8 +454,11 @@
       "messagePlaceholder": "Nos conte o que está em sua mente",
       "sendButton": "Enviar Mensagem",
       "successMessage": "Mensagem enviada com sucesso! Entraremos em contato em breve.",
+      "otherWays": "Outras Formas de Entrar em Contato",
+      "otherWaysDesc": "Prefere entrar em contato de outra forma? Aqui estão nossos outros canais de comunicação:",
       "faqTitle": "FAQ",
-      "faqSubtitle": "Confira nossa página de preços para ver as perguntas mais comuns.",
+      "faqDesc": "Confira nossa página de preços para ver as perguntas mais comuns.",
+      "faqButton": "Ver Perguntas Frequentes",
       "backToHome": "← Voltar para a página inicial"
     },
     "handAnalyzer": {
@@ -468,7 +471,10 @@
         "confirmDelete": "Tem certeza que deseja deletar \"{{name}}\"?",
         "deleteError": "Erro ao deletar sessão",
         "deleteButton": "Deletar sessão",
-        "backToDashboard": "Voltar para Dashboard"
+        "backToDashboard": "Voltar para Dashboard",
+        "noSessions": "Nenhuma Sessão Registrada",
+        "noSessionsDesc": "Você ainda não analisou nenhuma mão. Comece agora analisando suas primeiras mãos e acompanhe seu progresso.",
+        "analyzeFirstHand": "Analisar Primeira Mão"
       }
     },
     "about": {
@@ -525,10 +531,17 @@
     },
     "blog": {
       "title": "Blog",
+      "subtitle": "Dicas, estratégias e insights para elevar seu jogo de poker",
       "backToHome": "← Voltar para a página inicial",
       "backToBlog": "Voltar ao Blog",
       "articleNotFound": "Artigo Não Encontrado",
-      "readMoreArticles": "Ler Mais Artigos"
+      "readMoreArticles": "Ler Mais Artigos",
+      "readArticle": "Ler Artigo",
+      "comingSoonAlt": "Em Breve",
+      "comingSoonTitle": "Mais Artigos em Breve",
+      "comingSoonText": "Estamos criando conteúdo exclusivo sobre estratégia de poker, bankroll management, análise de hands e muito mais. Deixe seu email para ser notificado quando publicarmos.",
+      "notifyButton": "Quero Ser Notificado",
+      "categoriesTitle": "Categorias"
     },
     "handAnalyzer": {
       "pleaseInsertHistory": "Por favor, cole o histórico da mão antes de analisar.",

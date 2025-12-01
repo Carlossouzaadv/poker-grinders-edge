@@ -454,8 +454,11 @@
       "messagePlaceholder": "Tell us what's on your mind",
       "sendButton": "Send Message",
       "successMessage": "Message sent successfully! We'll be in touch soon.",
+      "otherWays": "Other Ways to Get in Touch",
+      "otherWaysDesc": "Prefer to reach out another way? Here are our other communication channels:",
       "faqTitle": "FAQ",
-      "faqSubtitle": "Check our pricing page for the most common questions.",
+      "faqDesc": "Check our pricing page for the most common questions.",
+      "faqButton": "See Frequently Asked Questions",
       "backToHome": "← Back to home"
     },
     "handAnalyzer": {
@@ -468,7 +471,10 @@
         "confirmDelete": "Are you sure you want to delete \"{{name}}\"?",
         "deleteError": "Error deleting session",
         "deleteButton": "Delete session",
-        "backToDashboard": "Back to Dashboard"
+        "backToDashboard": "Back to Dashboard",
+        "noSessions": "No Sessions Registered",
+        "noSessionsDesc": "You haven't analyzed any hands yet. Start now by analyzing your first hands and track your progress.",
+        "analyzeFirstHand": "Analyze First Hand"
       }
     },
     "about": {
@@ -525,10 +531,17 @@
     },
     "blog": {
       "title": "Blog",
+      "subtitle": "Tips, strategies and insights to elevate your poker game",
       "backToHome": "← Back to home",
       "backToBlog": "Back to Blog",
       "articleNotFound": "Article Not Found",
-      "readMoreArticles": "Read More Articles"
+      "readMoreArticles": "Read More Articles",
+      "readArticle": "Read Article",
+      "comingSoonAlt": "Coming Soon",
+      "comingSoonTitle": "More Articles Coming Soon",
+      "comingSoonText": "We're creating exclusive content about poker strategy, bankroll management, hand analysis and much more. Leave your email to be notified when we publish.",
+      "notifyButton": "I Want to Be Notified",
+      "categoriesTitle": "Categories"
     },
     "handAnalyzer": {
       "pleaseInsertHistory": "Please paste the hand history before analyzing.",
